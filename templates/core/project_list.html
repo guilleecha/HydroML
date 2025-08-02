@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Proyectos{% endblock %}
+
+{% block content %}
+    <h1>Mis Proyectos</h1>
+    <p>Selecciona un proyecto para ver sus datasets o añade nuevos datos.</p>
+
+    <hr>
+
+    {% for project in projects %}
+        <div style="border: 1px solid #eee; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h3>{{ project.name }}</h3>
+            <p>{{ project.description|default:"Este proyecto no tiene descripción." }}</p>
+            <a href="{% url 'dataset_upload' project.id %}" style="text-decoration: none; background-color: #28a745; color: white; padding: 10px 15px; border-radius: 5px;">
+                + Añadir Dataset
+            </a>
+        </div>
+    {% empty %}
+        <p>Aún no has creado ningún proyecto. Puedes crear uno desde el <a href="/admin/">panel de administrador</a>.</p>
+    {% endfor %}
+{% endblock %}

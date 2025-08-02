@@ -5,8 +5,11 @@ venv/
 # Archivos de PyCharm
 .idea/
 
-# Base de datos
+# Base de datos de desarrollo
 db.sqlite3
+
+# Archivos de media (cargas de usuarios, parquet, etc.)
+/media/
 
 # Otros
 __pycache__/

@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>HydroML - {% block title %}Dashboard{% endblock %}</title>
+    <style>
+        /* --- Estilos Generales --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex; /* Usamos Flexbox para el layout */
+            height: 100vh;
+        }
+
+        /* --- Menú Lateral (Sidebar) --- */
+        .sidebar {
+            width: 240px;
+            background-color: #2c3e50; /* Azul oscuro */
+            color: white;
+            padding: 20px;
+            height: 100vh;
+            box-sizing: border-box;
+            position: fixed;
+        }
+        .sidebar .logo {
+            font-size: 1.8em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .sidebar nav ul {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar nav a {
+            display: block;
+            padding: 12px 15px;
+            color: #ecf0f1; /* Gris claro */
+            text-decoration: none;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            transition: background-color 0.3s;
+        }
+        .sidebar nav a:hover, .sidebar nav a.active {
+            background-color: #34495e; /* Azul un poco más claro */
+        }
+
+        /* --- Contenido Principal --- */
+        .main-content {
+            flex-grow: 1; /* Ocupa el espacio restante */
+            padding: 40px;
+            margin-left: 240px; /* Dejamos espacio para el menú lateral fijo */
+            overflow-y: auto; /* Scroll si el contenido es largo */
+        }
+        .content-card {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background-color: #f2f2f2; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo">HydroML</div>
+        <nav>
+            <ul>
+                <li><a href="{% url 'project_list' %}">🗃️ Gestión de Datasets</a></li>
+                <li><a href="{% url 'prepare_data' %}">🧹 Preparar Datos</a></li>
+                <li><a href="#">🧠 Entrenar Modelos</a></li>
+                <li><a href="#">📊 Ver Resultados</a></li>
+                <li><a href="#">🔮 Predecir</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="content-card">
+            {% block content %}
+            {% endblock %}
+            </div>
+    </main>
+
+</body>
+</html>
