@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'core.apps.CoreConfig',
+    'projects.apps.ProjectsConfig',
+    'experiments.apps.ExperimentsConfig',
 ]
 
 MIDDLEWARE = [
@@ -56,8 +57,7 @@ ROOT_URLCONF = "hydroML.urls"
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # AQUÍ le decimos a Django que busque plantillas en la carpeta "templates" de la raíz del proyecto.
-        'DIRS': [os.path.join(BASE_DIR, 'templates')], # <-- MODIFICA ESTA LÍNEA
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -119,7 +119,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
-
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -129,3 +131,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # En HydroML/settings.py (al final)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+# --- CELERY SETTINGS ---
+CELERY_BROKER_URL = 'redis://172.24.255.84:6379/0'
+CELERY_RESULT_BACKEND = 'redis://172.24.255.84:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'

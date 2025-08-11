@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <a href="{% url 'projects:project_detail' experiment.project.id %}">&larr; Volver al proyecto: {{ experiment.project.name }}</a>
+    <h1 class="mt-2">Detalle del Experimento: {{ experiment.name }}</h1>
+
+    <div class="alert alert-info">
+        <strong>Estado:</strong> {{ experiment.get_status_display }} |
+        <strong>Columna de Fusión:</strong> {{ experiment.merge_key }} |
+        <strong>Creado:</strong> {{ experiment.created_at|date:"d M Y, H:i" }}
+    </div>
+
+    <p>{{ experiment.description }}</p>
+
+    <hr>
+
+    {% if experiment.status == 'COMPLETE' and experiment.fused_data and experiment.fused_data.summary %}
+        <h3>Visualización de la Media por Columna</h3>
+        <div style="max-width: 900px; margin: auto; padding: 20px;">
+            <canvas id="myBarChart"></canvas>
+        </div>
+        <hr>
+
+        <h3>Resumen Estadístico del Dataset Fusionado</h3>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Métrica</th>
+                        {% for column_name in experiment.fused_data.summary.count.keys %}
+                            <th>{{ column_name }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for metric, values in experiment.fused_data.summary.items %}
+                    <tr>
+                        <td><strong>{{ metric }}</strong></td>
+                        {% for value in values.values %}
+                            <td>{{ value|floatformat:2 }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <a href="{{ experiment.fused_data.fused_file.url }}" class="btn btn-primary mt-3" download>Descargar Dataset Completo</a>
+
+    {% elif experiment.status == 'PROCESSING' %}
+        <div class="alert alert-primary">
+            <h5 class="alert-heading"><i class="fas fa-spinner fa-spin"></i> El Experimento se está Procesando</h5>
+            <p>Los resultados aparecerán en esta página una vez que la tarea finalice. Podés refrescar la página en unos momentos.</p>
+        </div>
+
+    {% elif experiment.status == 'FAILED' %}
+         <div class="alert alert-danger">
+            <h5 class="alert-heading"><i class="fas fa-times-circle"></i> El Procesamiento ha Fallado</h5>
+            <p>Ocurrió un error durante la ejecución de este experimento. A continuación se muestra el detalle del error:</p>
+            <hr>
+            <pre class="mb-0"><code>{{ experiment.error_message }}</code></pre>
+        </div>
+    {% endif %}
+
+</div> {% endblock %}
+
+
+{% block scripts %}
+    {% if experiment.status == 'COMPLETE' and experiment.fused_data.summary %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const ctx = document.getElementById('myBarChart').getContext('2d');
+                const chartLabels = {{ chart_labels|safe }};
+                const chartData = {{ chart_data|safe }};
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [{
+                            label: 'Media de la Columna',
+                            data: chartData,
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: { y: { beginAtZero: true } },
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'top', },
+                            title: { display: true, text: 'Comparación de Medias' }
+                        }
+                    }
+                });
+            });
+        </script>
+    {% endif %}
+{% endblock %}

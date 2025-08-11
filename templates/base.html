@@ -3,90 +3,93 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HydroML - {% block title %}Dashboard{% endblock %}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
     <style>
-        /* --- Estilos Generales --- */
+        /* Estilos personalizados inspirados en GitHub */
+        :root {
+            --color-bg-body: #f6f8fa; /* Gris claro para el fondo */
+            --color-border-default: #d0d7de;
+            --color-text-primary: #1f2328;
+        }
+
         body {
+            background-color: var(--color-bg-body);
+            color: var(--color-text-primary);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            margin: 0;
-            background-color: #f4f7f6;
-            color: #333;
-            display: flex; /* Usamos Flexbox para el layout */
-            height: 100vh;
         }
 
-        /* --- Menú Lateral (Sidebar) --- */
-        .sidebar {
-            width: 240px;
-            background-color: #2c3e50; /* Azul oscuro */
-            color: white;
-            padding: 20px;
-            height: 100vh;
-            box-sizing: border-box;
-            position: fixed;
-        }
-        .sidebar .logo {
-            font-size: 1.8em;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .sidebar nav ul {
-            list-style: none;
-            padding: 0;
-        }
-        .sidebar nav a {
-            display: block;
-            padding: 12px 15px;
-            color: #ecf0f1; /* Gris claro */
-            text-decoration: none;
-            border-radius: 4px;
-            margin-bottom: 5px;
-            transition: background-color 0.3s;
-        }
-        .sidebar nav a:hover, .sidebar nav a.active {
-            background-color: #34495e; /* Azul un poco más claro */
+        .card {
+            border-color: var(--color-border-default);
         }
 
-        /* --- Contenido Principal --- */
-        .main-content {
-            flex-grow: 1; /* Ocupa el espacio restante */
-            padding: 40px;
-            margin-left: 240px; /* Dejamos espacio para el menú lateral fijo */
-            overflow-y: auto; /* Scroll si el contenido es largo */
+        /* Estilo para la cabecera de las páginas */
+        .page-header {
+            padding-bottom: .5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--color-border-default);
         }
-        .content-card {
-            background-color: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
-        th { background-color: #f2f2f2; font-weight: 600; }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar">
-        <div class="logo">HydroML</div>
-        <nav>
-            <ul>
-                <li><a href="{% url 'project_list' %}">🗃️ Gestión de Datasets</a></li>
-                <li><a href="{% url 'prepare_data' %}">🧹 Preparar Datos</a></li>
-                <li><a href="#">🧠 Entrenar Modelos</a></li>
-                <li><a href="#">📊 Ver Resultados</a></li>
-                <li><a href="#">🔮 Predecir</a></li>
-            </ul>
-        </nav>
-    </aside>
-
-    <main class="main-content">
-        <div class="content-card">
-            {% block content %}
-            {% endblock %}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'projects:project_list' %}">
+                <i class="fas fa-water"></i> HydroML
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'projects:project_list' %}">Mis Proyectos</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarUserDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle"></i> {{ user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'admin:logout' %}">Cerrar Sesión</a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'admin:login' %}">Iniciar Sesión</a>
+                    </li>
+                    {% endif %}
+                </ul>
             </div>
+        </div>
+    </nav>
+
+    <main class="container mt-4">
+        {% block content %}
+        {% endblock %}
     </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.js"></script>
+
+
+    {% block scripts %}
+    {% endblock %}
 
 </body>
 </html>

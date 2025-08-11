@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Confirmar Eliminación</h1>
+    <p>¿Estás seguro de que quieres eliminar el experimento: <strong>"{{ object.name }}"</strong>?</p>
+    <p class="text-danger">Esta acción no se puede deshacer. Se eliminará el experimento y su archivo de datos fusionado asociado.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
+        <a href="{% url 'projects:project_detail' object.project.id %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

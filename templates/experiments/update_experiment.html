@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <a href="{% url 'projects:project_detail' object.project.id %}">&larr; Volver al proyecto</a>
+    <h1 class="mt-2">Editar Experimento</h1>
+
+    <div class="card mt-4">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                <a href="{% url 'projects:project_detail' object.project.id %}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
