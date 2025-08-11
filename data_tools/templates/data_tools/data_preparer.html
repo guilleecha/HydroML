@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <form method="post">
+        {% csrf_token %}
+        <div class="card">
+            <div class="card-header">
+                <h3>Herramienta de Preparación: {{ datasource.name }} 🛠️</h3>
+                <p class="mb-0 text-muted">Define los tipos de datos correctos y elimina las columnas innecesarias.</p>
+            </div>
+
+            <div class="card-body">
+                <h4>1. Configura las Columnas</h4>
+                <p>Para cada columna, puedes especificar el tipo de dato correcto. El sistema intentará convertirlo de forma segura.</p>
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                {% for col_name in column_info.keys %}
+                                    <th>{{ col_name }}</th>
+                                {% endfor %}
+                            </tr>
+                            <tr>
+                                {% for col in column_info.values %}
+                                    <td><small class="text-muted">Detectado: {{ col.pandas_dtype }}</small></td>
+                                {% endfor %}
+                            </tr>
+                            <tr>
+                                {% for col_name in column_info.keys %}
+                                <td>
+                                    <select name="type-{{ col_name }}" class="form-select form-select-sm">
+                                        <option value="">Mantener tipo</option>
+                                        <option value="object">Texto</option>
+                                        <option value="int64">Número Entero</option>
+                                        <option value="float64">Número Decimal</option>
+                                        <option value="datetime64[ns]">Fecha/Hora</option>
+                                    </select>
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            <tr>
+                                {% for col_name in column_info.keys %}
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-outline-danger w-100 remove-col-btn" data-column="{{ col_name }}">
+                                        Eliminar
+                                    </button>
+                                </td>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        {{ preview_html|safe }}
+                    </table>
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <div class="row align-items-end">
+                    <div class="col-md-6">
+                        <h5>Columnas a Eliminar:</h5>
+                        <div id="removed-columns-list" class="mb-2">
+                            <span class="text-muted">Ninguna seleccionada.</span>
+                        </div>
+                        <input type="hidden" name="removed_columns" id="removed_columns_input">
+                    </div>
+
+                    <div class="col-md-6">
+                        <h5>2. Guardar como Nuevo Dataset</h5>
+                        <div class="input-group">
+                            <input type="text" name="new_dataset_name" class="form-control" placeholder="Nombre para el archivo preparado" required>
+                            <button type="submit" class="btn btn-primary">Procesar y Guardar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script src="{% static 'data_tools/js/data_preparer.js' %}"></script>
+{% endblock %}

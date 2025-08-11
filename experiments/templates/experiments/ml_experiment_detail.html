@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3>Detalle del Experimento: {{ experiment.name }} 🧪</h3>
+            <div>
+                <a href="{% url 'experiments:ml_experiment_update' pk=experiment.pk %}" class="btn btn-secondary btn-sm">Editar</a>
+                <a href="{% url 'experiments:ml_experiment_delete' pk=experiment.pk %}" class="btn btn-danger btn-sm">Eliminar</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">Configuración del Experimento</h5>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><strong>Proyecto:</strong> <a href="{% url 'projects:project_detail' pk=experiment.project.pk %}">{{ experiment.project.name }}</a></li>
+                <li class="list-group-item"><strong>Fuente de Datos de Entrada:</strong> {{ experiment.input_datasource.name }}</li>
+                <li class="list-group-item"><strong>Variable Objetivo:</strong> <code>{{ experiment.target_column }}</code></li>
+                <li class="list-group-item"><strong>Modelo Utilizado:</strong> <code>{{ experiment.model_name }}</code></li>
+                <li class="list-group-item">
+                    <strong>Variables Predictoras (Features):</strong>
+                    <div>
+                        {% for feature in experiment.feature_set %}
+                            <span class="badge bg-primary">{{ feature }}</span>
+                        {% endfor %}
+                    </div>
+                </li>
+                 <li class="list-group-item"><strong>Estado:</strong> <span class="badge bg-info">{{ experiment.status }}</span></li>
+            </ul>
+
+            <hr>
+
+            <h5 class="card-title mt-4">Resultados del Experimento</h5>
+            <div class="text-center text-muted p-4">
+                <p>La ejecución de los experimentos y la visualización de resultados se implementará aquí.</p>
+                <p><em>(Próximamente: Gráficos de rendimiento, importancia de variables, etc.)</em></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

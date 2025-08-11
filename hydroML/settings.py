@@ -32,15 +32,28 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
-    'projects.apps.ProjectsConfig',
-    'experiments.apps.ExperimentsConfig',
+    # Django Core Apps
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+
+    # Third-Party Apps
+    'tailwind',
+    'django_browser_reload',
+    # Aquí irán otras librerías que añadamos, como 'django_celery_results'.
+
+    # Local Apps (La Arquitectura de tu Proyecto)
+    'core.apps.CoreConfig',                # App para lógica compartida y principal.
+    'projects.apps.ProjectsConfig',        # App existente: La Biblioteca 📚
+    'data_tools.apps.DataToolsConfig',     # App nueva: El Taller de Procesamiento 🛠️
+    'experiments.apps.ExperimentsConfig',  # App existente: El Laboratorio de ML 🧪
 ]
+
+# Configuración para que Tailwind reconozca las nuevas apps
+TAILWIND_APP_NAME = 'core'
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

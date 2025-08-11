@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static %} {# <-- Carga la librería de archivos estáticos de Django #}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h3>Visor de Datos: {{ datasource.name }}</h3>
+            <p class="mb-0 text-muted">Mostrando las primeras 100 filas del archivo: <strong>{{ datasource.filename }}</strong></p>
+        </div>
+        <div class="card-body">
+            
+            <div id="error-container" class="alert alert-danger d-none" role="alert">
+                Ocurrió un error al cargar los datos.
+            </div>
+
+            <div id="loading-spinner" class="text-center my-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-2">Cargando datos...</p>
+            </div>
+
+            <div id="data-table-container" class="table-responsive d-none">
+                <table class="table table-striped table-bordered table-hover">
+                    <thead id="data-table-header">
+                        </thead>
+                    <tbody id="data-table-body">
+                        </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{# --- CONEXIÓN CON JAVASCRIPT --- #}
+{# Pasamos la URL de la API a un script para que JS pueda usarla de forma segura #}
+<script id="data-viewer-script-data" type="application/json">
+    {
+        "dataSourceUrl": "{% url 'data_tools:get_datasource_json' pk=datasource.pk %}"
+    }
+</script>
+
+{# Finalmente, cargamos nuestro archivo JavaScript externo #}
+<script src="{% static 'data_tools/js/data_viewer.js' %}"></script>
+{% endblock %}
