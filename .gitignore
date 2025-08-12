@@ -16,4 +16,10 @@ __pycache__/
 *.pyc
 
 # Archivos y carpetas de Node.js
+node_modules/
 /node_modules
+npm-debug.log
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
