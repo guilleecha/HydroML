@@ -4,11 +4,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import UpdateView, DeleteView
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 from projects.models import Project
 # Importaciones relativas: usamos '..' para subir un nivel desde 'views' y encontrar 'models' y 'forms'
 from ..models import MLExperiment
 from ..forms import MLExperimentForm
+from ..tasks import run_train_test_split_task, run_model_training_task, run_final_evaluation_task
+
 
 @login_required
 def ml_experiment_create(request, project_id):
@@ -17,7 +20,7 @@ def ml_experiment_create(request, project_id):
     Se asocia a un proyecto existente.
     """
     # Se asegura de que el proyecto exista y pertenezca al usuario logueado
-    project = get_object_or_404(Project, id=project_id, user=request.user)
+    project = get_object_or_404(Project, id=project_id, owner=request.user)
 
     if request.method == 'POST':
         # Al recibir datos, se instancia el formulario con el proyecto y los datos del request
@@ -89,3 +92,42 @@ class MLExperimentDeleteView(DeleteView):
         """Define a dónde redirigir al usuario después de una eliminación exitosa."""
         # Al eliminar, volvemos a la página del proyecto al que pertenecía.
         return reverse_lazy('projects:project_detail', kwargs={'pk': self.object.project.pk})
+
+@login_required
+def trigger_split_task(request, experiment_id):
+    """
+    Dispara la tarea de Celery para la división de datos.
+    """
+    experiment = get_object_or_404(MLExperiment, id=experiment_id, project__owner=request.user)
+    
+    run_train_test_split_task.delay(experiment.id)
+    
+    messages.success(request, "La tarea de división de datos ha sido iniciada. Los nuevos datasets aparecerán en la página del proyecto en unos momentos.")
+    
+    return redirect('experiments:ml_experiment_detail', pk=experiment.id)
+
+@login_required
+def trigger_training_task(request, experiment_id):
+    """
+    Dispara la tarea de Celery para el entrenamiento del modelo.
+    """
+    experiment = get_object_or_404(MLExperiment, id=experiment_id, project__owner=request.user)
+    
+    run_model_training_task.delay(experiment.id)
+    
+    messages.success(request, "La tarea de entrenamiento del modelo ha sido iniciada. Los resultados aparecerán en esta página en unos momentos.")
+    
+    return redirect('experiments:ml_experiment_detail', pk=experiment.id)
+
+@login_required
+def trigger_final_evaluation_task(request, experiment_id):
+    """
+    Dispara la tarea de Celery para la evaluación final del modelo.
+    """
+    experiment = get_object_or_404(MLExperiment, id=experiment_id, project__owner=request.user)
+    
+    run_final_evaluation_task.delay(experiment.id)
+    
+    messages.success(request, "La tarea de evaluación final ha sido iniciada. Los resultados finales aparecerán en esta página en unos momentos.")
+    
+    return redirect('experiments:ml_experiment_detail', pk=experiment.id)

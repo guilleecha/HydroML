@@ -30,11 +30,48 @@
 
             <hr>
 
-            <h5 class="card-title mt-4">Resultados del Experimento</h5>
-            <div class="text-center text-muted p-4">
-                <p>La ejecución de los experimentos y la visualización de resultados se implementará aquí.</p>
-                <p><em>(Próximamente: Gráficos de rendimiento, importancia de variables, etc.)</em></p>
+            <h5 class="card-title mt-4">Acciones del Experimento</h5>
+            <div class="mb-3">
+                <p>Inicia los procesos de Machine Learning para este experimento.</p>
+                <a href="{% url 'experiments:trigger_split_task' experiment_id=experiment.id %}" class="btn btn-primary {% if experiment.status != 'DRAFT' %}disabled{% endif %}">1. Ejecutar División Train/Test</a>
+                <a href="{% url 'experiments:trigger_training_task' experiment_id=experiment.id %}" class="btn btn-success {% if experiment.status != 'PREPARED' %}disabled{% endif %}">2. Ejecutar Validación Cruzada</a>
+                <a href="{% url 'experiments:trigger_final_evaluation_task' experiment_id=experiment.id %}" class="btn btn-info {% if experiment.status != 'COMPLETED' %}disabled{% endif %}">3. Ejecutar Test Final</a>
             </div>
+
+            <hr>
+
+            <h5 class="card-title mt-4">Resultados del Experimento</h5>
+            
+            {% if experiment.status == 'FAILED' and experiment.results.error %}
+                <div class="alert alert-danger">
+                    <h6 class="alert-heading">¡Error en la ejecución!</h6>
+                    <p><strong>Mensaje:</strong> {{ experiment.results.error }}</p>
+                </div>
+            {% elif experiment.results.mean_nse is not None %}
+                <div class="alert alert-secondary">
+                    <h6 class="alert-heading">Resultados de la Validación Cruzada</h6>
+                    <ul class="mb-0">
+                        <li><strong>Coeficiente de Nash-Sutcliffe (NSE) Promedio:</strong> {{ experiment.results.mean_nse }}</li>
+                        <li><strong>Desviación Estándar del NSE:</strong> {{ experiment.results.std_nse }}</li>
+                        <li><strong>Error Cuadrático Medio (RMSE) Promedio:</strong> {{ experiment.results.mean_rmse }}</li>
+                    </ul>
+                </div>
+
+                {% if experiment.results.final_r2 is not None %}
+                <div class="alert alert-success mt-3">
+                    <h6 class="alert-heading">Métricas del Test Final (Hold-out)</h6>
+                    <ul class="mb-0">
+                        <li><strong>Coeficiente de Determinación (R²):</strong> {{ experiment.results.final_r2 }}</li>
+                        <li><strong>Raíz del Error Cuadrático Medio (RMSE):</strong> {{ experiment.results.final_rmse }}</li>
+                    </ul>
+                </div>
+                {% endif %}
+
+            {% else %}
+                <div class="text-center text-muted p-4">
+                    <p>Los resultados de la validación y evaluación del modelo aparecerán aquí.</p>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>

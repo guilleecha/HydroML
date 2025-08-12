@@ -24,4 +24,16 @@ urlpatterns = [
     path('<uuid:pk>/',
          experiment_results_views.ml_experiment_detail,
          name='ml_experiment_detail'),
+
+    path('<uuid:experiment_id>/trigger-split/',
+         experiment_management_views.trigger_split_task,
+         name='trigger_split_task'),
+
+    path('<uuid:experiment_id>/trigger-training/',
+         experiment_management_views.trigger_training_task,
+         name='trigger_training_task'),
+
+    path('<uuid:experiment_id>/trigger-final-evaluation/',
+         experiment_management_views.trigger_final_evaluation_task,
+         name='trigger_final_evaluation_task'),
 ]

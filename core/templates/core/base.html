@@ -7,12 +7,18 @@
     <title>HydroML</title>
 
     <link rel="stylesheet" href="{% static 'css/output.css' %}">
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/3.0.2/css/responsive.dataTables.css" />
+
 </head>
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
 
     <nav class="bg-gray-800 p-4 shadow-lg">
         <div class="container mx-auto flex justify-between items-center">
             <a href="{% url 'projects:project_list' %}" class="text-white text-xl font-bold">HydroML 💧</a>
+            <div>
+                </div>
         </div>
     </nav>
 
@@ -20,6 +26,12 @@
         {% block content %}
         {% endblock %}
     </main>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/responsive/3.0.2/js/dataTables.responsive.js"></script>
+
+    {% block extra_js %}{% endblock %}
 
 </body>
 </html>

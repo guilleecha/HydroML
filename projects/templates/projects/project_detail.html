@@ -15,6 +15,9 @@
                     <a href="{% url 'projects:datasource_upload' project_id=project.id %}" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-sm hover:bg-green-700">
                         + Subir Archivo
                     </a>
+                    <a href="{% url 'data_tools:data_fusion_page' project_id=project.id %}" class="px-4 py-2 bg-purple-600 text-white font-semibold rounded-lg shadow-sm hover:bg-purple-700">
+                        융 Fusionar Datos
+                    </a>
                     <a href="{% url 'experiments:ml_experiment_create' project_id=project.id %}" class="px-4 py-2 bg-cyan-600 text-white font-semibold rounded-lg shadow-sm hover:bg-cyan-700">
                         🧪 Nuevo Experimento ML
                     </a>
