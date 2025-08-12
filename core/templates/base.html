@@ -1,0 +1,24 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HydroML</title>
+    <link rel="stylesheet" href="{% static 'css/dist/styles.css' %}">
+</head>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+
+    <nav class="bg-gray-800 p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="{% url 'projects:project_list' %}" class="text-white text-xl font-bold">HydroML 💧</a>
+            </div>
+    </nav>
+
+    <main class="container mx-auto mt-6 p-4">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+</body>
+</html>

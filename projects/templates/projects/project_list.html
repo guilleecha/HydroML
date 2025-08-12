@@ -1,29 +1,31 @@
-{% extends "base.html" %}
+{% extends "core/base.html" %} {# <-- ¡Cambiado! Ahora hereda de la nueva base #}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Mis Proyectos 📚</h1>
-        <a href="{% url 'projects:project_create' %}" class="btn btn-primary">
-            + Nuevo Proyecto
-        </a>
-    </div>
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">Mis Proyectos 📚</h1>
+    <a href="{% url 'projects:project_create' %}" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">
+        + Nuevo Proyecto
+    </a>
+</div>
 
-    <div class="list-group">
+<div class="bg-white shadow-md rounded-lg">
+    <ul class="divide-y divide-gray-200">
         {% for project in projects %}
-            <a href="{% url 'projects:project_detail' pk=project.pk %}" class="list-group-item list-group-item-action flex-column align-items-start">
-                <div class="d-flex w-100 justify-content-between">
-                    <h5 class="mb-1">{{ project.name }}</h5>
-                    <small>Creado: {{ project.created_at|date:"d/m/Y" }}</small>
-                </div>
-                <p class="mb-1">{{ project.description|default:"Sin descripción." }}</p>
-            </a>
+            <li class="p-4 hover:bg-gray-50 transition">
+                <a href="{% url 'projects:project_detail' pk=project.pk %}" class="block">
+                    <div class="flex items-center justify-between">
+                        <p class="text-lg font-medium text-blue-700 truncate">{{ project.name }}</p>
+                        <p class="text-sm text-gray-500">{{ project.created_at|date:"d M, Y" }}</p>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-600">{{ project.description|default:"Sin descripción." }}</p>
+                </a>
+            </li>
         {% empty %}
-            <div class="list-group-item text-center">
-                <p class="mb-1">Aún no has creado ningún proyecto.</p>
-                <p>¡Haz clic en "Nuevo Proyecto" para empezar!</p>
-            </div>
+            <li class="p-6 text-center">
+                <p class="text-gray-500">Aún no has creado ningún proyecto.</p>
+                <p class="mt-1 text-sm text-gray-500">¡Haz clic en "Nuevo Proyecto" para empezar!</p>
+            </li>
         {% endfor %}
-    </div>
+    </ul>
 </div>
 {% endblock %}
