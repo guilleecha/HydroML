@@ -1,42 +1,55 @@
-{% extends "base.html" %}
+{% extends "core/base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="card">
-        <div class="card-header">
-            <h3>{{ project.name }}</h3>
-            <p class="mb-0 text-muted">{{ project.description }}</p>
-        </div>
+<div class="max-w-7xl mx-auto">
+    <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+        <h1 class="text-3xl font-bold text-gray-800">{{ project.name }}</h1>
+        <p class="mt-2 text-gray-600">{{ project.description|default:"Este proyecto no tiene una descripción." }}</p>
+    </div>
 
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4>Fuentes de Datos (Datasets)</h4>
-                <div>
-                    <a href="{% url 'projects:datasource_upload' project_id=project.id %}" class="btn btn-success me-2">+ Subir Archivo</a>
-                    <a href="{% url 'experiments:ml_experiment_create' project_id=project.id %}" class="btn btn-info">+ Nuevo Experimento de ML</a>
+    <div class="bg-white shadow-md rounded-lg">
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex justify-between items-center">
+                <h2 class="text-2xl font-semibold text-gray-700">Fuentes de Datos</h2>
+                <div class="flex space-x-2">
+                    <a href="{% url 'projects:datasource_upload' project_id=project.id %}" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-sm hover:bg-green-700">
+                        + Subir Archivo
+                    </a>
+                    <a href="{% url 'experiments:ml_experiment_create' project_id=project.id %}" class="px-4 py-2 bg-cyan-600 text-white font-semibold rounded-lg shadow-sm hover:bg-cyan-700">
+                        🧪 Nuevo Experimento ML
+                    </a>
                 </div>
             </div>
-
-            <ul class="list-group">
-                {% for ds in datasources %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>{{ ds.name }}</strong>
-                            <span class="badge bg-secondary">{{ ds.get_data_type_display }}</span>
-                            <br>
-                            <small class="text-muted">{{ ds.description|default:"Sin descripción." }} | {{ ds.filename }}</small>
-                        </div>
-                        <div>
-                            <a href="#" class="btn btn-sm btn-outline-primary">Ver Datos</a>
-                            <a href="#" class="btn btn-sm btn-outline-secondary">Preparar</a>
-                            <a href="{% url 'projects:datasource_delete' pk=ds.pk %}" class="btn btn-sm btn-outline-danger">Eliminar</a>
-                        </div>
-                    </li>
-                {% empty %}
-                    <li class="list-group-item text-center">Este proyecto aún no tiene fuentes de datos.</li>
-                {% endfor %}
-            </ul>
         </div>
+
+        <ul class="divide-y divide-gray-200">
+            {% for ds in datasources %}
+                <li class="p-4 flex items-center justify-between hover:bg-gray-50 transition">
+                    <div class="flex items-center">
+                        <div class="ml-3">
+                            <p class="text-md font-medium text-gray-900">{{ ds.name }}</p>
+                            <p class="text-sm text-gray-500">{{ ds.filename }}</p>
+                        </div>
+                        <span class="ml-4 px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                            {% if ds.data_type == 'ORIGINAL' %} bg-blue-100 text-blue-800
+                            {% elif ds.data_type == 'PREPARED' %} bg-green-100 text-green-800
+                            {% elif ds.data_type == 'FUSED' %} bg-purple-100 text-purple-800
+                            {% endif %}">
+                            {{ ds.get_data_type_display }}
+                        </span>
+                    </div>
+                    <div class="flex space-x-2">
+                        <a href="{% url 'data_tools:data_viewer_page' pk=ds.pk %}" class="px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Ver</a>
+                        <a href="{% url 'data_tools:data_preparer_page' pk=ds.pk %}" class="px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Preparar</a>
+                        <a href="{% url 'projects:datasource_delete' pk=ds.pk %}" class="px-3 py-1 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100">Eliminar</a>
+                    </div>
+                </li>
+            {% empty %}
+                <li class="p-6 text-center text-gray-500">
+                    Este proyecto aún no tiene fuentes de datos. ¡Sube un archivo para empezar!
+                </li>
+            {% endfor %}
+        </ul>
     </div>
 </div>
 {% endblock %}

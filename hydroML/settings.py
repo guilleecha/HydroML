@@ -40,19 +40,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Third-Party Apps (Si las tienes)
-    'tailwind',
-    'django_browser_reload',
-
     # --- NUESTRAS APPS REFACTORIZADAS ---
-    'core.apps.CoreConfig', # <-- Debe ser así, apuntando a la clase.
-    'projects.apps.ProjectsConfig',        # La Biblioteca 📚
-    'data_tools.apps.DataToolsConfig',     # El Taller 🛠️
-    'experiments.apps.ExperimentsConfig',  # El Laboratorio 🧪
+    'core.apps.CoreConfig',
+    'projects.apps.ProjectsConfig',
+    'data_tools.apps.DataToolsConfig',
+    'experiments.apps.ExperimentsConfig',
 ]
 
-# Configuración para que Tailwind reconozca las nuevas apps
-TAILWIND_APP_NAME = 'core' # <-- Debe ser así, el nombre simple.
+TAILWIND_APP_NAME = 'core'
+
 
 # Necesario para el refresco automático del navegador
 INTERNAL_IPS = [
@@ -67,8 +63,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django_browser_reload.middleware.BrowserReloadMiddleware",  # ¡NUEVO!
-
 ]
 
 ROOT_URLCONF = "hydroML.urls"
