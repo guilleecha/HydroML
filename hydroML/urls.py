@@ -1,19 +1,24 @@
+# hydroML/urls.py
 from django.contrib import admin
 from django.urls import path, include
-from core import views as core_views
 from django.conf import settings
 from django.conf.urls.static import static
-
-
+from core import views as core_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('projects/', include('projects.urls')),  # URLs para la biblioteca
-    path('tools/', include('data_tools.urls')),  # URLs para el taller
-    path('experiments/', include('experiments.urls')),  # URLs para el laboratorio
 
-    path('', core_views.home, name='home'),  # <-- ¡NUEVA! La raíz del sitio apunta aquí.
+    # La raíz del sitio apunta a la vista 'home' de la app 'core'
+    path('', core_views.home, name='home'),
 
+    # La ruta '/projects/' carga el archivo urls.py de la app 'projects'
+    path('projects/', include('projects.urls')),
+
+    # La ruta '/tools/' carga el archivo urls.py de la app 'data_tools'
+    path('tools/', include('data_tools.urls')),
+
+    # La ruta '/experiments/' carga el archivo urls.py de la app 'experiments'
+    path('experiments/', include('experiments.urls')),
 ]
 
 if settings.DEBUG:
