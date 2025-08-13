@@ -1,97 +1,112 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // --- Referencias a Elementos del DOM ---
     const experimentForm = document.getElementById('experiment-form');
     if (!experimentForm) return;
 
-    const datasourceSelectId = experimentForm.dataset.inputDatasourceId;
-    const hiddenTargetInputId = experimentForm.dataset.targetColumnId;
-    const hiddenFeaturesInputId = experimentForm.dataset.featureSetId;
+    // Elementos para hiperparámetros dinámicos
+    const modelSelect = document.getElementById("id_model_name");
+    const rfFields = document.getElementById("rf-fields");
+    const gbFields = document.getElementById("gb-fields");
+    
+    // Elementos para el Dual Listbox
+    const featuresAvailable = document.getElementById('features-available');
+    const featuresSelected = document.getElementById('features-selected');
+    const btnAdd = document.getElementById('btn-add-feature');
+    const btnRemove = document.getElementById('btn-remove-feature');
+    
+    // Elementos para la selección de datos y sincronización
+    const datasourceSelect = document.getElementById('id_input_datasource');
+    const targetColumnSelect = document.getElementById('id_target_column_select');
+    const hiddenTargetInput = document.getElementById('id_target_column');
+    const hiddenFeatureSet = document.getElementById('id_feature_set');
+    
     const getColumnsUrlTemplate = experimentForm.dataset.getColumnsUrl;
 
-    const datasourceSelect = document.getElementById(datasourceSelectId);
-    const targetColumnSelect = document.getElementById('id_target_column_select');
-    const featureSetSelect = document.getElementById('id_feature_set_select');
-    const hiddenTargetInput = document.getElementById(hiddenTargetInputId);
-    const hiddenFeaturesInput = document.getElementById(hiddenFeaturesInputId);
-
-    if (!datasourceSelect || !targetColumnSelect || !featureSetSelect || !hiddenTargetInput || !hiddenFeaturesInput) {
-        console.error("Error: No se pudieron encontrar todos los elementos del formulario.");
+    // Verificar que todos los elementos existan
+    if (!modelSelect || !rfFields || !gbFields || !featuresAvailable || !featuresSelected || !btnAdd || !btnRemove || !hiddenFeatureSet || !datasourceSelect || !targetColumnSelect || !hiddenTargetInput) {
+        console.error("Faltan uno o más elementos del formulario en la plantilla HTML.");
         return;
     }
 
-    function clearAndDisableColumnSelects() {
-        targetColumnSelect.innerHTML = '<option selected>Primero selecciona una Fuente de Datos</option>';
-        featureSetSelect.innerHTML = '';
-        targetColumnSelect.disabled = true;
-        featureSetSelect.disabled = true;
-        hiddenTargetInput.value = '';
-        hiddenFeaturesInput.value = '';
+    // --- Lógica para Hiperparámetros Dinámicos ---
+    function updateHyperparameterFields() {
+        const value = modelSelect.value;
+        rfFields.classList.add("hidden");
+        gbFields.classList.add("hidden");
+        if (value === "RandomForestRegressor") {
+            rfFields.classList.remove("hidden");
+        } else if (value === "GradientBoostingRegressor") {
+            gbFields.classList.remove("hidden");
+        }
+    }
+    modelSelect.addEventListener("change", updateHyperparameterFields);
+    updateHyperparameterFields(); // Llamar al inicio para el estado inicial
+
+    // --- Lógica para el Dual Listbox y Sincronización ---
+    function syncHiddenInputs() {
+        // Sincronizar target column
+        hiddenTargetInput.value = targetColumnSelect.value;
+        
+        // Sincronizar feature set
+        const values = Array.from(selected.options).map(opt => opt.value);
+        hiddenFeatureSet.value = values.join(','); 
     }
 
+    function moveOptions(source, destination, all = false) {
+        const optionsToMove = all ? Array.from(source.options) : Array.from(source.selectedOptions);
+        optionsToMove.forEach(opt => {
+            destination.appendChild(opt);
+        });
+        syncHiddenInputs();
+    }
+
+    btnAdd.addEventListener('click', () => moveOptions(featuresAvailable, featuresSelected));
+    btnRemove.addEventListener('click', () => moveOptions(featuresSelected, featuresAvailable));
+
+    targetColumnSelect.addEventListener('change', syncHiddenInputs);
+
+    // --- Lógica para Poblar Columnas Dinámicamente ---
     datasourceSelect.addEventListener('change', function() {
         const datasourceId = this.value;
+        
+        // Limpiar todo al cambiar la selección
+        targetColumnSelect.innerHTML = '<option value="">Cargando...</option>';
+        featuresAvailable.innerHTML = '';
+        featuresSelected.innerHTML = '';
+        targetColumnSelect.disabled = true;
+        syncHiddenInputs(); // Limpiar los campos ocultos
 
         if (!datasourceId) {
-            // Si el usuario selecciona la opción vacía, limpia y deshabilita los campos.
-            clearAndDisableColumnSelects();
-            return; // Detiene la ejecución
-        }
-
-        if (!datasourceId || datasourceId === "0") {
-            clearAndDisableColumnSelects();
+            targetColumnSelect.innerHTML = '<option value="">Primero selecciona una Fuente de Datos</option>';
             return;
         }
 
-        const url = getColumnsUrlTemplate.replace('0', datasourceId);
+        const url = getColumnsUrlTemplate.replace('00000000-0000-0000-0000-000000000000', datasourceId);
 
         fetch(url)
-            .then(response => response.json())
+            .then(resp => {
+                if (!resp.ok) throw new Error('Error de red al buscar columnas.');
+                return resp.json();
+            })
             .then(data => {
-                if (data.error) {
-                    console.error('Error al obtener las columnas:', data.error);
-                    clearAndDisableColumnSelects();
-                    targetColumnSelect.innerHTML = '<option selected>Error al cargar columnas</option>';
-                    return;
-                }
+                if (data.error) throw new Error(data.error);
 
                 targetColumnSelect.innerHTML = '<option value="">Selecciona una columna...</option>';
-                featureSetSelect.innerHTML = '';
-                data.columns.forEach(column => {
-                    const option = new Option(column, column);
-                    targetColumnSelect.add(option.cloneNode(true));
-                    featureSetSelect.add(option);
+                featuresAvailable.innerHTML = '';
+                
+                data.columns.forEach(col => {
+                    const option = document.createElement('option');
+                    option.value = col;
+                    option.textContent = col;
+                    featuresAvailable.appendChild(option.cloneNode(true));
+                    targetColumnSelect.appendChild(option);
                 });
 
                 targetColumnSelect.disabled = false;
-                featureSetSelect.disabled = false;
             })
             .catch(error => {
-                console.error('Error en la llamada fetch:', error);
-                clearAndDisableColumnSelects();
-                targetColumnSelect.innerHTML = '<option selected>Error de conexión</option>';
+                console.error("Error al poblar columnas:", error);
+                targetColumnSelect.innerHTML = `<option value="">Error: ${error.message}</option>`;
             });
-    });
-
-    targetColumnSelect.addEventListener('change', function() {
-        hiddenTargetInput.value = this.value;
-    });
-
-    featureSetSelect.addEventListener('change', function() {
-        const selectedFeatures = Array.from(this.selectedOptions).map(option => option.value);
-        // --- CAMBIO CLAVE AQUÍ ---
-        hiddenFeaturesInput.value = selectedFeatures.join(',');
-    });
-
-    // Código para la otra herramienta (feature engineering)
-    document.querySelectorAll('.col-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const colName = this.getAttribute('data-col');
-            const formulaArea = document.getElementById('formula_string');
-            if (formulaArea) {
-                formulaArea.value += colName;
-                formulaArea.focus();
-            } else {
-                console.error('Formula area not found');
-            }
-        });
     });
 });

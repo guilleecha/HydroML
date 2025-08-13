@@ -1,7 +1,7 @@
 import json
 from django import forms
 from .models import MLExperiment
-from projects.models import DataSource
+from projects.models import DataSource, FeatureSet
 
 
 class MLExperimentForm(forms.ModelForm):
@@ -32,6 +32,19 @@ class MLExperimentForm(forms.ModelForm):
     ]
     model_name = forms.ChoiceField(choices=MODEL_CHOICES, label="Modelo de Machine Learning a Utilizar", widget=forms.Select(attrs={'class': 'form-select'}))
 
+    # Hiperparámetros para Random Forest
+    rf_n_estimators = forms.IntegerField(label="N° árboles (Random Forest)", required=False, min_value=1)
+    rf_max_depth = forms.IntegerField(label="Profundidad máxima (Random Forest)", required=False, min_value=1)
+    # Hiperparámetros para Gradient Boosting
+    gb_n_estimators = forms.IntegerField(label="N° árboles (Gradient Boosting)", required=False, min_value=1)
+    gb_learning_rate = forms.FloatField(label="Learning Rate (Gradient Boosting)", required=False, min_value=0)
+
+    saved_feature_set = forms.ModelChoiceField(
+        queryset=FeatureSet.objects.none(),
+        required=False,
+        label="Conjunto de Variables Guardado"
+    )
+
     def __init__(self, project, *args, **kwargs):
         """
         El 'truco' para este formulario: requiere que se le pase el proyecto actual
@@ -42,6 +55,7 @@ class MLExperimentForm(forms.ModelForm):
         # Filtramos el queryset del campo 'input_datasource' para mostrar solo
         # los datasets que pertenecen al proyecto actual.
         self.fields['input_datasource'].queryset = DataSource.objects.filter(project=project)
+        self.fields['saved_feature_set'].queryset = FeatureSet.objects.filter(project=project)
 
     def clean_feature_set(self):
         """
@@ -76,8 +90,7 @@ class MLExperimentForm(forms.ModelForm):
             'input_datasource',
             'target_column',
             'model_name',
-            'feature_set',
-            'hyperparameters'
+            'feature_set'
         ]
 
         labels = {

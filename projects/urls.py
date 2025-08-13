@@ -14,7 +14,7 @@ urlpatterns = [
     # CAMBIO AQUÍ: de <int:project_id> a <uuid:project_id>
     path('<uuid:project_id>/upload/', datasource_views.datasource_upload, name='datasource_upload'),
 
-    # CAMBIO AQUÍ: de <int:pk> a <uuid:pk>
+    # Esta ruta ya debería estar correcta si DataSource usa UUID
     path('datasource/<uuid:pk>/delete/',
          datasource_views.DataSourceDeleteView.as_view(),
          name='datasource_delete'),

@@ -2,138 +2,163 @@
 {% load static %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="card" id="experiment-detail-card" 
-         data-status-url="{% url 'experiments:get_experiment_status' experiment_id=experiment.id %}" 
-         data-initial-status="{{ experiment.status }}">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h3>Detalle del Experimento: {{ experiment.name }} 🧪</h3>
-            <div>
-                <a href="{% url 'experiments:ml_experiment_update' pk=experiment.pk %}" class="btn btn-secondary btn-sm">Editar</a>
-                <a href="{% url 'experiments:ml_experiment_delete' pk=experiment.pk %}" class="btn btn-danger btn-sm">Eliminar</a>
-            </div>
-        </div>
-        <div class="card-body">
-            <h5 class="card-title">Configuración del Experimento</h5>
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item"><strong>Proyecto:</strong> <a href="{% url 'projects:project_detail' pk=experiment.project.pk %}">{{ experiment.project.name }}</a></li>
-                <li class="list-group-item"><strong>Fuente de Datos de Entrada:</strong> {{ experiment.input_datasource.name }}</li>
-                <li class="list-group-item"><strong>Variable Objetivo:</strong> <code>{{ experiment.target_column }}</code></li>
-                <li class="list-group-item"><strong>Modelo Utilizado:</strong> <code>{{ experiment.model_name }}</code></li>
-                <li class="list-group-item">
-                    <strong>Variables Predictoras (Features):</strong>
-                    <div>
-                        {% for feature in experiment.feature_set %}
-                            <span class="badge bg-primary">{{ feature }}</span>
-                        {% endfor %}
-                    </div>
-                </li>
-                 <li class="list-group-item"><strong>Estado:</strong> <span id="experiment-status-badge" class="badge bg-info">{{ experiment.get_status_display }}</span></li>
-            </ul>
+<div class="max-w-5xl mx-auto py-8">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-3xl font-bold text-gray-800">{{ experiment.name }}</h1>
+        {% if experiment.status == "COMPLETED" %}
+            <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold">{{ experiment.get_status_display }}</span>
+        {% elif experiment.status == "FINISHED" %}
+            <span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-semibold">{{ experiment.get_status_display }}</span>
+        {% elif experiment.status == "PROCESSING" %}
+            <span class="px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 text-sm font-semibold">{{ experiment.get_status_display }}</span>
+        {% else %}
+            <span class="px-3 py-1 rounded-full bg-gray-200 text-gray-700 text-sm font-semibold">{{ experiment.get_status_display }}</span>
+        {% endif %}
+    </div>
 
-            <hr>
+    <div class="bg-white shadow rounded-lg p-4 mb-8 flex flex-wrap gap-4">
+        <form method="post" action="{% url 'experiments:trigger_split_task' experiment_id=experiment.pk %}">
+            {% csrf_token %}
+            <button type="submit"
+                class="px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:bg-gray-300"
+                {% if experiment.status not in "DRAFT,FAILED" %}disabled{% endif %}>
+                Ejecutar División Train/Test
+            </button>
+        </form>
+        <form method="post" action="{% url 'experiments:trigger_training_task' experiment_id=experiment.pk %}">
+            {% csrf_token %}
+            <button type="submit"
+                class="px-4 py-2 rounded bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:bg-gray-300"
+                {% if experiment.status != "SPLIT" %}disabled{% endif %}>
+                Ejecutar Validación del Modelo
+            </button>
+        </form>
+        <form method="post" action="{% url 'experiments:trigger_final_evaluation_task' experiment_id=experiment.pk %}">
+            {% csrf_token %}
+            <button type="submit"
+                class="px-4 py-2 rounded bg-green-600 text-white font-semibold hover:bg-green-700 disabled:bg-gray-300"
+                {% if experiment.status != "COMPLETED" %}disabled{% endif %}>
+                Ejecutar Test Final
+            </button>
+        </form>
+        <form method="post" action="{% url 'experiments:trigger_feature_importance_task' experiment_id=experiment.pk %}">
+            {% csrf_token %}
+            <button type="submit"
+                class="px-4 py-2 rounded bg-yellow-600 text-white font-semibold hover:bg-yellow-700 disabled:bg-gray-300"
+                {% if experiment.status != "FINISHED" %}disabled{% endif %}>
+                Calcular Importancia de Variables
+            </button>
+        </form>
+    </div>
 
-            <h5 class="card-title mt-4">Acciones del Experimento</h5>
-            <div class="mb-3">
-                <p>Inicia los procesos de Machine Learning para este experimento.</p>
-                <a id="btn-split" href="{% url 'experiments:trigger_split_task' experiment_id=experiment.id %}" class="btn btn-primary {% if experiment.status != 'DRAFT' %}disabled{% endif %}">1. Ejecutar División Train/Test</a>
-                <a id="btn-train" href="{% url 'experiments:trigger_training_task' experiment_id=experiment.id %}" class="btn btn-success {% if experiment.status != 'PREPARED' %}disabled{% endif %}">2. Ejecutar Validación Cruzada</a>
-                <a id="btn-evaluate" href="{% url 'experiments:trigger_final_evaluation_task' experiment_id=experiment.id %}" class="btn btn-info {% if experiment.status != 'VALIDATED' %}disabled{% endif %}">3. Ejecutar Test Final</a>
-                <a id="btn-importance" href="{% url 'experiments:trigger_feature_importance_task' experiment_id=experiment.id %}" class="btn btn-dark {% if experiment.status != 'COMPLETED' %}disabled{% endif %}">4. Analizar Modelo</a>
-            </div>
+    <div class="border-b border-gray-200 mb-6">
+        <nav class="flex space-x-8" aria-label="Tabs">
+            <button id="tab-results-btn" class="py-4 px-1 text-sm font-medium text-blue-600 border-b-2 border-blue-600 focus:outline-none" type="button">
+                Resultados y Gráficos
+            </button>
+            <button id="tab-config-btn" class="py-4 px-1 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-blue-600 hover:border-blue-600 focus:outline-none" type="button">
+                Configuración Detallada
+            </button>
+        </nav>
+    </div>
 
-            <hr>
-
-            <h5 class="card-title mt-4">Resultados del Experimento</h5>
-            
-            <div id="experiment-results-container">
-                {% if experiment.status == 'FAILED' and experiment.results.error %}
-                    <div class="alert alert-danger">
-                        <h6 class="alert-heading">¡Error en la ejecución!</h6>
-                        <p><strong>Mensaje:</strong> {{ experiment.results.error }}</p>
-                    </div>
-                {% elif experiment.results.mean_nse is not None %}
-                    <div class="alert alert-secondary">
-                        <h6 class="alert-heading">Resultados de la Validación Cruzada</h6>
-                        <ul class="mb-0">
-                            <li><strong>Coeficiente de Nash-Sutcliffe (NSE) Promedio:</strong> {{ experiment.results.mean_nse }}</li>
-                            <li><strong>Desviación Estándar del NSE:</strong> {{ experiment.results.std_nse }}</li>
-                            <li><strong>Error Cuadrático Medio (RMSE) Promedio:</strong> {{ experiment.results.mean_rmse }}</li>
-                        </ul>
-                    </div>
-
-                    {% if experiment.results.final_r2 is not None %}
-                    <div class="alert alert-success mt-3">
-                        <h6 class="alert-heading">Métricas del Test Final (Hold-out)</h6>
-                        <ul class="mb-0">
-                            <li><strong>Coeficiente de Determinación (R²):</strong> {{ experiment.results.final_r2 }}</li>
-                            <li><strong>Raíz del Error Cuadrático Medio (RMSE):</strong> {{ experiment.results.final_rmse }}</li>
-                        </ul>
-                    </div>
-                    {% endif %}
-
-                {% else %}
-                    <div class="text-center text-muted p-4">
-                        <p>Los resultados de la validación y evaluación del modelo aparecerán aquí.</p>
+    <div id="tab-results" class="">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-lg font-bold text-gray-800 mb-2">Validación Cruzada</h2>
+                {% if experiment.results.mean_nse %}
+                    <div class="text-gray-700 mb-1">NSE Promedio: <span class="font-semibold">{{ experiment.results.mean_nse|floatformat:3 }}</span>
+                        {% if experiment.results.std_nse %}
+                            &plusmn; <span class="text-xs">{{ experiment.results.std_nse|floatformat:3 }}</span>
+                        {% endif %}
                     </div>
                 {% endif %}
+                {% if experiment.results.mean_rmse %}
+                    <div class="text-gray-700 mb-1">RMSE Promedio: <span class="font-semibold">{{ experiment.results.mean_rmse|floatformat:3 }}</span></div>
+                {% endif %}
+                {% if not experiment.results.mean_nse and not experiment.results.mean_rmse %}
+                    <div class="text-gray-400">No hay resultados de validación cruzada disponibles.</div>
+                {% endif %}
             </div>
-
-            {% if scatter_data_json %}
-            <hr>
-            <h5 class="card-title mt-4">Gráfico de Rendimiento (Test Final)</h5>
-            <div style="max-width: 600px; margin: auto;">
-                <canvas id="predictionScatterChart"></canvas>
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-lg font-bold text-gray-800 mb-2">Test Final</h2>
+                {% if experiment.results.final_r2 %}
+                    <div class="text-gray-700 mb-1">R² Final: <span class="font-semibold">{{ experiment.results.final_r2|floatformat:3 }}</span></div>
+                {% endif %}
+                {% if experiment.results.final_rmse %}
+                    <div class="text-gray-700 mb-1">RMSE Final: <span class="font-semibold">{{ experiment.results.final_rmse|floatformat:3 }}</span></div>
+                {% endif %}
+                {% if not experiment.results.final_r2 and not experiment.results.final_rmse %}
+                    <div class="text-gray-400">No hay resultados de test final disponibles.</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% if experiment.results.prediction_plot %}
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-lg font-bold text-gray-800 mb-2">Predicciones vs. Reales</h2>
+                <img src="{{ experiment.results.prediction_plot.url }}" alt="Predicciones vs. Reales" class="w-full rounded">
             </div>
             {% endif %}
-            
-            {% if experiment.results.feature_importance %}
-            <hr>
-            <h5 class="card-title mt-4">Importancia de Variables</h5>
-            <div style="max-width: 700px; margin: auto;">
-                <canvas id="featureImportanceChart"></canvas>
+            {% if experiment.results.feature_importance_plot %}
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-lg font-bold text-gray-800 mb-2">Importancia de Variables</h2>
+                <img src="{{ experiment.results.feature_importance_plot.url }}" alt="Importancia de Variables" class="w-full rounded">
             </div>
             {% endif %}
+        </div>
+    </div>
 
+    <div id="tab-config" class="hidden">
+        <div class="bg-white shadow rounded-lg p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">Configuración del Experimento</h2>
+            <ul class="space-y-2">
+                <li><span class="font-semibold text-gray-700">Fuente de Datos:</span> {{ experiment.input_datasource.name }}</li>
+                <li><span class="font-semibold text-gray-700">Modelo:</span> {{ experiment.model_name }}</li>
+                <li><span class="font-semibold text-gray-700">Variable Objetivo:</span> {{ experiment.target_column }}</li>
+                <li><span class="font-semibold text-gray-700">Variables Predictoras:</span>
+                    {% for feature in experiment.feature_set %}
+                        <span class="inline-block bg-gray-100 text-gray-800 px-2 py-1 rounded mr-1 text-xs">{{ feature }}</span>
+                    {% empty %}
+                        <span class="text-gray-400">No especificadas</span>
+                    {% endfor %}
+                </li>
+                <li><span class="font-semibold text-gray-700">Hiperparámetros:</span>
+                    {% if experiment.hyperparameters %}
+                        <pre class="bg-gray-50 p-2 rounded text-xs text-gray-700">{{ experiment.hyperparameters|safe }}</pre>
+                    {% else %}
+                        <span class="text-gray-400">No especificados</span>
+                    {% endif %}
+                </li>
+            </ul>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-{% if scatter_data_json %}
-{{ scatter_data_json|json_script:"scatter-data" }}
-<script id="chart-data" type="application/json">{{ scatter_data_json|safe }}</script>
-<script src="{% static 'experiments/js/experiment_chart.js' %}"></script>
-{% endif %}
-
-{% if experiment.results.feature_importance %}
-{{ experiment.results.feature_importance|json_script:"importance-data" }}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const importanceData = JSON.parse(document.getElementById('importance-data').textContent);
-    const ctx = document.getElementById('featureImportanceChart').getContext('2d');
+    const tabResultsBtn = document.getElementById('tab-results-btn');
+    const tabConfigBtn = document.getElementById('tab-config-btn');
+    const tabResults = document.getElementById('tab-results');
+    const tabConfig = document.getElementById('tab-config');
 
-    // Los datos ya vienen ordenados, pero para el gráfico horizontal es mejor invertirlos.
-    const labels = importanceData.map(item => item.feature).reverse();
-    const data = importanceData.map(item => item.importance).reverse();
+    tabResultsBtn.addEventListener('click', function() {
+        tabResults.classList.remove('hidden');
+        tabConfig.classList.add('hidden');
+        tabResultsBtn.classList.add('text-blue-600', 'border-blue-600');
+        tabConfigBtn.classList.remove('text-blue-600', 'border-blue-600');
+        tabConfigBtn.classList.add('text-gray-500', 'border-transparent');
+    });
 
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Importancia',
-                data: data,
-                backgroundColor: 'rgba(75, 192, 192, 0.5)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false }, title: { display: true, text: 'Importancia Relativa de cada Variable' } } }
+    tabConfigBtn.addEventListener('click', function() {
+        tabResults.classList.add('hidden');
+        tabConfig.classList.remove('hidden');
+        tabConfigBtn.classList.add('text-blue-600', 'border-blue-600');
+        tabResultsBtn.classList.remove('text-blue-600', 'border-blue-600');
+        tabResultsBtn.classList.add('text-gray-500', 'border-transparent');
     });
 });
 </script>
-{% endif %}
-<script src="{% static 'experiments/js/status_poller.js' %}"></script>
 {% endblock %}

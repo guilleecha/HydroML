@@ -1,10 +1,13 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-      './**/templates/**/*.html' // <-- ESTA LÍNEA ES LA CLAVE
+      './**/templates/**/*.html'
   ],
   theme: {
     extend: {},
   },
-  plugins: [],
+  // --- AÑADE ESTA LÍNEA DENTRO DE LOS CORCHETES ---
+  plugins: [
+      require('@tailwindcss/forms'),
+  ],
 }
