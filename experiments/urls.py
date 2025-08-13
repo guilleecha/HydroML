@@ -1,6 +1,7 @@
 # experiments/urls.py
 from django.urls import path
 from .views import experiment_management_views, experiment_results_views, api_views
+from experiments.views.experiment_management_views import trigger_feature_importance_task
 
 app_name = 'experiments'
 
@@ -44,7 +45,7 @@ urlpatterns = [
     
     # CAMBIO: El id de un experimento es un entero (int)
     path('<int:experiment_id>/trigger-importance/',
-         experiment_management_views.trigger_feature_importance_task,
+         trigger_feature_importance_task,
          name='trigger_feature_importance_task'),
 
     # --- API Endpoints ---

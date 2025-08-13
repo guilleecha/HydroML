@@ -3,6 +3,11 @@
 
 {% block content %}
 <div class="max-w-5xl mx-auto py-8">
+    <!-- Contenedor para la alerta de error -->
+    <div id="task-error-alert" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
+        <span class="block sm:inline"></span>
+    </div>
+
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-3xl font-bold text-gray-800">{{ experiment.name }}</h1>
         {% if experiment.status == "COMPLETED" %}
@@ -133,6 +138,32 @@
             </ul>
         </div>
     </div>
+
+    {% if experiment.status == 'FINISHED' %}
+    <div class="mt-8">
+        <button onclick="location.href='{% url 'trigger_feature_importance_task' experiment.id %}'"
+            class="px-4 py-2 rounded bg-yellow-600 text-white font-semibold hover:bg-yellow-700">
+            Analizar Modelo
+        </button>
+    </div>
+    {% endif %}
+
+    {% if experiment.results.feature_importance %}
+    <div class="mt-8">
+        <h3 class="text-lg font-bold text-gray-800 mb-2">Importancia de Variables</h3>
+        <canvas id="featureImportanceChart"></canvas>
+    </div>
+    {% endif %}
+
+    <div id="loading" class="hidden mt-4 text-center">
+        <p class="text-gray-600">Calculando la importancia de variables... Por favor, espera.</p>
+    </div>
+
+    <script>
+        document.querySelector('form[action*="trigger_feature_importance_task"]').addEventListener('submit', function() {
+            document.getElementById('loading').classList.remove('hidden');
+        });
+    </script>
 </div>
 {% endblock %}
 
@@ -160,5 +191,38 @@ document.addEventListener('DOMContentLoaded', function() {
         tabResultsBtn.classList.add('text-gray-500', 'border-transparent');
     });
 });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    {% if experiment.results.feature_importance %}
+    const featureImportanceData = {{ experiment.results.feature_importance|safe }};
+    const topFeatures = featureImportanceData.slice(0, 10);  // Mostrar solo las 10 más importantes
+    const labels = topFeatures.map(item => item.feature);
+    const data = topFeatures.map(item => item.importance);
+
+    const ctx = document.getElementById('featureImportanceChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Importancia',
+                data: data,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            scales: {
+                x: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    {% endif %}
 </script>
 {% endblock %}

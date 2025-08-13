@@ -60,4 +60,29 @@ document.addEventListener("DOMContentLoaded", function() {
     // Iniciar el sondeo inmediatamente y luego cada 3 segundos
     pollStatus();
     pollingInterval = setInterval(pollStatus, 3000);
+
+    const errorAlert = document.getElementById('task-error-alert');
+    const errorMessageSpan = errorAlert.querySelector('span');
+
+    function pollExperimentStatus() {
+        fetch('/api/experiments/{{ experiment.id }}/status/')
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'FAILED') {
+                    // Mostrar el mensaje de error
+                    if (data.results && data.results.error_message) {
+                        errorMessageSpan.textContent = data.results.error_message;
+                        errorAlert.classList.remove('hidden');
+                    }
+                    // Detener el sondeo
+                    clearInterval(pollingInterval);
+                }
+            })
+            .catch(error => {
+                console.error('Error al obtener el estado del experimento:', error);
+            });
+    }
+
+    // Iniciar el sondeo
+    const pollingInterval = setInterval(pollExperimentStatus, 5000);
 });

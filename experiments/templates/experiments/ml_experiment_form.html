@@ -1,59 +1,23 @@
 {% extends "core/base.html" %}
 {% load static %}
+{% load crispy_forms_tags %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
-    <form method="post" id="experiment-form" class="bg-white shadow-md rounded-lg"
-          data-get-columns-url="{% url 'data_tools:get_columns_api' datasource_id='00000000-0000-0000-0000-000000000000' %}">
-        
-        {% csrf_token %}
-        
+    <div class="bg-white shadow-md rounded-lg">
         <div class="p-6 border-b border-gray-200">
             <h1 class="text-2xl font-bold text-gray-800">{{ view_title|default:'Crear Nuevo Experimento' }}</h1>
         </div>
-
-        <div class="p-6 space-y-6">
-            {{ form.as_p }} <div id="rf-fields" class="space-y-2 hidden">
-                <label>{{ form.rf_n_estimators.label }}</label>
-                {{ form.rf_n_estimators }}
-                <label>{{ form.rf_max_depth.label }}</label>
-                {{ form.rf_max_depth }}
-            </div>
-            <div id="gb-fields" class="space-y-2 hidden">
-                <label>{{ form.gb_n_estimators.label }}</label>
-                {{ form.gb_n_estimators }}
-                <label>{{ form.gb_learning_rate.label }}</label>
-                {{ form.gb_learning_rate }}
-            </div>
-
-            <hr>
-            <h2 class="text-lg font-semibold text-gray-800">Selección de Variables</h2>
-            <div class="flex space-x-4 items-center">
-                <div>
-                    <label class="text-xs text-gray-500 mb-1 block">Disponibles</label>
-                    <select id="features-available" class="block w-full h-48 border rounded" multiple></select>
-                </div>
-                <div class="flex flex-col space-y-2">
-                    <button type="button" id="btn-add-feature" class="px-2 py-1 bg-blue-500 text-white rounded">&gt;</button>
-                    <button type="button" id="btn-remove-feature" class="px-2 py-1 bg-blue-500 text-white rounded">&lt;</button>
-                </div>
-                <div>
-                    <label class="text-xs text-gray-500 mb-1 block">Seleccionadas</label>
-                    <select id="features-selected" class="block w-full h-48 border rounded" multiple></select>
-                </div>
-            </div>
-            
-            <div class="hidden">
-                {{ form.target_column }}
-                {{ form.feature_set }}
-            </div>
+        
+        <div class="p-6">
+            {% crispy form %}
         </div>
-
+        
         <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-2 rounded-b-lg">
             <a href="{% url 'projects:project_detail' pk=project.pk %}" class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Cancelar</a>
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700">Guardar Experimento</button>
+            <button type="submit" form="experiment-form" class="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700">Guardar Experimento</button>
         </div>
-    </form>
+    </div>
 </div>
 {% endblock %}
 

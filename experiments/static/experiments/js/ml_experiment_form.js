@@ -22,12 +22,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const getColumnsUrlTemplate = experimentForm.dataset.getColumnsUrl;
 
-    // Verificar que todos los elementos existan
-    if (!modelSelect || !rfFields || !gbFields || !featuresAvailable || !featuresSelected || !btnAdd || !btnRemove || !hiddenFeatureSet || !datasourceSelect || !targetColumnSelect || !hiddenTargetInput) {
-        console.error("Faltan uno o más elementos del formulario en la plantilla HTML.");
-        return;
-    }
-
     // --- Lógica para Hiperparámetros Dinámicos ---
     function updateHyperparameterFields() {
         const value = modelSelect.value;
@@ -44,17 +38,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Lógica para el Dual Listbox y Sincronización ---
     function syncHiddenInputs() {
-        // Sincronizar target column
         hiddenTargetInput.value = targetColumnSelect.value;
-        
-        // Sincronizar feature set
-        const values = Array.from(selected.options).map(opt => opt.value);
+        const values = Array.from(featuresSelected.options).map(opt => opt.value);
         hiddenFeatureSet.value = values.join(','); 
     }
 
-    function moveOptions(source, destination, all = false) {
-        const optionsToMove = all ? Array.from(source.options) : Array.from(source.selectedOptions);
-        optionsToMove.forEach(opt => {
+    function moveOptions(source, destination) {
+        Array.from(source.selectedOptions).forEach(opt => {
             destination.appendChild(opt);
         });
         syncHiddenInputs();
@@ -62,19 +52,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     btnAdd.addEventListener('click', () => moveOptions(featuresAvailable, featuresSelected));
     btnRemove.addEventListener('click', () => moveOptions(featuresSelected, featuresAvailable));
-
     targetColumnSelect.addEventListener('change', syncHiddenInputs);
 
-    // --- Lógica para Poblar Columnas Dinámicamente ---
+    // --- Lógica UNIFICADA para Poblar Columnas Dinámicamente ---
     datasourceSelect.addEventListener('change', function() {
         const datasourceId = this.value;
         
-        // Limpiar todo al cambiar la selección
         targetColumnSelect.innerHTML = '<option value="">Cargando...</option>';
         featuresAvailable.innerHTML = '';
         featuresSelected.innerHTML = '';
         targetColumnSelect.disabled = true;
-        syncHiddenInputs(); // Limpiar los campos ocultos
+        syncHiddenInputs();
 
         if (!datasourceId) {
             targetColumnSelect.innerHTML = '<option value="">Primero selecciona una Fuente de Datos</option>';

@@ -6,7 +6,7 @@ from django.views.generic.edit import UpdateView, DeleteView
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
-from projects.models import Project, FeatureSet
+from projects.models import Project
 from ..models import MLExperiment
 from ..forms import MLExperimentForm
 # Se importan las tareas de Celery
@@ -25,7 +25,6 @@ def ml_experiment_create(request, project_id):
     project = get_object_or_404(Project, id=project_id, owner=request.user)
 
     if request.method == 'POST':
-        # Se le pasa el proyecto y los datos del POST al formulario
         form = MLExperimentForm(project=project, data=request.POST)
         if form.is_valid():
             experiment = form.save(commit=False)
@@ -46,14 +45,14 @@ def ml_experiment_create(request, project_id):
                 if form.cleaned_data.get('gb_learning_rate'):
                     hyperparams['learning_rate'] = form.cleaned_data['gb_learning_rate']
             
-            # Se asigna el diccionario directamente (el modelo usa JSONField)
             experiment.hyperparameters = hyperparams
             experiment.save()
             
             messages.success(request, f"Experimento '{experiment.name}' creado con éxito.")
             return redirect('projects:project_detail', pk=project.id)
+        # Si el formulario NO es válido, la ejecución continúa y se renderiza
+        # la plantilla de nuevo, esta vez con los errores del formulario.
     else:
-        # En peticiones GET, se le pasa el proyecto para filtrar los DataSources
         form = MLExperimentForm(project=project)
 
     context = {
@@ -72,7 +71,6 @@ class MLExperimentUpdateView(UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['view_title'] = f"Editando Experimento: {self.object.name}"
-        # Es necesario pasar el objeto project para el enlace "Cancelar"
         context['project'] = self.object.project
         return context
 

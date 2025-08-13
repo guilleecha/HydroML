@@ -2,6 +2,9 @@
 from celery import shared_task
 from .models import MLExperiment
 from . import services
+from experiments.models import MLExperiment
+from experiments.services import calculate_feature_importance
+import sentry_sdk  # Asegúrate de que Sentry esté configurado en tu proyecto
 
 @shared_task
 def run_train_test_split_task(experiment_id):
@@ -97,33 +100,27 @@ def run_final_evaluation_task(experiment_id):
             experiment.save()
         return f"Error durante la evaluación final: {str(e)}"
 
+
+
 @shared_task
 def run_feature_importance_task(experiment_id):
     """
-    Tarea de Celery para ejecutar el servicio de cálculo de importancia de variables.
+    Tarea de Celery para calcular la importancia de las variables.
     """
     try:
         experiment = MLExperiment.objects.get(id=experiment_id)
         experiment.status = 'ANALYZING'
         experiment.save()
 
-        # Llamar al servicio
-        importance_results = services.calculate_feature_importance(experiment)
+        # Calcular la importancia de las variables
+        feature_importance = calculate_feature_importance(experiment)
 
-        # Guardar resultados y actualizar estado
-        if experiment.results is None:
-            experiment.results = {}
-        experiment.results['feature_importance'] = importance_results
+        # Guardar los resultados
+        experiment.results['feature_importance'] = feature_importance
         experiment.status = 'ANALYZED'
         experiment.save()
-
-        return f"Análisis de importancia de variables completado para {experiment.name}."
-
     except Exception as e:
-        if 'experiment' in locals() and isinstance(experiment, MLExperiment):
-            experiment.status = 'FAILED'
-            if experiment.results is None:
-                experiment.results = {}
-            experiment.results['error'] = f"Error en análisis de importancia: {str(e)}"
-            experiment.save()
-        return f"Error durante el análisis de importancia: {str(e)}"
+        experiment.status = 'FAILED'
+        experiment.save()
+        sentry_sdk.capture_exception(e)  # Registrar el error en Sentry
+        raise e

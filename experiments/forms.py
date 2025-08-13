@@ -1,108 +1,98 @@
-import json
 from django import forms
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Fieldset, Row, Column, HTML, Submit, Div
 from .models import MLExperiment
-from projects.models import DataSource, FeatureSet
-
+from projects.models import DataSource
 
 class MLExperimentForm(forms.ModelForm):
-    """
-    Formulario para crear y actualizar un Experimento de Machine Learning.
-    Está directamente vinculado al modelo MLExperiment.
-    """
+    # Campos para hiperparámetros dinámicos (opcionales)
+    rf_n_estimators = forms.IntegerField(label="N° de árboles (Random Forest)", required=False)
+    rf_max_depth = forms.IntegerField(label="Profundidad máxima (Random Forest)", required=False)
+    gb_n_estimators = forms.IntegerField(label="N° de árboles (Gradient Boosting)", required=False)
+    gb_learning_rate = forms.FloatField(label="Tasa de Aprendizaje (Gradient Boosting)", required=False)
 
-    # Sobrescribimos el campo para tener control total sobre el widget y el queryset.
-    feature_set = forms.CharField(
-        label="Variables Predictoras (Features)",
-        widget=forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
-        help_text="Escribe los nombres de las columnas separados por comas. Ej: temp_max, temp_min, precipitacion"
-    )
-
-    hyperparameters = forms.CharField(
-        label="Hiperparámetros (formato JSON)",
-        widget=forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
-        required=False,
-        help_text='Introduce un diccionario JSON. Ejemplo: {"n_estimators": 150, "max_depth": 10}'
-    )
-
-    # Paso 1: Cambiar a un ChoiceField para seleccionar el modelo.
     MODEL_CHOICES = [
+        ('', 'Selecciona un modelo...'),
         ('RandomForestRegressor', 'Random Forest'),
         ('GradientBoostingRegressor', 'Gradient Boosting'),
         ('LinearRegression', 'Regresión Lineal'),
     ]
-    model_name = forms.ChoiceField(choices=MODEL_CHOICES, label="Modelo de Machine Learning a Utilizar", widget=forms.Select(attrs={'class': 'form-select'}))
-
-    # Hiperparámetros para Random Forest
-    rf_n_estimators = forms.IntegerField(label="N° árboles (Random Forest)", required=False, min_value=1)
-    rf_max_depth = forms.IntegerField(label="Profundidad máxima (Random Forest)", required=False, min_value=1)
-    # Hiperparámetros para Gradient Boosting
-    gb_n_estimators = forms.IntegerField(label="N° árboles (Gradient Boosting)", required=False, min_value=1)
-    gb_learning_rate = forms.FloatField(label="Learning Rate (Gradient Boosting)", required=False, min_value=0)
-
-    saved_feature_set = forms.ModelChoiceField(
-        queryset=FeatureSet.objects.none(),
-        required=False,
-        label="Conjunto de Variables Guardado"
-    )
-
-    def __init__(self, project, *args, **kwargs):
-        """
-        El 'truco' para este formulario: requiere que se le pase el proyecto actual
-        para poder filtrar los DataSources y mostrar solo los relevantes.
-        """
-        super().__init__(*args, **kwargs)
-
-        # Filtramos el queryset del campo 'input_datasource' para mostrar solo
-        # los datasets que pertenecen al proyecto actual.
-        self.fields['input_datasource'].queryset = DataSource.objects.filter(project=project)
-        self.fields['saved_feature_set'].queryset = FeatureSet.objects.filter(project=project)
-
-    def clean_feature_set(self):
-        """
-        Toma el string del campo 'feature_set' y lo convierte en una lista
-        de strings limpios, que es lo que el modelo JSONField espera.
-        """
-        features_string = self.cleaned_data.get('feature_set', '')
-        # Divide por comas, elimina espacios en blanco y quita cualquier entrada vacía.
-        return [feature.strip() for feature in features_string.split(',') if feature.strip()]
-
-    def clean_hyperparameters(self):
-        """
-        Valida que el string de hiperparámetros sea un JSON válido.
-        Devuelve un diccionario Python.
-        """
-        params_string = self.cleaned_data.get('hyperparameters', '')
-        if not params_string:
-            return {}  # Si está vacío, devuelve un diccionario vacío
-        try:
-            return json.loads(params_string)
-        except json.JSONDecodeError:
-            raise forms.ValidationError("El formato JSON de los hiperparámetros no es válido.")
+    model_name = forms.ChoiceField(choices=MODEL_CHOICES, label="Modelo de Machine Learning a Utilizar")
 
     class Meta:
         model = MLExperiment
-
-        # Campos que se mostrarán en el formulario.
-        # Coinciden con el modelo MLExperiment que definimos.
         fields = [
-            'name',
-            'description',
-            'input_datasource',
-            'target_column',
-            'model_name',
-            'feature_set'
+            'name', 'description', 'model_name', 'input_datasource', 
+            'target_column', 'feature_set'
         ]
-
-        labels = {
-            'name': "Nombre del Experimento",
-            'description': "Describe el objetivo de este experimento",
-            'input_datasource': "Fuente de Datos de Entrada",
-            'target_column': "Variable Objetivo (Target)",
-        }
-
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
-            'input_datasource': forms.Select(attrs={'class': 'form-select'}),
-            'target_column': forms.TextInput(attrs={'class': 'form-control'}),
+            'target_column': forms.HiddenInput(),
+            'feature_set': forms.HiddenInput(),
         }
+        labels = {
+            'name': 'Nombre del Experimento',
+            'description': 'Describe el objetivo de este experimento',
+            'input_datasource': 'Fuente de Datos de Entrada',
+        }
+
+    def __init__(self, project, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['input_datasource'].queryset = project.datasources.all()
+        
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        self.helper.form_id = 'experiment-form'
+        self.helper.attrs['data-get-columns-url'] = f"/tools/api/get-columns/{'00000000-0000-0000-0000-000000000000'}/"
+
+        self.helper.layout = Layout(
+            Fieldset(
+                'Información General',
+                Row(
+                    Column('name', css_class='form-group col-md-6 mb-0'),
+                    Column('description', css_class='form-group col-md-6 mb-0'),
+                )
+            ),
+            Fieldset(
+                'Configuración del Modelo',
+                'model_name',
+                # Usamos Div() de Crispy en lugar de HTML() para los campos dinámicos
+                Div(
+                    HTML('<p class="text-sm font-medium text-gray-600">Hiperparámetros (Random Forest)</p>'),
+                    Row(Column('rf_n_estimators'), Column('rf_max_depth')),
+                    id="rf-fields", 
+                    css_class="hidden space-y-4 mt-4 border-l-4 p-4 rounded-r-md border-gray-200"
+                ),
+                Div(
+                    HTML('<p class="text-sm font-medium text-gray-600">Hiperparámetros (Gradient Boosting)</p>'),
+                    Row(Column('gb_n_estimators'), Column('gb_learning_rate')),
+                    id="gb-fields", 
+                    css_class="hidden space-y-4 mt-4 border-l-4 p-4 rounded-r-md border-gray-200"
+                ),
+            ),
+            Fieldset(
+                'Selección de Datos y Variables',
+                'input_datasource',
+                # Mantenemos HTML() para los elementos que NO son campos del formulario
+                HTML("""
+                    <div class="mt-4">
+                        <label for="id_target_column_select" class="block text-sm font-medium text-gray-700">Variable Objetivo</label>
+                        <select id="id_target_column_select" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" disabled>
+                            <option value="">Primero selecciona una Fuente de Datos</option>
+                        </select>
+                    </div>
+                """),
+                HTML("""
+                    <div class="mt-6">
+                        <label class="block text-sm font-medium text-gray-700">Variables Predictoras</label>
+                        <div class="flex space-x-4 items-center mt-2">
+                            <div class="flex-1"><label for="features-available" class="text-xs text-gray-500 mb-1 block">Disponibles</label><select id="features-available" class="block w-full h-48 border rounded-md border-gray-300" multiple></select></div>
+                            <div class="flex flex-col space-y-2"><button type="button" id="btn-add-feature" class="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">&gt;&gt;</button><button type="button" id="btn-remove-feature" class="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">&lt;&lt;</button></div>
+                            <div class="flex-1"><label for="features-selected" class="text-xs text-gray-500 mb-1 block">Seleccionadas</label><select id="features-selected" class="block w-full h-48 border rounded-md border-gray-300" multiple></select></div>
+                        </div>
+                    </div>
+                """),
+            ),
+            # Incluimos los campos ocultos para que se rendericen
+            'target_column',
+            'feature_set',
+        )

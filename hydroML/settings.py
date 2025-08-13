@@ -10,8 +10,15 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-from pathlib import Path
 import os
+from pathlib import Path
+import dj_database_url # Añade esta importación al principio del archivo
+from dotenv import load_dotenv  # Importamos dotenv para cargar variables de entorno
+import sentry_sdk
+
+
+# Cargar variables de entorno desde un archivo .env
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,12 +28,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-z=#&4mie%^gx2exc!9fhd&uuq5yx)q^effu7ya844r(pl(=7aj"
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "default-unsafe-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
 
 # Application definition
@@ -46,6 +53,12 @@ INSTALLED_APPS = [
     'data_tools.apps.DataToolsConfig',
     'experiments.apps.ExperimentsConfig',
     'accounts.apps.AccountsConfig',
+]
+
+# Añadir a INSTALLED_APPS
+INSTALLED_APPS += [
+    'crispy_forms',
+    'crispy_tailwind',
 ]
 
 TAILWIND_APP_NAME = 'core'
@@ -91,10 +104,9 @@ WSGI_APPLICATION = "hydroML.wsgi.application"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL')
+    )
 }
 
 
@@ -136,6 +148,7 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -156,3 +169,40 @@ CELERY_RESULT_SERIALIZER = 'json'
 
 LOGIN_REDIRECT_URL = '/projects/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
+
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    X_FRAME_OPTIONS = 'DENY'
+
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+
+# Configuración de Sentry
+if not DEBUG:  # Solo habilitar Sentry en producción
+    sentry_sdk.init(
+        dsn=os.getenv("SENTRY_DSN", ""),  # DSN de tu proyecto en Sentry
+        integrations=[DjangoIntegration()],
+        traces_sample_rate=1.0,  # Ajusta el muestreo de transacciones (1.0 = 100%)
+        send_default_pii=True,  # Enviar información de usuario para depuración
+    )
+    
+
+# Obtiene el DSN de Sentry desde tus variables de entorno (.env)
+SENTRY_DSN = os.environ.get("SENTRY_DSN")
+
+# Solo inicializa Sentry si se ha proporcionado un DSN
+if SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        # Activa el monitoreo de rendimiento
+        enable_tracing=True,
+        # Otras configuraciones recomendadas
+        send_default_pii=True,
+    )
+
+# Configuración de django-crispy-forms
+CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
+CRISPY_TEMPLATE_PACK = "tailwind"

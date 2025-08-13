@@ -227,3 +227,26 @@ def test_calculate_feature_importance_success(tmp_path):
     # Verifica que la lista esté ordenada de forma descendente por importancia
     importances = [item['importance'] for item in result]
     assert importances == sorted(importances, reverse=True)
+
+from django.test import TestCase
+from experiments.models import MLExperiment
+from experiments.services import calculate_feature_importance
+
+class CalculateFeatureImportanceTest(TestCase):
+    def setUp(self):
+        # Configurar un experimento de prueba con datos ficticios
+        self.experiment = MLExperiment.objects.create(
+            name="Test Experiment",
+            model_name="RandomForestClassifier",
+            hyperparameters={"n_estimators": 10},
+            results={"train_data_source_id": "mock_train_data_source"}
+        )
+
+    def test_calculate_feature_importance(self):
+        # Mock del método load_data del DataSource
+        self.experiment.results['train_data_source_id'] = MockDataSource()
+        importance = calculate_feature_importance(self.experiment)
+        self.assertIsInstance(importance, list)
+        self.assertGreater(len(importance), 0)
+        self.assertIn('feature', importance[0])
+        self.assertIn('importance', importance[0])

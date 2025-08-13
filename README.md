@@ -80,3 +80,18 @@ El proyecto está organizado en una arquitectura modular para facilitar su mante
 * **`projects`**: La "Biblioteca" 📚. Responsable de gestionar los proyectos y los `DataSources`.
 * **`data_tools`**: El "Taller" 🛠️. Contiene todas las herramientas para procesar y manipular datos (Visor, Preparador, Fusor).
 * **`experiments`**: El "Laboratorio" 🧪. Dedicado exclusivamente a la gestión y ejecución de experimentos de Machine Learning.
+
+---
+
+## Importancia de Variables
+
+Esta funcionalidad permite calcular y visualizar la importancia de las variables de un modelo de Machine Learning entrenado. 
+
+### Cómo usar:
+1. Asegúrate de que el experimento esté en estado `FINISHED`.
+2. Haz clic en el botón "Analizar Modelo" en la página de detalles del experimento.
+3. Una vez completado el análisis, se mostrará un gráfico de barras con la importancia de las variables.
+
+### Tecnologías utilizadas:
+- **Celery**: Para ejecutar el cálculo de forma asíncrona.
+- **Chart.js**: Para visualizar la importancia de las variables.
