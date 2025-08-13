@@ -1,0 +1,10 @@
+<!-- filepath: c:\myProjects\hydroML\accounts\templates\registration\login.html -->
+{% extends "base.html" %}
+{% block content %}
+<h2>Iniciar Sesión</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Entrar</button>
+</form>
+{% endblock %}

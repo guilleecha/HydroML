@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'projects.apps.ProjectsConfig',
     'data_tools.apps.DataToolsConfig',
     'experiments.apps.ExperimentsConfig',
+    'accounts.apps.AccountsConfig',
 ]
 
 TAILWIND_APP_NAME = 'core'
@@ -152,3 +153,6 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
+
+LOGIN_REDIRECT_URL = '/projects/'
+LOGOUT_REDIRECT_URL = '/accounts/login/'

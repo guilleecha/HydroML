@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Herramienta de Ingeniería de Características</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <div>
+        <label>Columnas disponibles:</label>
+        <ul id="columns-list">
+            {% for col in columns %}
+                <li><button type="button" class="col-btn" data-col="{{ col }}">{{ col }}</button></li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div>
+        <label for="new_column_name">Nombre de la nueva columna:</label>
+        <input type="text" name="new_column_name" id="new_column_name" required>
+    </div>
+    <div>
+        <label for="formula_string">Fórmula:</label>
+        <textarea name="formula_string" id="formula_string" rows="3" required></textarea>
+        <small>Ejemplo: (<span style="color:blue">columna_A</span> + <span style="color:blue">columna_B</span>) / 2</small>
+    </div>
+    <button type="submit">Crear columna</button>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'data_tools/js/feature_engineering.js' %}"></script>
+{% endblock %}

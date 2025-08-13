@@ -1,8 +1,8 @@
 # data_tools/services.py
 import pandas as pd
-import io
+from projects.models.datasource import DataSource, DataSourceType
 from django.core.files.base import ContentFile
-from projects.models import DataSource, DataSourceType
+import io
 
 
 def perform_data_fusion(project, datasources, merge_col, output_name):
@@ -11,6 +11,8 @@ def perform_data_fusion(project, datasources, merge_col, output_name):
     Si algo falla, devuelve None.
     Esta función NO sabe nada sobre 'request' o 'messages'. Es lógica pura.
     """
+    if len(datasources) < 2:
+        raise ValueError("Se requieren al menos dos DataSources para la fusión.")
     try:
         df_list = []
         for ds in datasources:
@@ -43,3 +45,30 @@ def perform_data_fusion(project, datasources, merge_col, output_name):
 
     except Exception as e:
         return None, str(e)  # Devuelve None y el mensaje de error como un string
+
+
+def perform_feature_engineering(datasource_id, new_column_name, formula_string):
+    try:
+        # 1. Cargar el DataSource original
+        ds = DataSource.objects.get(id=datasource_id)
+        df = pd.read_csv(ds.file.path)
+
+        # 2. Crear la nueva columna usando df.eval()
+        df[new_column_name] = df.eval(formula_string)
+
+        # 3. Guardar el DataFrame modificado como nuevo DataSource PREPARED
+        buffer = io.StringIO()
+        df.to_csv(buffer, index=False)
+        buffer.seek(0)
+        new_ds = DataSource.objects.create(
+            name=f"{ds.name} + {new_column_name}",
+            type=DataSourceType.PREPARED,
+            parent=ds,
+        )
+        new_ds.file.save(f"{new_ds.id}.csv", ContentFile(buffer.getvalue()))
+        new_ds.save()
+
+        # 4. Devolver el nuevo DataSource
+        return new_ds
+    except Exception as e:
+        return {"error": str(e)}

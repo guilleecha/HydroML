@@ -19,6 +19,9 @@ urlpatterns = [
 
     # La ruta '/experiments/' carga el archivo urls.py de la app 'experiments'
     path('experiments/', include('experiments.urls')),
+
+    # La ruta '/accounts/' carga el archivo urls.py de la app 'accounts'
+    path('accounts/', include('accounts.urls')),
 ]
 
 if settings.DEBUG:

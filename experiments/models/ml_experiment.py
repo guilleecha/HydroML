@@ -13,7 +13,7 @@ class MLExperiment(models.Model):
     target_column = models.CharField(max_length=100)
     model_name = models.CharField(max_length=100)
     feature_set = models.JSONField(default=list)
-
+    hyperparameters = models.JSONField(default=dict, blank=True, null=True)
     # Estado y resultados
     status = models.CharField(max_length=20, default='DRAFT')
     results = models.JSONField(blank=True, null=True)

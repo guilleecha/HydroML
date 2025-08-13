@@ -1,7 +1,9 @@
 # data_tools/urls.py
 from django.urls import path
 # Importamos todos nuestros módulos de vistas
-from .views import visualization_views, preparation_views, fusion_views
+from .views import visualization_views, preparation_views, fusion_views, api_views
+from .views.feature_engineering_views import feature_engineering_page
+from .views.api_views import get_datasource_columns
 
 app_name = 'data_tools'
 
@@ -21,9 +23,24 @@ urlpatterns = [
          name='data_preparer_page'),
 
     # --- RUTA NUEVA PARA LA HERRAMIENTA DE FUSIÓN ---
-    # URL: /tools/fusion/for-project/e538ce76-.../
-    # Carga la página de la herramienta para fusionar datasets del proyecto especificado.
     path('fusion/for-project/<uuid:project_id>/',
          fusion_views.data_fusion_page,
          name='data_fusion_page'),
+
+    # --- API Endpoints ---
+    path('api/get-columns/<uuid:datasource_id>/',
+         api_views.get_columns_api,
+         name='get_columns_api'),
+
+    path(
+        "api/datasource-columns/<uuid:datasource_id>/",
+        get_datasource_columns,
+        name="get_datasource_columns"
+    ),
+
+    # --- Ruta para la Ingeniería de Características ---
+    path("feature-engineering/<uuid:datasource_id>/",
+         feature_engineering_page,
+         name="feature_engineering_page"
+         ),
 ]

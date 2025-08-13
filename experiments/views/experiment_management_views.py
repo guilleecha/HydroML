@@ -10,7 +10,7 @@ from projects.models import Project
 # Importaciones relativas: usamos '..' para subir un nivel desde 'views' y encontrar 'models' y 'forms'
 from ..models import MLExperiment
 from ..forms import MLExperimentForm
-from ..tasks import run_train_test_split_task, run_model_training_task, run_final_evaluation_task
+from ..tasks import run_train_test_split_task, run_model_training_task, run_final_evaluation_task, run_feature_importance_task
 
 
 @login_required
@@ -129,5 +129,18 @@ def trigger_final_evaluation_task(request, experiment_id):
     run_final_evaluation_task.delay(experiment.id)
     
     messages.success(request, "La tarea de evaluación final ha sido iniciada. Los resultados finales aparecerán en esta página en unos momentos.")
+    
+    return redirect('experiments:ml_experiment_detail', pk=experiment.id)
+
+@login_required
+def trigger_feature_importance_task(request, experiment_id):
+    """
+    Dispara la tarea de Celery para el análisis de importancia de variables.
+    """
+    experiment = get_object_or_404(MLExperiment, id=experiment_id, project__owner=request.user)
+    
+    run_feature_importance_task.delay(experiment.id)
+    
+    messages.success(request, "El análisis de importancia de variables ha comenzado. El gráfico aparecerá en esta página en unos momentos.")
     
     return redirect('experiments:ml_experiment_detail', pk=experiment.id)

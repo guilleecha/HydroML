@@ -1,14 +1,18 @@
 # experiments/services.py
 import pandas as pd
 from sklearn.model_selection import train_test_split, TimeSeriesSplit, cross_validate
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.metrics import r2_score, mean_squared_error
+from sklearn.linear_model import LinearRegression
 from django.core.files.base import ContentFile
 import io
 import numpy as np
+import logging
 
 from projects.models import DataSource, DataSourceType, Project
 from .models import MLExperiment
+
+logger = logging.getLogger(__name__)
 
 def _create_datasource_from_df(df: pd.DataFrame, project: Project, name: str, description: str, file_name: str, parent_ds: DataSource) -> DataSource:
     """
@@ -80,9 +84,28 @@ def perform_train_test_split(experiment: MLExperiment, test_size=0.2, random_sta
         experiment.save()
 
         return f"División completada. Creados: {train_ds.name} y {test_ds.name}"
-
     except Exception as e:
-        raise e
+        logger.error(f"Error en el servicio de experimentos: {e}")
+        raise
+
+def _get_model_instance(experiment: MLExperiment):
+    """
+    Función auxiliar para instanciar un modelo con sus hiperparámetros.
+    """
+    params = experiment.hyperparameters or {}
+    model_name = experiment.model_name
+
+    if model_name == 'RandomForestRegressor':
+        params.setdefault('random_state', 42)
+        return RandomForestRegressor(**params)
+    elif model_name == 'GradientBoostingRegressor':
+        params.setdefault('random_state', 42)
+        return GradientBoostingRegressor(**params)
+    elif model_name == 'LinearRegression':
+        return LinearRegression(**params)
+    else:
+        raise ValueError(f"Modelo '{model_name}' no soportado.")
+
 
 def perform_model_training_and_validation(experiment: MLExperiment):
     """
@@ -90,7 +113,10 @@ def perform_model_training_and_validation(experiment: MLExperiment):
     """
     try:
         # 1. Leer el datasource de entrenamiento
-        train_ds_id = experiment.results['train_datasource_id']
+        train_ds_id = experiment.results.get('train_datasource_id')
+        if not train_ds_id:
+            raise ValueError("El ID del datasource de entrenamiento no se encontró en los resultados.")
+        
         train_datasource = DataSource.objects.get(id=train_ds_id)
         train_df = pd.read_csv(train_datasource.file.path, encoding='latin-1')
 
@@ -101,7 +127,7 @@ def perform_model_training_and_validation(experiment: MLExperiment):
         y_train = train_df[target]
 
         # 3. Instanciar modelo y estrategia de validación
-        model = RandomForestRegressor(random_state=42)
+        model = _get_model_instance(experiment)
         cv_strategy = TimeSeriesSplit(n_splits=5)
 
         # 4. Realizar validación cruzada
@@ -121,9 +147,9 @@ def perform_model_training_and_validation(experiment: MLExperiment):
             'mean_rmse': round(mean_rmse, 4)
         }
         return results
-
     except Exception as e:
-        raise e
+        logger.error(f"Error en el servicio de experimentos: {e}")
+        raise
 
 def perform_final_evaluation(experiment: MLExperiment):
     """
@@ -131,8 +157,11 @@ def perform_final_evaluation(experiment: MLExperiment):
     """
     try:
         # 1. Leer los DataSources de entrenamiento y prueba
-        train_ds_id = experiment.results['train_datasource_id']
-        test_ds_id = experiment.results['test_datasource_id']
+        train_ds_id = experiment.results.get('train_datasource_id')
+        test_ds_id = experiment.results.get('test_datasource_id')
+        if not train_ds_id or not test_ds_id:
+            raise ValueError("Los IDs de los datasources de entrenamiento y/o prueba no se encontraron.")
+
         train_datasource = DataSource.objects.get(id=train_ds_id)
         test_datasource = DataSource.objects.get(id=test_ds_id)
 
@@ -149,7 +178,7 @@ def perform_final_evaluation(experiment: MLExperiment):
         y_test = test_df[target]
 
         # 4. Instanciar y entrenar el modelo
-        model = RandomForestRegressor(random_state=42)
+        model = _get_model_instance(experiment)
         model.fit(X_train, y_train)
 
         # 5. Realizar predicciones
@@ -159,11 +188,58 @@ def perform_final_evaluation(experiment: MLExperiment):
         final_r2 = r2_score(y_test, y_pred)
         final_rmse = np.sqrt(mean_squared_error(y_test, y_pred))
 
+        # 7. Crear los datos de predicción para el gráfico
+        prediction_data = [
+            {'actual': round(float(a), 4), 'predicted': round(float(p), 4)}
+            for a, p in zip(y_test, y_pred)
+        ]
+
         results = {
             'final_r2': round(final_r2, 4),
             'final_rmse': round(final_rmse, 4),
+            'prediction_data': prediction_data,
         }
         return results
-
     except Exception as e:
-        raise e
+        logger.error(f"Error en el servicio de experimentos: {e}")
+        raise
+
+def calculate_feature_importance(experiment: MLExperiment):
+    """
+    Entrena un modelo con todos los datos de entrenamiento para calcular la importancia de las variables.
+    """
+    try:
+        # 1. Leer el datasource de entrenamiento
+        train_ds_id = experiment.results.get('train_datasource_id')
+        if not train_ds_id:
+            raise ValueError("El ID del datasource de entrenamiento no se encontró en los resultados.")
+
+        train_datasource = DataSource.objects.get(id=train_ds_id)
+        train_df = pd.read_csv(train_datasource.file.path, encoding='latin-1')
+
+        # 2. Preparar datos
+        features = experiment.feature_set
+        target = experiment.target_column
+        X_train = train_df[features]
+        y_train = train_df[target]
+
+        # 3. Instanciar y entrenar el modelo
+        model = _get_model_instance(experiment)
+        model.fit(X_train, y_train)
+
+        # 4. Obtener la importancia de las variables
+        if hasattr(model, 'feature_importances_'):
+            importances = model.feature_importances_
+        elif hasattr(model, 'coef_'): # Para modelos lineales
+            importances = np.abs(model.coef_)
+        else:
+            return [] # El modelo no soporta importancia de variables
+
+        # 5. Crear y ordenar la lista de resultados
+        feature_importance_list = [{'feature': feature, 'importance': round(importance, 4)} for feature, importance in zip(features, importances)]
+        feature_importance_list.sort(key=lambda x: x['importance'], reverse=True)
+
+        return feature_importance_list
+    except Exception as e:
+        logger.error(f"Error en el servicio de experimentos: {e}")
+        raise

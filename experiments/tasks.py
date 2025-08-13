@@ -47,7 +47,8 @@ def run_model_training_task(experiment_id):
         if experiment.results is None:
             experiment.results = {}
         experiment.results.update(training_results)
-        experiment.status = 'COMPLETED'
+        # El modelo ha sido validado y está listo para la evaluación final.
+        experiment.status = 'VALIDATED'
         experiment.save()
 
         return f"Entrenamiento completado para el experimento {experiment.name}."
@@ -79,7 +80,7 @@ def run_final_evaluation_task(experiment_id):
         # Actualizar resultados y estado final
         if experiment.results is None:
             experiment.results = {}
-        experiment.results.update(evaluation_results)
+        experiment.results.update(evaluation_results) 
         experiment.status = 'COMPLETED'  # El experimento ha finalizado con éxito
         experiment.save()
 
@@ -95,3 +96,34 @@ def run_final_evaluation_task(experiment_id):
             experiment.results['error'] = str(e)
             experiment.save()
         return f"Error durante la evaluación final: {str(e)}"
+
+@shared_task
+def run_feature_importance_task(experiment_id):
+    """
+    Tarea de Celery para ejecutar el servicio de cálculo de importancia de variables.
+    """
+    try:
+        experiment = MLExperiment.objects.get(id=experiment_id)
+        experiment.status = 'ANALYZING'
+        experiment.save()
+
+        # Llamar al servicio
+        importance_results = services.calculate_feature_importance(experiment)
+
+        # Guardar resultados y actualizar estado
+        if experiment.results is None:
+            experiment.results = {}
+        experiment.results['feature_importance'] = importance_results
+        experiment.status = 'ANALYZED'
+        experiment.save()
+
+        return f"Análisis de importancia de variables completado para {experiment.name}."
+
+    except Exception as e:
+        if 'experiment' in locals() and isinstance(experiment, MLExperiment):
+            experiment.status = 'FAILED'
+            if experiment.results is None:
+                experiment.results = {}
+            experiment.results['error'] = f"Error en análisis de importancia: {str(e)}"
+            experiment.save()
+        return f"Error durante el análisis de importancia: {str(e)}"

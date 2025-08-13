@@ -1,3 +1,4 @@
+import json
 from django import forms
 from .models import MLExperiment
 from projects.models import DataSource
@@ -15,6 +16,21 @@ class MLExperimentForm(forms.ModelForm):
         widget=forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
         help_text="Escribe los nombres de las columnas separados por comas. Ej: temp_max, temp_min, precipitacion"
     )
+
+    hyperparameters = forms.CharField(
+        label="Hiperparámetros (formato JSON)",
+        widget=forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
+        required=False,
+        help_text='Introduce un diccionario JSON. Ejemplo: {"n_estimators": 150, "max_depth": 10}'
+    )
+
+    # Paso 1: Cambiar a un ChoiceField para seleccionar el modelo.
+    MODEL_CHOICES = [
+        ('RandomForestRegressor', 'Random Forest'),
+        ('GradientBoostingRegressor', 'Gradient Boosting'),
+        ('LinearRegression', 'Regresión Lineal'),
+    ]
+    model_name = forms.ChoiceField(choices=MODEL_CHOICES, label="Modelo de Machine Learning a Utilizar", widget=forms.Select(attrs={'class': 'form-select'}))
 
     def __init__(self, project, *args, **kwargs):
         """
@@ -36,6 +52,19 @@ class MLExperimentForm(forms.ModelForm):
         # Divide por comas, elimina espacios en blanco y quita cualquier entrada vacía.
         return [feature.strip() for feature in features_string.split(',') if feature.strip()]
 
+    def clean_hyperparameters(self):
+        """
+        Valida que el string de hiperparámetros sea un JSON válido.
+        Devuelve un diccionario Python.
+        """
+        params_string = self.cleaned_data.get('hyperparameters', '')
+        if not params_string:
+            return {}  # Si está vacío, devuelve un diccionario vacío
+        try:
+            return json.loads(params_string)
+        except json.JSONDecodeError:
+            raise forms.ValidationError("El formato JSON de los hiperparámetros no es válido.")
+
     class Meta:
         model = MLExperiment
 
@@ -47,7 +76,8 @@ class MLExperimentForm(forms.ModelForm):
             'input_datasource',
             'target_column',
             'model_name',
-            'feature_set'
+            'feature_set',
+            'hyperparameters'
         ]
 
         labels = {
@@ -55,7 +85,6 @@ class MLExperimentForm(forms.ModelForm):
             'description': "Describe el objetivo de este experimento",
             'input_datasource': "Fuente de Datos de Entrada",
             'target_column': "Variable Objetivo (Target)",
-            'model_name': "Modelo de Machine Learning a Utilizar",
         }
 
         widgets = {
@@ -63,5 +92,4 @@ class MLExperimentForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
             'input_datasource': forms.Select(attrs={'class': 'form-select'}),
             'target_column': forms.TextInput(attrs={'class': 'form-control'}),
-            'model_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: RandomForestRegressor'}),
         }

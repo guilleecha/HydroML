@@ -1,8 +1,11 @@
 {% extends "core/base.html" %}
+{% load static %}
 
 {% block content %}
 <div class="container mt-4">
-    <div class="card">
+    <div class="card" id="experiment-detail-card" 
+         data-status-url="{% url 'experiments:get_experiment_status' experiment_id=experiment.id %}" 
+         data-initial-status="{{ experiment.status }}">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h3>Detalle del Experimento: {{ experiment.name }} 🧪</h3>
             <div>
@@ -25,7 +28,7 @@
                         {% endfor %}
                     </div>
                 </li>
-                 <li class="list-group-item"><strong>Estado:</strong> <span class="badge bg-info">{{ experiment.status }}</span></li>
+                 <li class="list-group-item"><strong>Estado:</strong> <span id="experiment-status-badge" class="badge bg-info">{{ experiment.get_status_display }}</span></li>
             </ul>
 
             <hr>
@@ -33,46 +36,104 @@
             <h5 class="card-title mt-4">Acciones del Experimento</h5>
             <div class="mb-3">
                 <p>Inicia los procesos de Machine Learning para este experimento.</p>
-                <a href="{% url 'experiments:trigger_split_task' experiment_id=experiment.id %}" class="btn btn-primary {% if experiment.status != 'DRAFT' %}disabled{% endif %}">1. Ejecutar División Train/Test</a>
-                <a href="{% url 'experiments:trigger_training_task' experiment_id=experiment.id %}" class="btn btn-success {% if experiment.status != 'PREPARED' %}disabled{% endif %}">2. Ejecutar Validación Cruzada</a>
-                <a href="{% url 'experiments:trigger_final_evaluation_task' experiment_id=experiment.id %}" class="btn btn-info {% if experiment.status != 'COMPLETED' %}disabled{% endif %}">3. Ejecutar Test Final</a>
+                <a id="btn-split" href="{% url 'experiments:trigger_split_task' experiment_id=experiment.id %}" class="btn btn-primary {% if experiment.status != 'DRAFT' %}disabled{% endif %}">1. Ejecutar División Train/Test</a>
+                <a id="btn-train" href="{% url 'experiments:trigger_training_task' experiment_id=experiment.id %}" class="btn btn-success {% if experiment.status != 'PREPARED' %}disabled{% endif %}">2. Ejecutar Validación Cruzada</a>
+                <a id="btn-evaluate" href="{% url 'experiments:trigger_final_evaluation_task' experiment_id=experiment.id %}" class="btn btn-info {% if experiment.status != 'VALIDATED' %}disabled{% endif %}">3. Ejecutar Test Final</a>
+                <a id="btn-importance" href="{% url 'experiments:trigger_feature_importance_task' experiment_id=experiment.id %}" class="btn btn-dark {% if experiment.status != 'COMPLETED' %}disabled{% endif %}">4. Analizar Modelo</a>
             </div>
 
             <hr>
 
             <h5 class="card-title mt-4">Resultados del Experimento</h5>
             
-            {% if experiment.status == 'FAILED' and experiment.results.error %}
-                <div class="alert alert-danger">
-                    <h6 class="alert-heading">¡Error en la ejecución!</h6>
-                    <p><strong>Mensaje:</strong> {{ experiment.results.error }}</p>
-                </div>
-            {% elif experiment.results.mean_nse is not None %}
-                <div class="alert alert-secondary">
-                    <h6 class="alert-heading">Resultados de la Validación Cruzada</h6>
-                    <ul class="mb-0">
-                        <li><strong>Coeficiente de Nash-Sutcliffe (NSE) Promedio:</strong> {{ experiment.results.mean_nse }}</li>
-                        <li><strong>Desviación Estándar del NSE:</strong> {{ experiment.results.std_nse }}</li>
-                        <li><strong>Error Cuadrático Medio (RMSE) Promedio:</strong> {{ experiment.results.mean_rmse }}</li>
-                    </ul>
-                </div>
+            <div id="experiment-results-container">
+                {% if experiment.status == 'FAILED' and experiment.results.error %}
+                    <div class="alert alert-danger">
+                        <h6 class="alert-heading">¡Error en la ejecución!</h6>
+                        <p><strong>Mensaje:</strong> {{ experiment.results.error }}</p>
+                    </div>
+                {% elif experiment.results.mean_nse is not None %}
+                    <div class="alert alert-secondary">
+                        <h6 class="alert-heading">Resultados de la Validación Cruzada</h6>
+                        <ul class="mb-0">
+                            <li><strong>Coeficiente de Nash-Sutcliffe (NSE) Promedio:</strong> {{ experiment.results.mean_nse }}</li>
+                            <li><strong>Desviación Estándar del NSE:</strong> {{ experiment.results.std_nse }}</li>
+                            <li><strong>Error Cuadrático Medio (RMSE) Promedio:</strong> {{ experiment.results.mean_rmse }}</li>
+                        </ul>
+                    </div>
 
-                {% if experiment.results.final_r2 is not None %}
-                <div class="alert alert-success mt-3">
-                    <h6 class="alert-heading">Métricas del Test Final (Hold-out)</h6>
-                    <ul class="mb-0">
-                        <li><strong>Coeficiente de Determinación (R²):</strong> {{ experiment.results.final_r2 }}</li>
-                        <li><strong>Raíz del Error Cuadrático Medio (RMSE):</strong> {{ experiment.results.final_rmse }}</li>
-                    </ul>
-                </div>
+                    {% if experiment.results.final_r2 is not None %}
+                    <div class="alert alert-success mt-3">
+                        <h6 class="alert-heading">Métricas del Test Final (Hold-out)</h6>
+                        <ul class="mb-0">
+                            <li><strong>Coeficiente de Determinación (R²):</strong> {{ experiment.results.final_r2 }}</li>
+                            <li><strong>Raíz del Error Cuadrático Medio (RMSE):</strong> {{ experiment.results.final_rmse }}</li>
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                {% else %}
+                    <div class="text-center text-muted p-4">
+                        <p>Los resultados de la validación y evaluación del modelo aparecerán aquí.</p>
+                    </div>
                 {% endif %}
+            </div>
 
-            {% else %}
-                <div class="text-center text-muted p-4">
-                    <p>Los resultados de la validación y evaluación del modelo aparecerán aquí.</p>
-                </div>
+            {% if scatter_data_json %}
+            <hr>
+            <h5 class="card-title mt-4">Gráfico de Rendimiento (Test Final)</h5>
+            <div style="max-width: 600px; margin: auto;">
+                <canvas id="predictionScatterChart"></canvas>
+            </div>
             {% endif %}
+            
+            {% if experiment.results.feature_importance %}
+            <hr>
+            <h5 class="card-title mt-4">Importancia de Variables</h5>
+            <div style="max-width: 700px; margin: auto;">
+                <canvas id="featureImportanceChart"></canvas>
+            </div>
+            {% endif %}
+
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% if scatter_data_json %}
+{{ scatter_data_json|json_script:"scatter-data" }}
+<script id="chart-data" type="application/json">{{ scatter_data_json|safe }}</script>
+<script src="{% static 'experiments/js/experiment_chart.js' %}"></script>
+{% endif %}
+
+{% if experiment.results.feature_importance %}
+{{ experiment.results.feature_importance|json_script:"importance-data" }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const importanceData = JSON.parse(document.getElementById('importance-data').textContent);
+    const ctx = document.getElementById('featureImportanceChart').getContext('2d');
+
+    // Los datos ya vienen ordenados, pero para el gráfico horizontal es mejor invertirlos.
+    const labels = importanceData.map(item => item.feature).reverse();
+    const data = importanceData.map(item => item.importance).reverse();
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Importancia',
+                data: data,
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false }, title: { display: true, text: 'Importancia Relativa de cada Variable' } } }
+    });
+});
+</script>
+{% endif %}
+<script src="{% static 'experiments/js/status_poller.js' %}"></script>
 {% endblock %}
