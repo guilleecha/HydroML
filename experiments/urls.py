@@ -2,6 +2,7 @@
 from django.urls import path
 from .views import experiment_management_views, experiment_results_views, api_views
 from experiments.views.experiment_management_views import trigger_feature_importance_task
+from .views import ablation_suite_create  # Importar la nueva vista
 
 app_name = 'experiments'
 
@@ -53,4 +54,11 @@ urlpatterns = [
     path('api/status/<int:experiment_id>/',
          api_views.get_experiment_status,
          name='get_experiment_status'),
+
+    # --- Rutas para Suites de Experimentos ---
+    path(
+        'suite/create/ablation/for-project/<uuid:project_id>/', 
+        ablation_suite_create, 
+        name='ablation_suite_create'
+    ),
 ]

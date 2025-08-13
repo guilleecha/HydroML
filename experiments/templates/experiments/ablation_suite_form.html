@@ -1,0 +1,30 @@
+{% extends "core/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white shadow-md rounded-lg">
+        <div class="p-6 border-b border-gray-200">
+            <h1 class="text-2xl font-bold text-gray-800">{{ view_title }}</h1>
+            <p class="text-sm text-gray-600 mt-1">
+                Un análisis de ablación prueba el impacto de añadir diferentes grupos de variables (features) a un modelo base.
+            </p>
+        </div>
+        
+        <div class="p-6">
+            {% if form.errors %}
+                <div class="p-4 mb-6 text-sm text-red-800 rounded-lg bg-red-100 border border-red-400" role="alert">
+                    <span class="font-bold">Por favor, corrige los siguientes errores:</span>
+                    <ul class="mt-2 list-disc list-inside">
+                        {% for field, errors in form.errors.items %}
+                            <li><strong>{{ field }}:</strong> {{ errors|striptags }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            {% crispy form %}
+        </div>
+    </div>
+</div>
+{% endblock %}

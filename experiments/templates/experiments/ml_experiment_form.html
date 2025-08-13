@@ -4,37 +4,94 @@
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
-    <div class="bg-white shadow-md rounded-lg">
+    <form method="post" id="experiment-form" 
+          class="bg-white shadow-md rounded-lg"
+          data-get-columns-url="{% url 'data_tools:get_columns_api' datasource_id='00000000-0000-0000-0000-000000000000' %}">
+        
         <div class="p-6 border-b border-gray-200">
             <h1 class="text-2xl font-bold text-gray-800">{{ view_title|default:'Crear Nuevo Experimento' }}</h1>
         </div>
         
-        <div class="p-6">
-            <form method="post" id="experiment-form"
-                  data-get-columns-url="{% url 'data_tools:get_columns_api' datasource_id='00000000-0000-0000-0000-000000000000' %}">
-                
-                {% csrf_token %}
+        <div class="p-6 space-y-8">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+                <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-100 border border-red-400" role="alert">
+                    <span class="font-bold">Por favor, corrige los siguientes errores:</span>
+                    <ul class="mt-2 list-disc list-inside">
+                        {% for field, errors in form.errors.items %}
+                            {% if field != '__all__' %}
+                                <li><strong>{{ form|get_field:field|label }}:</strong> {{ errors|striptags }}</li>
+                            {% endif %}
+                        {% endfor %}
+                        {% if form.non_field_errors %}
+                            <li>{{ form.non_field_errors|striptags }}</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            {% endif %}
 
-                {% if form.errors %}
-                    <div class="p-4 mb-6 text-sm text-red-800 rounded-lg bg-red-100 border border-red-400" role="alert">
-                        <span class="font-bold">Por favor, corrige los siguientes errores:</span>
-                        <ul class="mt-2 list-disc list-inside">
-                            {% for field, errors in form.errors.items %}
-                                <li><strong>{{ field }}:</strong> {{ errors|striptags }}</li>
-                            {% endfor %}
-                        </ul>
+            <fieldset>
+                <legend class="text-lg font-semibold text-gray-800 mb-4">Información General</legend>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {{ form.name|as_crispy_field }}
+                    {{ form.description|as_crispy_field }}
+                </div>
+            </fieldset>
+            
+            <hr>
+
+            <fieldset>
+                <legend class="text-lg font-semibold text-gray-800 mb-4">Configuración del Modelo</legend>
+                {{ form.model_name|as_crispy_field }}
+                <div id="rf-fields" class="hidden mt-4 grid grid-cols-2 gap-6">
+                    {{ form.rf_n_estimators|as_crispy_field }}
+                    {{ form.rf_max_depth|as_crispy_field }}
+                </div>
+                <div id="gb-fields" class="hidden mt-4 grid grid-cols-2 gap-6">
+                    {{ form.gb_n_estimators|as_crispy_field }}
+                    {{ form.gb_learning_rate|as_crispy_field }}
+                </div>
+            </fieldset>
+
+            <hr>
+
+            <fieldset>
+                <legend class="text-lg font-semibold text-gray-800 mb-4">Selección de Datos y Variables</legend>
+                {{ form.input_datasource|as_crispy_field }}
+                <div class="mt-4">
+                     <label for="id_target_column_select" class="block text-sm font-medium text-gray-700 mb-1">Variable Objetivo</label>
+                    <select id="id_target_column_select" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" disabled>
+                        <option value="">Primero selecciona una Fuente de Datos</option>
+                    </select>
+                </div>
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {{ form.split_strategy|as_crispy_field }}
+                    {{ form.test_split_size|as_crispy_field }}
+                    {{ form.split_random_state|as_crispy_field }}
+                </div>
+
+                <div class="mt-6">
+                    <label class="block text-sm font-medium text-gray-700">Variables Predictoras</label>
+                    <div class="flex space-x-4 items-center mt-2">
+                        <div class="flex-1"><label for="features-available" class="text-xs text-gray-500 mb-1 block">Disponibles</label><select id="features-available" class="block w-full h-48 border rounded-md border-gray-300" multiple></select></div>
+                        <div class="flex flex-col space-y-2"><button type="button" id="btn-add-feature" class="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">&gt;&gt;</button><button type="button" id="btn-remove-feature" class="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">&lt;&lt;</button></div>
+                        <div class="flex-1"><label for="features-selected" class="text-xs text-gray-500 mb-1 block">Seleccionadas</label><select id="features-selected" class="block w-full h-48 border rounded-md border-gray-300" multiple></select></div>
                     </div>
-                {% endif %}
-
-                {% crispy form %}
-            </form>
+                </div>
+            </fieldset>
+            
+            <div class="hidden">
+                {{ form.target_column }}
+                {{ form.feature_set }}
+            </div>
         </div>
         
         <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-2 rounded-b-lg">
             <a href="{% url 'projects:project_detail' pk=project.pk %}" class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Cancelar</a>
-            <button type="submit" form="experiment-form" class="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700">Guardar Experimento</button>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700">Guardar Experimento</button>
         </div>
-    </div>
+    </form>
 </div>
 {% endblock %}
 

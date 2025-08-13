@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const labels = topFeatures.map(item => item.feature);
             const data = topFeatures.map(item => item.importance);
 
-            new Chart(featureCtx.getContext('2d'), {
+            new Chart(featureCtx, {
                 type: 'bar',
                 data: {
                     labels: labels.reverse(), // Invertir para mostrar la más importante arriba

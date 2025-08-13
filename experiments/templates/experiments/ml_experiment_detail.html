@@ -3,64 +3,114 @@
 
 {% block content %}
 <div class="max-w-5xl mx-auto py-8">
-    <div id="task-error-alert"></div>
+    <div id="task-error-alert" class="mb-4"></div>
 
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-3xl font-bold text-gray-800">{{ experiment.name }}</h1>
-        <span id="experiment-status-badge" class="px-3 py-1 rounded-full text-sm font-semibold"
-              data-status-url="{% url 'experiments:get_experiment_status' experiment_id=experiment.id %}">
-            </span>
+        <span id="experiment-status-badge" 
+              class="px-3 py-1 rounded-full text-sm font-semibold"
+              data-status-url="{% url 'experiments:get_experiment_status' experiment_id=experiment.id %}"
+              data-initial-status="{{ experiment.status }}">
+            <!-- El estado se cargará aquí por JS -->
+        </span>
     </div>
 
-    <div class="bg-white shadow rounded-lg p-4 mb-8 flex flex-wrap gap-4">
+    <!-- Panel de Control -->
+    <div class="bg-white shadow rounded-lg p-4 mb-8">
+        <h3 class="text-lg font-semibold text-gray-700 mb-3">Panel de Control del Experimento</h3>
+        <div class="flex flex-wrap gap-4 items-center">
+            <form method="post" action="{% url 'experiments:trigger_split_task' experiment_id=experiment.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed" {% if experiment.status != 'DRAFT' %}disabled{% endif %}>
+                    1. Ejecutar División Train/Test
+                </button>
+            </form>
+            <form method="post" action="{% url 'experiments:trigger_training_task' experiment_id=experiment.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="px-4 py-2 rounded bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed" {% if experiment.status != 'SPLIT' %}disabled{% endif %}>
+                    2. Ejecutar Validación
+                </button>
+            </form>
+            <form method="post" action="{% url 'experiments:trigger_final_evaluation_task' experiment_id=experiment.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="px-4 py-2 rounded bg-green-600 text-white font-semibold hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed" {% if experiment.status != 'COMPLETED' %}disabled{% endif %}>
+                    3. Ejecutar Test Final
+                </button>
+            </form>
+             <form method="post" action="{% url 'experiments:trigger_feature_importance_task' experiment_id=experiment.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="px-4 py-2 rounded bg-yellow-500 text-white font-semibold hover:bg-yellow-600 disabled:bg-gray-400 disabled:cursor-not-allowed" {% if experiment.status != "FINISHED" %}disabled{% endif %}>
+                    4. Analizar Modelo
+                </button>
+            </form>
         </div>
+    </div>
 
-    <div class="border-b border-gray-200 mb-6">
-        <nav class="flex space-x-8" aria-label="Tabs">
-            <button id="tab-results-btn" class="py-4 px-1 text-sm font-medium text-blue-600 border-b-2 border-blue-600" type="button">
-                Resultados y Gráficos
-            </button>
-            <button id="tab-config-btn" class="py-4 px-1 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-blue-600" type="button">
-                Configuración Detallada
-            </button>
+    <!-- Pestañas -->
+    <div class="border-b border-gray-200">
+        <nav class="flex space-x-8 -mb-px" aria-label="Tabs">
+            <button id="tab-results-btn" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600" type="button">Resultados y Gráficos</button>
+            <button id="tab-config-btn" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700" type="button">Configuración</button>
         </nav>
     </div>
 
-    <div id="tab-results">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-            {% if experiment.results.prediction_data %}
+    <!-- Contenido de las Pestañas -->
+    <div class="mt-6">
+        <div id="tab-results">
+            <!-- Los gráficos y resultados se renderizarán aquí -->
+        </div>
+
+        <div id="tab-config" class="hidden">
             <div class="bg-white shadow rounded-lg p-6">
-                <canvas id="predictionScatterChart"></canvas>
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Configuración Detallada</h3>
+                <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                    <div class="col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">Fuente de Datos</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ experiment.input_datasource.name }}</dd>
+                    </div>
+                    <div class="col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">Modelo Utilizado</dt>
+                        <dd class="mt-1 text-sm text-gray-900 font-mono">{{ experiment.model_name }}</dd>
+                    </div>
+                    <div class="col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">Variable Objetivo</dt>
+                        <dd class="mt-1 text-sm text-gray-900 font-mono">{{ experiment.target_column }}</dd>
+                    </div>
+                    <div class="col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">Estrategia de División</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ experiment.get_split_strategy_display }}</dd>
+                    </div>
+                    <div class="col-span-2">
+                        <dt class="text-sm font-medium text-gray-500">Variables Predictoras</dt>
+                        <dd class="mt-1 flex flex-wrap gap-2">
+                            {% for feature in experiment.feature_set %}
+                                <span class="px-2 py-1 bg-gray-200 text-gray-800 text-xs font-medium rounded-full">{{ feature }}</span>
+                            {% endfor %}
+                        </dd>
+                    </div>
+                    {% if experiment.hyperparameters %}
+                    <div class="col-span-2">
+                        <dt class="text-sm font-medium text-gray-500">Hiperparámetros</dt>
+                        <dd class="mt-1 text-sm text-gray-900"><pre class="bg-gray-100 p-2 rounded-md text-xs"><code>{{ experiment.hyperparameters }}</code></pre></dd>
+                    </div>
+                    {% endif %}
+                </dl>
             </div>
-            {% endif %}
-            
-            {% if experiment.results.feature_importance %}
-            <div class="bg-white shadow rounded-lg p-6">
-                <canvas id="featureImportanceChart"></canvas>
-            </div>
-            {% endif %}
         </div>
     </div>
-
-    <div id="tab-config" class="hidden">
-        </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    {# Scripts para pasar datos del backend al frontend #}
+    <script src="{% static 'experiments/js/experiment_status.js' %}"></script>
+    <script src="{% static 'experiments/js/experiment_charts.js' %}"></script>
+    <script src="{% static 'experiments/js/experiment_dashboard.js' %}"></script>
+    
     {% if experiment.results.prediction_data %}
         <script id="scatter-data" type="application/json">{{ experiment.results.prediction_data|safe }}</script>
     {% endif %}
     {% if experiment.results.feature_importance %}
         <script id="feature-importance-data" type="application/json">{{ experiment.results.feature_importance|safe }}</script>
     {% endif %}
-
-    {# Scripts de la aplicación #}
-    <script src="{% static 'experiments/js/experiment_status.js' %}"></script>
-    
-    {# Esta línea es correcta, asumiendo que la configuración de Django también lo es. #}
-    <script src="{% static 'experiments/js/experiment_charts.js' %}"></script>
 {% endblock %}
