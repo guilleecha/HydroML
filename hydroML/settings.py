@@ -149,6 +149,15 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# --- AÑADE ESTA CONFIGURACIÓN ---
+# Esta configuración le dice a Django cómo encontrar archivos estáticos.
+# AppDirectoriesFinder es crucial para que encuentre los archivos dentro de cada app.
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder', # Busca en STATICFILES_DIRS
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder', # Busca en el directorio 'static' de cada app
+]
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

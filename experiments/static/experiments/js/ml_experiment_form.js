@@ -3,18 +3,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const experimentForm = document.getElementById('experiment-form');
     if (!experimentForm) return;
 
-    // Elementos para hiperparámetros dinámicos
     const modelSelect = document.getElementById("id_model_name");
     const rfFields = document.getElementById("rf-fields");
     const gbFields = document.getElementById("gb-fields");
     
-    // Elementos para el Dual Listbox
     const featuresAvailable = document.getElementById('features-available');
     const featuresSelected = document.getElementById('features-selected');
     const btnAdd = document.getElementById('btn-add-feature');
     const btnRemove = document.getElementById('btn-remove-feature');
     
-    // Elementos para la selección de datos y sincronización
     const datasourceSelect = document.getElementById('id_input_datasource');
     const targetColumnSelect = document.getElementById('id_target_column_select');
     const hiddenTargetInput = document.getElementById('id_target_column');
@@ -40,21 +37,25 @@ document.addEventListener('DOMContentLoaded', function() {
     function syncHiddenInputs() {
         hiddenTargetInput.value = targetColumnSelect.value;
         const values = Array.from(featuresSelected.options).map(opt => opt.value);
-        hiddenFeatureSet.value = values.join(','); 
+        // CORRECCIÓN: Usar JSON.stringify para que coincida con el backend
+        hiddenFeatureSet.value = JSON.stringify(values);
     }
 
     function moveOptions(source, destination) {
         Array.from(source.selectedOptions).forEach(opt => {
             destination.appendChild(opt);
         });
-        syncHiddenInputs();
+        syncHiddenInputs(); // Sincronizar después de cada movimiento
     }
 
     btnAdd.addEventListener('click', () => moveOptions(featuresAvailable, featuresSelected));
     btnRemove.addEventListener('click', () => moveOptions(featuresSelected, featuresAvailable));
     targetColumnSelect.addEventListener('change', syncHiddenInputs);
+    // Es importante sincronizar también cuando la lista de seleccionados cambia
+    featuresSelected.addEventListener('change', syncHiddenInputs);
 
-    // --- Lógica UNIFICADA para Poblar Columnas Dinámicamente ---
+
+    // --- Lógica para Poblar Columnas Dinámicamente ---
     datasourceSelect.addEventListener('change', function() {
         const datasourceId = this.value;
         
@@ -83,11 +84,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 featuresAvailable.innerHTML = '';
                 
                 data.columns.forEach(col => {
-                    const option = document.createElement('option');
-                    option.value = col;
-                    option.textContent = col;
-                    featuresAvailable.appendChild(option.cloneNode(true));
-                    targetColumnSelect.appendChild(option);
+                    const option = new Option(col, col);
+                    targetColumnSelect.add(option.cloneNode(true));
+                    featuresAvailable.add(option);
                 });
 
                 targetColumnSelect.disabled = false;

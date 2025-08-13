@@ -1,6 +1,10 @@
 import os
 from celery import Celery
+from dotenv import load_dotenv  # <-- 1. AÑADE ESTA IMPORTACIÓN
 
+
+
+load_dotenv()
 # Establece el módulo de configuración de Django por defecto para el programa 'celery'.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hydroML.settings')
 

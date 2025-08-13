@@ -2,36 +2,30 @@
 from celery import shared_task
 from .models import MLExperiment
 from . import services
-from experiments.models import MLExperiment
-from experiments.services import calculate_feature_importance
-import sentry_sdk  # Asegúrate de que Sentry esté configurado en tu proyecto
+from .services import perform_train_test_split
+from .models import MLExperiment
 
 @shared_task
 def run_train_test_split_task(experiment_id):
     """
-    Celery task to call the data splitting service.
+    Tarea de Celery para realizar la división de datos.
     """
+    experiment = MLExperiment.objects.get(id=experiment_id)
     try:
-        experiment = MLExperiment.objects.get(id=experiment_id)
-        experiment.status = 'PROCESSING'
-        experiment.save()
+        experiment.status = 'SPLITTING'
+        experiment.save(update_fields=['status'])
 
-        # The task passes the heavy lifting to the service
-        success_message = services.perform_train_test_split(experiment)
+        # El servicio ahora contiene la lógica condicional
+        perform_train_test_split(experiment)
 
-        experiment.status = 'PREPARED'
-        experiment.save()
-        return success_message
-
-    except MLExperiment.DoesNotExist:
-        # Handle the case where the experiment doesn't exist
-        return f"Error: Experiment with id {experiment_id} not found."
+        # El estado final es 'SPLIT', independientemente de la estrategia
+        experiment.status = 'SPLIT'
+        experiment.save(update_fields=['status'])
     except Exception as e:
-        # The task manages failures
-        if 'experiment' in locals() and isinstance(experiment, MLExperiment):
-            experiment.status = 'FAILED'
-            experiment.save()
-        return f"Error during splitting: {str(e)}"
+        experiment.status = 'FAILED'
+        experiment.results['error_message'] = str(e)
+        experiment.save(update_fields=['status', 'results'])
+        raise e
 
 @shared_task
 def run_model_training_task(experiment_id):

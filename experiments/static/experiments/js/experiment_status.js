@@ -1,88 +1,53 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener('DOMContentLoaded', function () {
     const statusBadge = document.getElementById('experiment-status-badge');
-    if (!statusBadge) {
-        return; // No hay nada que hacer si el badge no está en la página
-    }
-
+    const errorAlert = document.getElementById('task-error-alert');
     const statusUrl = statusBadge.dataset.statusUrl;
-    const initialStatus = statusBadge.dataset.initialStatus;
 
-    if (!statusUrl) {
-        console.error("Status URL no encontrada en el atributo data-status-url.");
-        return;
-    }
-
-    // Si el estado inicial ya es final, no hacemos nada.
-    if (initialStatus === 'FINISHED' || initialStatus === 'FAILED') {
-        return;
-    }
-
+    // Declarar la variable una sola vez fuera de la función de sondeo.
     let pollingInterval;
 
-    const pollStatus = () => {
+    const statusClasses = {
+        DRAFT: 'bg-gray-200 text-gray-800',
+        PENDING: 'bg-yellow-200 text-yellow-800 animate-pulse',
+        SPLITTING: 'bg-blue-200 text-blue-800 animate-pulse',
+        SPLIT: 'bg-blue-500 text-white',
+        TRAINING: 'bg-indigo-200 text-indigo-800 animate-pulse',
+        COMPLETED: 'bg-green-500 text-white',
+        FAILED: 'bg-red-500 text-white',
+    };
+
+    function pollExperimentStatus() {
         fetch(statusUrl)
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('La respuesta de la red no fue correcta.');
+                    throw new Error('Network response was not ok');
                 }
                 return response.json();
             })
             .then(data => {
-                // Actualizar el texto del badge
+                // Actualizar el badge de estado
                 statusBadge.textContent = data.status_display;
+                statusBadge.className = `px-3 py-1 rounded-full text-sm font-semibold ${statusClasses[data.status] || statusClasses['DRAFT']}`;
 
-                // Actualizar el color del badge según el estado
-                statusBadge.className = 'badge'; // Reset class
-                if (data.status === 'COMPLETED' || data.status === 'VALIDATED' || data.status === 'FINISHED') {
-                    statusBadge.classList.add('bg-success');
-                } else if (data.status === 'FAILED') {
-                    statusBadge.classList.add('bg-danger');
-                } else if (data.status === 'PROCESSING' || data.status === 'TRAINING' || data.status === 'EVALUATING') {
-                    statusBadge.classList.add('bg-warning');
-                } else {
-                    statusBadge.classList.add('bg-info');
+                // Si la tarea ha terminado (COMPLETED o FAILED), detener el sondeo.
+                if (data.status === 'COMPLETED' || data.status === 'FAILED') {
+                    clearInterval(pollingInterval);
                 }
 
-                // Detener el sondeo y recargar si la tarea ha finalizado
-                if (data.status === 'FINISHED' || data.status === 'FAILED') {
-                    clearInterval(pollingInterval);
-                    setTimeout(() => {
-                        location.reload();
-                    }, 2000); // Espera 2 segundos antes de recargar para que el usuario vea el estado final
+                // Si hay un error, mostrarlo en la alerta.
+                if (data.status === 'FAILED' && data.results && data.results.error_message) {
+                    errorAlert.innerHTML = `<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert"><strong class="font-bold">Error:</strong><span class="block sm:inline"> ${data.results.error_message}</span></div>`;
                 }
             })
             .catch(error => {
-                console.error("Error durante el sondeo:", error);
-                clearInterval(pollingInterval); // Detener en caso de error de red
-            });
-    };
-
-    // Iniciar el sondeo inmediatamente y luego cada 3 segundos
-    pollStatus();
-    pollingInterval = setInterval(pollStatus, 3000);
-
-    const errorAlert = document.getElementById('task-error-alert');
-    const errorMessageSpan = errorAlert.querySelector('span');
-
-    function pollExperimentStatus() {
-        fetch('/api/experiments/{{ experiment.id }}/status/')
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'FAILED') {
-                    // Mostrar el mensaje de error
-                    if (data.results && data.results.error_message) {
-                        errorMessageSpan.textContent = data.results.error_message;
-                        errorAlert.classList.remove('hidden');
-                    }
-                    // Detener el sondeo
-                    clearInterval(pollingInterval);
-                }
-            })
-            .catch(error => {
-                console.error('Error al obtener el estado del experimento:', error);
+                console.error('Error fetching experiment status:', error);
+                clearInterval(pollingInterval); // Detener también si hay un error de red
             });
     }
 
     // Iniciar el sondeo
-    const pollingInterval = setInterval(pollExperimentStatus, 5000);
+    // Se asigna el intervalo a la variable ya declarada.
+    pollingInterval = setInterval(pollExperimentStatus, 5000);
+    // Ejecutar una vez de inmediato al cargar la página
+    pollExperimentStatus(); 
 });
