@@ -5,10 +5,10 @@ from ..models import MLExperiment
 
 class MLExperimentForm(forms.ModelForm):
     # Campos para hiperparámetros dinámicos
-    rf_n_estimators = forms.IntegerField(label="N° de árboles (Random Forest)", required=False, initial=100)
-    rf_max_depth = forms.IntegerField(label="Profundidad máxima (Random Forest)", required=False, initial=10)
-    gb_n_estimators = forms.IntegerField(label="N° de árboles (Gradient Boosting)", required=False, initial=100)
-    gb_learning_rate = forms.FloatField(label="Tasa de Aprendizaje (Gradient Boosting)", required=False, initial=0.1)
+    rf_n_estimators = forms.IntegerField(label="N° de árboles (Random Forest)", required=False)
+    rf_max_depth = forms.IntegerField(label="Profundidad máxima (Random Forest)", required=False)
+    gb_n_estimators = forms.IntegerField(label="N° de árboles (Gradient Boosting)", required=False)
+    gb_learning_rate = forms.FloatField(label="Tasa de Aprendizaje (Gradient Boosting)", required=False)
 
     MODEL_CHOICES = [
         ('', 'Selecciona un modelo...'),
@@ -42,4 +42,4 @@ class MLExperimentForm(forms.ModelForm):
         # El FormHelper ahora es súper simple
         self.helper = FormHelper()
         self.helper.form_tag = False # Le decimos a Crispy que NO renderice las etiquetas <form>
-        self.helper.disable_csrf = True # El token CSRF se manejará en la plantilla
+        self.helper.disable_csrf = True
