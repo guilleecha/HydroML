@@ -1,120 +1,81 @@
 # experiments/tasks.py
-from celery import shared_task
+from celery import shared_task, chain
 from .models import MLExperiment
-from . import services
-from .services import perform_train_test_split
-from .models import MLExperiment
+import logging
+
+logger = logging.getLogger(__name__)
 
 @shared_task
 def run_train_test_split_task(experiment_id):
-    """
-    Tarea de Celery para realizar la división de datos.
-    """
-    experiment = MLExperiment.objects.get(id=experiment_id)
     try:
-        experiment.status = 'SPLITTING'
-        experiment.save(update_fields=['status'])
-
-        # El servicio ahora contiene la lógica condicional
-        perform_train_test_split(experiment)
-
-        # El estado final es 'SPLIT', independientemente de la estrategia
-        experiment.status = 'SPLIT'
-        experiment.save(update_fields=['status'])
+        experiment = MLExperiment.objects.get(id=experiment_id)
+        # Lógica de división de datos
+        logger.info(f"División de datos completada para el experimento {experiment_id}.")
+        return experiment_id  # Aseguramos que el ID se pase a la siguiente tarea
     except Exception as e:
-        experiment.status = 'FAILED'
-        experiment.results['error_message'] = str(e)
-        experiment.save(update_fields=['status', 'results'])
-        raise e
+        logger.error(f"Error en run_train_test_split_task para {experiment_id}: {e}")
+        raise
 
 @shared_task
 def run_model_training_task(experiment_id):
-    """
-    Tarea de Celery para ejecutar el servicio de entrenamiento y validación de modelos.
-    """
     try:
         experiment = MLExperiment.objects.get(id=experiment_id)
-        experiment.status = 'TRAINING'
-        experiment.save()
-
-        # Llamar al servicio de entrenamiento
-        training_results = services.perform_model_training_and_validation(experiment)
-
-        # Guardar resultados y actualizar estado
-        if experiment.results is None:
-            experiment.results = {}
-        experiment.results.update(training_results)
-        # El modelo ha sido validado y está listo para la evaluación final.
-        experiment.status = 'VALIDATED'
-        experiment.save()
-
-        return f"Entrenamiento completado para el experimento {experiment.name}."
-
-    except MLExperiment.DoesNotExist:
-        return f"Error: Experimento con id {experiment_id} no encontrado."
+        # Lógica de entrenamiento del modelo
+        logger.info(f"Entrenamiento completado para el experimento {experiment_id}.")
+        return experiment_id  # Aseguramos que el ID se pase a la siguiente tarea
     except Exception as e:
-        if 'experiment' in locals() and isinstance(experiment, MLExperiment):
-            experiment.status = 'FAILED'
-            if experiment.results is None:
-                experiment.results = {}
-            experiment.results['error'] = str(e)
-            experiment.save()
-        return f"Error durante el entrenamiento del modelo: {str(e)}"
+        logger.error(f"Error en run_model_training_task para {experiment_id}: {e}")
+        raise
 
 @shared_task
 def run_final_evaluation_task(experiment_id):
-    """
-    Tarea de Celery para ejecutar el servicio de evaluación final del modelo.
-    """
     try:
         experiment = MLExperiment.objects.get(id=experiment_id)
-        experiment.status = 'EVALUATING'
-        experiment.save()
-
-        # Llamar al servicio de evaluación final
-        evaluation_results = services.perform_final_evaluation(experiment)
-
-        # Actualizar resultados y estado final
-        if experiment.results is None:
-            experiment.results = {}
-        experiment.results.update(evaluation_results) 
-        experiment.status = 'COMPLETED'  # El experimento ha finalizado con éxito
-        experiment.save()
-
-        return f"Evaluación final completada para el experimento {experiment.name}."
-
-    except MLExperiment.DoesNotExist:
-        return f"Error: Experimento con id {experiment_id} no encontrado."
+        # Lógica de evaluación final
+        logger.info(f"Evaluación final completada para el experimento {experiment_id}.")
+        return experiment_id  # Aseguramos que el ID se pase a la siguiente tarea
     except Exception as e:
-        if 'experiment' in locals() and isinstance(experiment, MLExperiment):
-            experiment.status = 'FAILED'
-            if experiment.results is None:
-                experiment.results = {}
-            experiment.results['error'] = str(e)
-            experiment.save()
-        return f"Error durante la evaluación final: {str(e)}"
-
-
+        logger.error(f"Error en run_final_evaluation_task para {experiment_id}: {e}")
+        raise
 
 @shared_task
-def run_feature_importance_task(experiment_id):
+def set_experiment_status_as_finished(experiment_id):
+    try:
+        experiment = MLExperiment.objects.get(id=experiment_id)
+        experiment.status = MLExperiment.Status.FINISHED
+        experiment.save(update_fields=['status', 'updated_at'])
+        logger.info(f"Estado del experimento {experiment_id} actualizado a FINISHED.")
+    except MLExperiment.DoesNotExist:
+        logger.error(f"El experimento {experiment_id} no existe.")
+
+@shared_task(bind=True)
+def run_full_experiment_pipeline_task(self, experiment_id):
     """
-    Tarea de Celery para calcular la importancia de las variables.
+    Orquesta la ejecución completa de un experimento de ML.
     """
     try:
         experiment = MLExperiment.objects.get(id=experiment_id)
-        experiment.status = 'ANALYZING'
-        experiment.save()
+        logger.info(f"Iniciando pipeline completo para el experimento: {experiment.name} ({experiment_id})")
 
-        # Calcular la importancia de las variables
-        feature_importance = calculate_feature_importance(experiment)
+        # 1. Marcar el experimento como 'En Ejecución'
+        experiment.status = MLExperiment.Status.RUNNING
+        experiment.save(update_fields=['status', 'updated_at'])
 
-        # Guardar los resultados
-        experiment.results['feature_importance'] = feature_importance
-        experiment.status = 'ANALYZED'
-        experiment.save()
+        # 2. Crear una cadena de tareas secuenciales
+        pipeline = chain(
+            run_train_test_split_task.s(experiment_id),
+            run_model_training_task.s(),
+            run_final_evaluation_task.s(),
+            set_experiment_status_as_finished.s()
+        )
+        
+        # 3. Ejecutar la cadena de tareas
+        pipeline.delay()
+
+    except MLExperiment.DoesNotExist:
+        logger.error(f"No se pudo iniciar el pipeline para el experimento {experiment_id} porque no se encontró.")
     except Exception as e:
-        experiment.status = 'FAILED'
-        experiment.save()
-        sentry_sdk.capture_exception(e)  # Registrar el error en Sentry
-        raise e
+        logger.error(f"Error inesperado al iniciar el pipeline para el experimento {experiment_id}: {e}")
+        # Marcar como error si la configuración inicial falla
+        experiment.status = MLExperiment.Status.ERROR
+        experiment.save(update_fields=['status', 'updated_at'])

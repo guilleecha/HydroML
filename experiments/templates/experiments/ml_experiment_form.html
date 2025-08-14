@@ -14,6 +14,17 @@
         
         <div class="p-6 space-y-8">
             {% csrf_token %}
+            
+            {% if form.errors %}
+                <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-100 border border-red-400" role="alert">
+                    <span class="font-bold">Por favor, corrige los siguientes errores:</span>
+                    <ul class="mt-2 list-disc list-inside">
+                        {% for field, errors in form.errors.items %}
+                            <li><strong>{{ field }}:</strong> {{ errors|striptags }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
 
             <fieldset>
                 <legend class="text-lg font-semibold text-gray-800 mb-4">Información General</legend>

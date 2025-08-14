@@ -1,3 +1,15 @@
+/* static/src/input.css */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ===== AÑADE ESTE BLOQUE AL FINAL ===== */
+@layer components {
+  /*
+    Esta regla busca cualquier SVG dentro de los contenedores de nuestros
+    menús desplegables y les aplica un tamaño fijo y un color.
+  */
+  .crispy-select-wrapper svg {
+    @apply h-5 w-5 text-gray-400;
+  }

@@ -5,16 +5,15 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import UpdateView, DeleteView
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from projects.models import Project
 from ..models import MLExperiment
 from ..forms import MLExperimentForm
 # Se importan las tareas de Celery
 from ..tasks import (
-    run_train_test_split_task, 
-    run_model_training_task, 
-    run_final_evaluation_task, 
-    run_feature_importance_task
+    run_full_experiment_pipeline_task # Importar la nueva tarea orquestadora
 )
 
 @login_required
@@ -93,29 +92,53 @@ class MLExperimentDeleteView(DeleteView):
 # --- VISTAS PARA DISPARAR TAREAS ---
 
 @login_required
-def trigger_split_task(request, experiment_id):
+@require_POST
+def trigger_full_experiment_task(request, experiment_id):
+    """Dispara la tarea que ejecuta el pipeline completo del experimento."""
     experiment = get_object_or_404(MLExperiment, id=experiment_id, project__owner=request.user)
-    run_train_test_split_task.delay(experiment.id)
-    messages.info(request, "La tarea de división de datos ha sido iniciada.")
+    
+    if experiment.status == MLExperiment.Status.DRAFT:
+        run_full_experiment_pipeline_task.delay(experiment.id)
+        messages.info(request, "El experimento completo ha sido iniciado. El estado se actualizará automáticamente.")
+    else:
+        messages.warning(request, "El experimento ya ha sido ejecutado.")
+        
     return redirect('experiments:ml_experiment_detail', pk=experiment.id)
 
-@login_required
-def trigger_training_task(request, experiment_id):
-    experiment = get_object_or_404(MLExperiment, id=experiment_id, project__owner=request.user)
-    run_model_training_task.delay(experiment.id)
-    messages.info(request, "La tarea de entrenamiento del modelo ha sido iniciada.")
-    return redirect('experiments:ml_experiment_detail', pk=experiment.id)
 
 @login_required
-def trigger_final_evaluation_task(request, experiment_id):
-    experiment = get_object_or_404(MLExperiment, id=experiment_id, project__owner=request.user)
-    run_final_evaluation_task.delay(experiment.id)
-    messages.info(request, "La tarea de evaluación final ha sido iniciada.")
-    return redirect('experiments:ml_experiment_detail', pk=experiment.id)
-
-@login_required
+@require_POST
 def trigger_feature_importance_task(request, experiment_id):
     experiment = get_object_or_404(MLExperiment, id=experiment_id, project__owner=request.user)
-    run_feature_importance_task.delay(experiment.id)
-    messages.info(request, "El análisis de importancia de variables ha comenzado.")
+
+    if experiment.status == MLExperiment.Status.FINISHED:
+        run_feature_importance_task.delay(experiment.id)
+        messages.info(request, "El análisis de importancia de variables ha comenzado.")
+    else:
+        messages.warning(request, "El análisis solo puede realizarse sobre un experimento finalizado.")
+
     return redirect('experiments:ml_experiment_detail', pk=experiment.id)
+
+@login_required
+@require_POST # Asegura que esta acción solo se pueda realizar con un método POST
+def publish_experiment(request, pk):
+    """
+    Publica un experimento, haciéndolo inmutable y visible.
+    """
+    experiment = get_object_or_404(MLExperiment, pk=pk, project__owner=request.user)
+
+    # --- NUEVO: Validación de estado para mayor robustez ---
+    if experiment.status not in [MLExperiment.Status.FINISHED, MLExperiment.Status.ANALYZED]:
+        messages.error(request, "El experimento no se puede publicar porque no ha finalizado.")
+        return redirect('experiments:ml_experiment_detail', pk=experiment.pk)
+    # --- FIN DE LA VALIDACIÓN ---
+
+    # Lógica de publicación
+    experiment.is_public = True
+    experiment.published_at = timezone.now()
+    experiment.status = MLExperiment.Status.PUBLISHED
+    experiment.save()
+
+    messages.success(request, f"El experimento '{experiment.name}' ha sido publicado exitosamente.")
+    
+    return redirect('experiments:ml_experiment_detail', pk=experiment.pk)

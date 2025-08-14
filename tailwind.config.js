@@ -6,7 +6,6 @@ module.exports = {
   theme: {
     extend: {},
   },
-  // --- AÑADE ESTA LÍNEA DENTRO DE LOS CORCHETES ---
   plugins: [
       require('@tailwindcss/forms'),
   ],

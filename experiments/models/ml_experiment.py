@@ -1,6 +1,9 @@
 # experiments/models/ml_experiment.py
 from django.db import models
-from projects.models import Project, DataSource # Importamos desde la app 'projects'
+from django.conf import settings
+from django.utils import timezone
+from projects.models import Project, DataSource
+import uuid
 
 class MLExperiment(models.Model):
     """Representa un experimento de Machine Learning completo."""
@@ -8,19 +11,25 @@ class MLExperiment(models.Model):
     # --- AÑADE ESTAS OPCIONES DE ESTADO ---
     class Status(models.TextChoices):
         DRAFT = 'DRAFT', 'Borrador'
-        SPLIT = 'SPLIT', 'Datos Divididos'
-        TRAINING = 'TRAINING', 'Entrenando'
-        COMPLETED = 'COMPLETED', 'Validación Completa'
-        EVALUATING = 'EVALUATING', 'Evaluando Test Final'
+        RUNNING = 'RUNNING', 'En Ejecución'
         FINISHED = 'FINISHED', 'Finalizado'
-        ANALYZING = 'ANALYZING', 'Analizando Modelo'
         ANALYZED = 'ANALYZED', 'Analizado'
-        FAILED = 'FAILED', 'Fallido'
+        PUBLISHED = 'PUBLISHED', 'Publicado'
+        ERROR = 'ERROR', 'Error'
 
-    name = models.CharField(max_length=100)
-    description = models.TextField(blank=True)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='ml_experiments')
-
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # El related_name es 'experiments' para mayor consistencia
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='experiments')
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    
+    # --- CAMPO 'status' CORREGIDO (UNA SOLA DEFINICIÓN) ---
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.DRAFT
+    )
+    
     # Configuración del experimento
     input_datasource = models.ForeignKey(DataSource, on_delete=models.CASCADE, related_name='experiments_as_input')
     target_column = models.CharField(max_length=100)
@@ -43,12 +52,23 @@ class MLExperiment(models.Model):
         help_text="Estrategia para la división de datos en entrenamiento y prueba."
     )
 
-    # --- ACTUALIZA EL CAMPO 'status' ---
-    status = models.CharField(
-        max_length=20,
-        choices=Status.choices,
-        default=Status.DRAFT
+    # --- NUEVOS CAMPOS PARA VERSIONADO Y PUBLICACIÓN ---
+    version = models.PositiveIntegerField(default=1, help_text="Versión del experimento")
+    is_public = models.BooleanField(default=False, help_text="Indica si el experimento es visible públicamente")
+    published_at = models.DateTimeField(null=True, blank=True, help_text="Fecha de publicación")
+    parent_experiment = models.ForeignKey(
+        'self', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='versions',
+        help_text="Experimento original del cual este es una nueva versión"
     )
 
+    updated_at = models.DateTimeField(auto_now=True)
+
     def __str__(self):
-        return self.name
+        return f"{self.name} (v{self.version}) - {self.project.name}"
+
+    class Meta:
+        ordering = ['-created_at']

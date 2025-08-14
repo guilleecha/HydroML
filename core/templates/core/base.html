@@ -20,6 +20,11 @@
                     </a>
                     <div class="hidden md:flex space-x-4">
                         <a href="{% url 'projects:project_list' %}" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Mis Proyectos</a>
+                        {% if request.user.is_authenticated and request.user.subscription_level == 'ADVANCED' %}
+                        <a href="{% url 'connectors:database_connection_list' %}" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                            Mis Conexiones
+                        </a>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="flex items-center">

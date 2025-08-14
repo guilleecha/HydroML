@@ -15,6 +15,7 @@ from pathlib import Path
 import dj_database_url # Añade esta importación al principio del archivo
 from dotenv import load_dotenv  # Importamos dotenv para cargar variables de entorno
 import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 
 # Cargar variables de entorno desde un archivo .env
@@ -53,12 +54,14 @@ INSTALLED_APPS = [
     'data_tools.apps.DataToolsConfig',
     'experiments.apps.ExperimentsConfig',
     'accounts.apps.AccountsConfig',
+    'connectors.apps.ConnectorsConfig',
 ]
 
 # Añadir a INSTALLED_APPS
 INSTALLED_APPS += [
     'crispy_forms',
     'crispy_tailwind',
+    
 ]
 
 TAILWIND_APP_NAME = 'core'
@@ -186,32 +189,27 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     X_FRAME_OPTIONS = 'DENY'
 
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
 
-# Configuración de Sentry
-if not DEBUG:  # Solo habilitar Sentry en producción
-    sentry_sdk.init(
-        dsn=os.getenv("SENTRY_DSN", ""),  # DSN de tu proyecto en Sentry
-        integrations=[DjangoIntegration()],
-        traces_sample_rate=1.0,  # Ajusta el muestreo de transacciones (1.0 = 100%)
-        send_default_pii=True,  # Enviar información de usuario para depuración
-    )
-    
 
-# Obtiene el DSN de Sentry desde tus variables de entorno (.env)
-SENTRY_DSN = os.environ.get("SENTRY_DSN")
-
-# Solo inicializa Sentry si se ha proporcionado un DSN
-if SENTRY_DSN:
+# Configuración de Sentry (unificada)
+SENTRY_DSN = os.getenv("SENTRY_DSN", None)
+if SENTRY_DSN and not DEBUG:  # Solo inicializar en producción y si existe un DSN
     sentry_sdk.init(
         dsn=SENTRY_DSN,
+        integrations=[DjangoIntegration()],
         # Activa el monitoreo de rendimiento
         enable_tracing=True,
-        # Otras configuraciones recomendadas
+        # Establece un ratio de muestreo para el rendimiento
+        traces_sample_rate=0.25,
+        # Enviar información personal identificable (si es necesario para depurar)
         send_default_pii=True,
     )
 
-# Configuración de django-crispy-forms
+# --- Configuración de Crispy Forms ---
 CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
 CRISPY_TEMPLATE_PACK = "tailwind"
+
+# Configuración de claves para la encriptación
+FERNET_KEYS = [
+    os.getenv('DJANGO_FERNET_KEY')
+]

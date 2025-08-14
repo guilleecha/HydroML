@@ -39,7 +39,7 @@ class MLExperimentForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['input_datasource'].queryset = project.datasources.all()
         
-        # El FormHelper ahora es súper simple
+        # El FormHelper ahora es súper simple y no define ningún layout
         self.helper = FormHelper()
-        self.helper.form_tag = False # Le decimos a Crispy que NO renderice las etiquetas <form>
+        self.helper.form_tag = False 
         self.helper.disable_csrf = True
