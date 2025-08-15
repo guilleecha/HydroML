@@ -13,3 +13,11 @@
   .crispy-select-wrapper svg {
     @apply h-5 w-5 text-gray-400;
   }
+
+  /* General fix for browser default arrows on all select elements */
+  select.select, select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+}

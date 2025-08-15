@@ -107,9 +107,14 @@ WSGI_APPLICATION = "hydroML.wsgi.application"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL')
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('POSTGRES_NAME'),
+        'USER': os.environ.get('POSTGRES_USER'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+        'HOST': os.environ.get('POSTGRES_HOST'),
+        'PORT': '5432',
+    }
 }
 
 
@@ -172,9 +177,13 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # --- CELERY SETTINGS ---
-# Asegúrate de que la IP y el puerto de Redis sean correctos para tu sistema.
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+# Lee el host de Redis desde las variables de entorno (para Docker).
+# Si no la encuentra, usa 'localhost' por defecto (para desarrollo local).
+REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
+
+CELERY_BROKER_URL = f'redis://{REDIS_HOST}:6379/0'
+CELERY_RESULT_BACKEND = f'redis://{REDIS_HOST}:6379/0'
+
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'

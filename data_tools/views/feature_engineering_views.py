@@ -1,24 +1,34 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from projects.models.datasource import DataSource
 from data_tools.services import perform_feature_engineering
+from ..forms import FeatureEngineeringForm
 import pandas as pd
 
+@login_required
 def feature_engineering_page(request, datasource_id):
-    ds = DataSource.objects.get(id=datasource_id)
-    df = pd.read_csv(ds.file.path)
+    parent_datasource = get_object_or_404(DataSource, id=datasource_id)
+
+    if request.method == 'POST':
+        form = FeatureEngineeringForm(request.POST)
+        if form.is_valid():
+            new_column_name = form.cleaned_data['new_column_name']
+            formula_string = form.cleaned_data['formula_string']
+            result = perform_feature_engineering(datasource_id, new_column_name, formula_string)
+            if isinstance(result, dict) and "error" in result:
+                messages.error(request, f"Error: {result['error']}")
+            else:
+                messages.success(request, f"Columna '{new_column_name}' creada exitosamente.")
+                return redirect('project_detail', project_id=parent_datasource.project.id)
+    else:
+        form = FeatureEngineeringForm()
+
+    df = pd.read_csv(parent_datasource.file.path)
     columns = df.columns.tolist()
 
-    if request.method == "POST":
-        new_column_name = request.POST.get("new_column_name")
-        formula_string = request.POST.get("formula_string")
-        result = perform_feature_engineering(datasource_id, new_column_name, formula_string)
-        if isinstance(result, dict) and "error" in result:
-            messages.error(request, f"Error: {result['error']}")
-        else:
-            messages.success(request, f"Columna '{new_column_name}' creada exitosamente.")
-            return redirect("data_tools:feature_engineering_page", datasource_id=datasource_id)
-    return render(request, "data_tools/feature_engineering_page.html", {
-        "datasource": ds,
+    return render(request, 'data_tools/feature_engineering.html', {
+        'form': form,
+        'datasource': parent_datasource,
         "columns": columns,
     })

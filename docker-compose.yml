@@ -1,0 +1,51 @@
+services:
+  # Servicio de la Base de Datos (PostgreSQL)
+  db:
+    image: postgres:14
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=hydro_db
+      - POSTGRES_USER=hydro_user
+      - POSTGRES_PASSWORD=hydro_pass
+
+  # Servicio de Redis
+  redis:
+    image: redis:6-alpine
+
+  # Servicio de la Aplicación Web (Django)
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_NAME=hydro_db
+      - POSTGRES_USER=hydro_user
+      - POSTGRES_PASSWORD=hydro_pass
+      - POSTGRES_HOST=db
+      - REDIS_HOST=redis
+    depends_on:
+      - db
+      - redis
+
+  # Servicio del Trabajador de Celery
+  worker:
+    build: .
+    command: celery -A hydroML worker -l info
+    volumes:
+      - .:/app
+    environment:
+      - POSTGRES_NAME=hydro_db
+      - POSTGRES_USER=hydro_user
+      - POSTGRES_PASSWORD=hydro_pass
+      - POSTGRES_HOST=db
+      - REDIS_HOST=redis
+    depends_on:
+      - db
+      - redis
+
+volumes:
+  postgres_data:

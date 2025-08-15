@@ -1,0 +1,9 @@
+## Tarea: Crear un test para una vista de Django
+
+Basado en el archivo de vista que te proporcionaré, `@file`, y el modelo asociado, `@file`, crea un archivo de test en la carpeta `tests/` de la misma app.
+
+El test debe seguir las mejores prácticas de Django:
+1.  Debe heredar de `django.test.TestCase`.
+2.  Debe usar un `setUp` para crear los objetos necesarios (ej. un `Project` y un `User`).
+3.  Debe incluir al menos un test que verifique que la página carga correctamente (código de respuesta 200).
+4.  Debe incluir un test que verifique que el contexto de la plantilla contiene los objetos correctos.

@@ -32,16 +32,13 @@ def get_datasource_json(request, pk):
         file_path = datasource.file.path
 
         # ... (resto del código de la vista que ya funcionaba) ...
-        if file_path.endswith('.csv'):
-            df = pd.read_csv(file_path, nrows=100, encoding='latin-1', engine='python')
-        elif file_path.endswith(('.xls', '.xlsx')):
-            df = pd.read_excel(file_path, nrows=100)
-        elif file_path.endswith('.parquet'):
+        try:
+            # All files are now converted to Parquet format
             df = pd.read_parquet(file_path)
             if len(df) > 100:
                 df = df.head(100)
-        else:
-            return JsonResponse({'error': 'Formato de archivo no soportado.'}, status=400)
+        except pd.errors.ParserError as e:
+            return JsonResponse({'error': f"Error al analizar el archivo: {str(e)}"}, status=400)
 
         df = df.fillna('')
         data_json = json.loads(df.to_json(orient='split', index=False))

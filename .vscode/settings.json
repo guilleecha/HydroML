@@ -1,0 +1,49 @@
+{
+  "github.copilot.chat.instructions": """
+  ## Filosofía General
+  - Simplicidad Primero (KISS): Prioriza siempre la solución más simple, clara y legible. Evita la complejidad innecesaria.
+  - Iterar, no Recrear: Antes de escribir código nuevo, busca en el workspace para encontrar funcionalidades similares que puedas extender.
+  - Evitar la Duplicación (DRY): No repitas código. Refactoriza en funciones o clases reutilizables.
+
+  ## Calidad y Estructura del Código
+  - Consistencia en el Formato: Utiliza 4 espacios para la indentación en Python.
+  - Código Limpio y Organizado: Si introduces un nuevo patrón, elimina la implementación anterior para evitar código muerto.
+  - Comentarios Claros: Escribe comentarios concisos para explicar el "porqué" de lógicas complejas.
+  - Manejo de Entornos: Utiliza variables de entorno para las configuraciones, nunca hardcodees valores sensibles.
+
+  ## Metodología de Trabajo
+  - Foco en la Tarea: Realiza únicamente los cambios solicitados. Sugiere mejoras, pero no las implementes sin confirmación.
+  - Pruebas Rigurosas: Después de cambios en el backend, SIEMPRE detén cualquier servidor en ejecución e inicia uno nuevo.
+  - Claridad Ante Todo: Si una solicitud es ambigua, haz preguntas para clarificar los requisitos.
+  
+  ## Reglas Específicas de HydroML
+  - Todos los modelos de Django deben tener un campo ID de tipo UUID como clave primaria.
+  - Para la manipulación de archivos y rutas, utiliza siempre la biblioteca `pathlib`.
+  - Las funciones de servicio (`services.py`) nunca deben interactuar directamente con el objeto `request` de Django; deben recibir los datos que necesitan como parámetros.
+
+  ## Gestión de Entornos y Paquetes (uv)
+  - Para cualquier tarea relacionada con entornos virtuales o paquetes de Python, prioriza siempre el uso de `uv`.
+  - Para crear entornos virtuales, usa `uv venv`.
+  - Para instalar paquetes, usa `uv pip install <package_name>`.
+  - Para instalar desde un archivo de requisitos, usa `uv pip install -r requirements.txt`.
+  - Para generar un archivo de requisitos, usa `uv pip freeze > requirements.txt`.
+
+  ## Arquitectura y Estructura del Proyecto
+  - Para las aplicaciones de Django, los modelos no deben estar en un único archivo `models.py`. En su lugar, crea un directorio `models/` y dentro, cada modelo debe residir en su propio archivo (ej. `project.py`, `datasource.py`).
+  - Lo mismo aplica para las vistas: deben estar en un directorio `views/` en archivos separados.
+  - Asegúrate de que los archivos `__init__.py` correspondientes (ej. `models/__init__.py`) importen todos los módulos para que Django pueda descubrirlos.
+
+  ## Reglas para Plantillas de Django
+- La etiqueta `{% extends '...' %}` DEBE SER SIEMPRE la primera línea de cualquier plantilla, sin excepciones.
+- Cualquier etiqueta `{% load ... %}` (como `{% load tailwind_filters %}` o `{% load crispy_forms_tags %}`) debe ir INMEDIATAMENTE DESPUÉS de la etiqueta `{% extends %}`.
+- Al usar `django-crispy-forms`, el filtro para un solo campo es `|as_crispy_field`. Nunca uses `|as_field`. El filtro para un formulario completo es `|crispy`.
+- Para que los filtros de `crispy-tailwind` funcionen correctamente con el filtro `|crispy`, la etiqueta que se debe cargar es `{% load tailwind_filters %}`.
+  """,
+  
+  "mcp.server": "supabase",
+  "mcp.supabase.projectRef": "jooajpwddqzijccjnkja",
+  "mcp.supabase.readOnly": true,
+  "mcp.supabase.accessToken": "${input:supabase-access-token}",
+
+  "chat.mcp.autostart": "newAndOutdated"
+}

@@ -20,18 +20,31 @@ document.addEventListener('DOMContentLoaded', function() {
     const getColumnsUrlTemplate = experimentForm.dataset.getColumnsUrl;
 
     // --- Lógica para Hiperparámetros Dinámicos ---
+    function hideAllHyperparameterFields() {
+        // Oculta todos los campos de hiperparámetros
+        if (rfFields) rfFields.classList.add("hidden");
+        if (gbFields) gbFields.classList.add("hidden");
+    }
+    
     function updateHyperparameterFields() {
-        const value = modelSelect.value;
-        rfFields.classList.add("hidden");
-        gbFields.classList.add("hidden");
-        if (value === "RandomForestRegressor") {
+        // Primero oculta todos los campos
+        hideAllHyperparameterFields();
+        
+        // Luego muestra solo los campos correspondientes al modelo seleccionado
+        const value = modelSelect?.value;
+        if (value === "RandomForestRegressor" && rfFields) {
             rfFields.classList.remove("hidden");
-        } else if (value === "GradientBoostingRegressor") {
+        } else if (value === "GradientBoostingRegressor" && gbFields) {
             gbFields.classList.remove("hidden");
         }
     }
-    modelSelect.addEventListener("change", updateHyperparameterFields);
-    updateHyperparameterFields(); // Llamar al inicio para el estado inicial
+    
+    // Agrega el listener para cambios en el selector de modelo
+    if (modelSelect) {
+        modelSelect.addEventListener("change", updateHyperparameterFields);
+        // Ejecuta la función al cargar la página para configurar el estado inicial
+        updateHyperparameterFields();
+    }
 
     // --- Lógica para el Dual Listbox y Sincronización ---
     function syncHiddenInputs() {
@@ -78,15 +91,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 return resp.json();
             })
             .then(data => {
+                console.log("Raw data received from API:", data);
+                console.log("Columns to process:", data.columns);
+                
                 if (data.error) throw new Error(data.error);
 
                 targetColumnSelect.innerHTML = '<option value="">Selecciona una columna...</option>';
                 featuresAvailable.innerHTML = '';
                 
                 data.columns.forEach(col => {
-                    const option = new Option(col, col);
-                    targetColumnSelect.add(option.cloneNode(true));
-                    featuresAvailable.add(option);
+                    const targetOption = new Option(col, col);
+                    const featuresOption = new Option(col, col);
+                    targetColumnSelect.add(targetOption);
+                    featuresAvailable.add(featuresOption);
                 });
 
                 targetColumnSelect.disabled = false;

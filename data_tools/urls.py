@@ -43,4 +43,6 @@ urlpatterns = [
          feature_engineering_page,
          name="feature_engineering_page"
          ),
+
+    path('datasource/<uuid:datasource_id>/feature-engineering/', feature_engineering_page, name='feature_engineering'),
 ]

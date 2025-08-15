@@ -18,13 +18,35 @@ class DataSource(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="datasources")
     name = models.CharField(max_length=255, verbose_name="Nombre de la Fuente de Datos")
     description = models.TextField(blank=True, null=True, verbose_name="Descripción")
-    file = models.FileField(upload_to='datasources/%Y/%m/')
+    file = models.FileField(
+        upload_to='datasources/%Y/%m/', 
+        blank=True, 
+        null=True  # Ahora el campo es opcional
+    )
     uploaded_at = models.DateTimeField(auto_now_add=True)
     data_type = models.CharField(
         max_length=10,
         choices=DataSourceType.choices,
         default=DataSourceType.ORIGINAL,
         verbose_name="Tipo de Dato"
+    )
+
+    class Status(models.TextChoices):
+        UPLOADING = 'UPLOADING', 'Subiendo'
+        PROCESSING = 'PROCESSING', 'Procesando'
+        READY = 'READY', 'Listo'
+        ERROR = 'ERROR', 'Error'
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.UPLOADING
+    )
+
+    quality_report = models.JSONField(
+        null=True,
+        blank=True,
+        help_text="Stores the data quality analysis results."
     )
 
     # AJUSTE 2: Relación de Linaje (ManyToManyField)
@@ -37,6 +59,12 @@ class DataSource(models.Model):
         related_name='children',
         verbose_name="Fuentes de Datos de Origen (Padres)"
     )
+
+    # Nueva relación para indicar si es una fuente de datos derivada
+    is_derived = models.BooleanField(default=False, help_text="True si esta es una fuente de datos derivada.")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         # AJUSTE 3: Buenas prácticas

@@ -14,6 +14,16 @@ urlpatterns = [
     # CAMBIO AQUÍ: de <int:project_id> a <uuid:project_id>
     path('<uuid:project_id>/upload/', datasource_views.datasource_upload, name='datasource_upload'),
 
+    # Upload summary page (polls for processing status)
+    path('datasource/<uuid:datasource_id>/upload-summary/',
+         datasource_views.datasource_upload_summary,
+         name='datasource_upload_summary'),
+
+    # DataSource update page
+    path('datasource/<uuid:pk>/update/',
+         datasource_views.DataSourceUpdateView.as_view(),
+         name='datasource_update'),
+
     # Esta ruta ya debería estar correcta si DataSource usa UUID
     path('datasource/<uuid:pk>/delete/',
          datasource_views.DataSourceDeleteView.as_view(),

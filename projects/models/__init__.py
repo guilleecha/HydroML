@@ -1,6 +1,7 @@
 # projects/models/__init__.py
 from .project import Project
 from .datasource import DataSource, DataSourceType
+from .transformation import Transformation
 from .featureset import FeatureSet
 
 __all__ = [
@@ -8,4 +9,5 @@ __all__ = [
     'DataSource',
     'DataSourceType',
     'FeatureSet',
+    'Transformation',
 ]

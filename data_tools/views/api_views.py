@@ -16,7 +16,10 @@ def get_columns_api(request, datasource_id):
         datasource = get_object_or_404(DataSource, id=datasource_id, project__owner=request.user)
         
         # Leer solo la cabecera del archivo para obtener las columnas rápidamente
-        df = pd.read_csv(datasource.file.path, nrows=0, encoding='latin-1')
+        file_path = datasource.file.path
+        
+        # All files are now converted to Parquet format
+        df = pd.read_parquet(file_path)
         columns = df.columns.tolist()
         
         return JsonResponse({'columns': columns})

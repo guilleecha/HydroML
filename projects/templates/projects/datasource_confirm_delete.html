@@ -1,27 +1,23 @@
-{% extends "core/base.html" %}
+{% extends 'core/base.html' %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card border-danger">
-                <div class="card-header bg-danger text-white">
-                    <h3>Confirmar Eliminación</h3>
-                </div>
-                <div class="card-body">
-                    <p>¿Estás seguro de que deseas eliminar la fuente de datos <strong>"{{ object.name }}"</strong>?</p>
-                    <p class="text-muted">Esta acción no se puede deshacer y el archivo asociado será borrado.</p>
-                    
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="d-flex justify-content-end">
-                            <a href="{% url 'projects:project_detail' pk=object.project.pk %}" class="btn btn-secondary me-2">Cancelar</a>
-                            <button type="submit" class="btn btn-danger">Sí, eliminar</button>
-                        </div>
-                    </form>
-                </div>
+<div class="max-w-2xl mx-auto mt-10">
+    <div class="bg-white shadow-lg rounded-lg p-8">
+        <h1 class="text-2xl font-bold text-gray-800 mb-4">Confirmar Eliminación</h1>
+        <p class="text-gray-600 mb-6">¿Estás seguro de que deseas eliminar la fuente de datos: <strong class="font-semibold">{{ object.name }}</strong>?</p>
+        <p class="text-red-600 font-semibold">Esta acción no se puede deshacer.</p>
+        
+        <form method="post" class="mt-6">
+            {% csrf_token %}
+            <div class="flex justify-end space-x-4">
+                <a href="{% url 'projects:project_detail' pk=object.project.pk %}" class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700">
+                    Sí, eliminar
+                </button>
             </div>
-        </div>
+        </form>
     </div>
 </div>
 {% endblock %}
