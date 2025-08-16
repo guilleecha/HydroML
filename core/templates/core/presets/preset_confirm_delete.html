@@ -1,0 +1,185 @@
+{% extends "core/base.html" %}
+
+{% block page_title %}Delete {{ preset.name }} - Hyperparameter Preset - HydroML{% endblock %}
+
+{% block content %}
+<div class="flex-1 bg-background-primary">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-b border-red-200 dark:border-red-800">
+        <div class="px-8 py-6">
+            <div class="max-w-2xl mx-auto">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <h1 class="text-2xl font-bold text-red-800 dark:text-red-200">
+                            Delete Preset
+                        </h1>
+                        <p class="mt-1 text-red-600 dark:text-red-300">
+                            Confirm deletion of hyperparameter preset
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="max-w-2xl mx-auto px-8 py-8">
+        <div class="bg-background-secondary dark:bg-darcula-background-lighter rounded-xl border border-border-default overflow-hidden">
+            <!-- Warning Banner -->
+            <div class="bg-red-50 dark:bg-red-900/30 border-b border-red-200 dark:border-red-800 px-6 py-4">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-red-600 dark:text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <div>
+                        <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
+                            Warning: This action cannot be undone
+                        </h3>
+                        <p class="text-sm text-red-600 dark:text-red-300 mt-1">
+                            Once deleted, this preset and all its hyperparameter configurations will be permanently removed.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Preset Details -->
+            <div class="px-6 py-6">
+                <h3 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground mb-4">
+                    Preset to be deleted:
+                </h3>
+                
+                <div class="bg-background-primary dark:bg-darcula-background border border-border-muted dark:border-darcula-border rounded-lg p-4">
+                    <div class="space-y-3">
+                        <div>
+                            <dt class="text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted">Name</dt>
+                            <dd class="text-foreground-default dark:text-darcula-foreground font-semibold">{{ preset.name }}</dd>
+                        </div>
+                        
+                        {% if preset.description %}
+                        <div>
+                            <dt class="text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted">Description</dt>
+                            <dd class="text-foreground-default dark:text-darcula-foreground">{{ preset.description }}</dd>
+                        </div>
+                        {% endif %}
+                        
+                        <div>
+                            <dt class="text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted">Parameters</dt>
+                            <dd class="text-foreground-default dark:text-darcula-foreground">{{ preset.hyperparameters_count }} hyperparameter{{ preset.hyperparameters_count|pluralize }}</dd>
+                        </div>
+                        
+                        <div>
+                            <dt class="text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted">Created</dt>
+                            <dd class="text-foreground-default dark:text-darcula-foreground">{{ preset.created_at|date:"M d, Y H:i" }}</dd>
+                        </div>
+                        
+                        <div>
+                            <dt class="text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted">Last Updated</dt>
+                            <dd class="text-foreground-default dark:text-darcula-foreground">{{ preset.updated_at|date:"M d, Y H:i" }}</dd>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Hyperparameters Preview -->
+                {% if preset.hyperparameters %}
+                <div class="mt-4">
+                    <h4 class="text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted mb-2">
+                        Hyperparameters that will be lost:
+                    </h4>
+                    <div class="bg-background-primary dark:bg-darcula-background border border-border-muted dark:border-darcula-border rounded-lg p-3">
+                        <div class="text-xs font-mono text-foreground-muted dark:text-darcula-foreground-muted">
+                            {% for key in preset.hyperparameters.keys %}
+                                <span class="inline-block bg-background-tertiary dark:bg-darcula-background-lighter px-2 py-1 rounded mr-2 mb-1">{{ key }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Confirmation Form -->
+            <div class="bg-background-tertiary dark:bg-darcula-background border-t border-border-muted dark:border-darcula-border px-6 py-4">
+                <form method="post" class="flex items-center justify-between">
+                    {% csrf_token %}
+                    
+                    <div class="flex items-center space-x-4">
+                        <a href="{% url 'core:preset_detail' preset.id %}"
+                           class="inline-flex items-center px-4 py-2 border border-border-default text-foreground-default dark:text-darcula-foreground hover:bg-background-secondary dark:hover:bg-darcula-background-lighter font-medium rounded-lg transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                            </svg>
+                            Cancel
+                        </a>
+                        <a href="{% url 'core:preset_list' %}"
+                           class="text-sm text-foreground-muted dark:text-darcula-foreground-muted hover:text-brand-600 dark:hover:text-darcula-accent transition-colors">
+                            Back to Presets
+                        </a>
+                    </div>
+                    
+                    <div class="flex items-center space-x-3">
+                        <!-- Confirmation Checkbox -->
+                        <label class="flex items-center text-sm">
+                            <input type="checkbox" 
+                                   id="confirm-delete" 
+                                   required
+                                   class="mr-2 h-4 w-4 text-red-600 focus:ring-red-500 border-border-default rounded">
+                            <span class="text-foreground-muted dark:text-darcula-foreground-muted">
+                                I understand this action cannot be undone
+                            </span>
+                        </label>
+                        
+                        <button type="submit" 
+                                id="delete-button"
+                                disabled
+                                class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            Delete Preset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Additional Information -->
+        <div class="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div class="flex items-start">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div>
+                    <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">
+                        What happens after deletion?
+                    </h3>
+                    <div class="text-sm text-blue-600 dark:text-blue-300 mt-1">
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>The preset will be immediately removed from your account</li>
+                            <li>You will no longer be able to load these hyperparameters in experiments</li>
+                            <li>Any experiments that previously used this preset will not be affected</li>
+                            <li>You can recreate a similar preset manually if needed</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmCheckbox = document.getElementById('confirm-delete');
+    const deleteButton = document.getElementById('delete-button');
+    
+    if (confirmCheckbox && deleteButton) {
+        confirmCheckbox.addEventListener('change', function() {
+            deleteButton.disabled = !this.checked;
+        });
+    }
+});
+</script>
+{% endblock %}

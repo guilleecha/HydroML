@@ -2,18 +2,18 @@
 {% load tailwind_filters %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-4 py-6">
-    <div class="bg-white shadow-md rounded-lg overflow-hidden">
-        <div class="border-b border-gray-200 bg-gray-50 px-6 py-4">
-            <h2 class="text-xl font-bold text-gray-800">Crear Nuevo Proyecto</h2>
+<div class="mx-auto px-4 py-6">
+    <div class="bg-background-primary dark:bg-darcula-background-darker border border-border-default dark:border-darcula-border rounded-xl shadow-card overflow-hidden">
+        <div class="border-b border-border-default dark:border-darcula-border bg-background-secondary dark:bg-darcula-background-lighter px-6 py-4">
+            <h2 class="text-xl font-bold text-foreground-default dark:text-darcula-foreground">Crear Nuevo Proyecto</h2>
         </div>
         <div class="p-6">
             <form method="post">
                 {% csrf_token %}
                 {{ form|crispy }}
                 <div class="flex justify-end mt-6 space-x-2">
-                    <a href="{% url 'projects:project_list' %}" class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Cancelar</a>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700">Guardar Proyecto</button>
+                    <a href="{% url 'projects:project_list' %}" class="px-4 py-2 border border-border-default dark:border-darcula-border text-sm font-medium rounded-md text-foreground-default dark:text-darcula-foreground bg-background-primary dark:bg-darcula-background hover:bg-background-tertiary dark:hover:bg-darcula-background-lighter">Cancelar</a>
+                    <button type="submit" class="px-4 py-2 bg-brand-600 dark:bg-darcula-accent text-white dark:text-darcula-background font-bold rounded-lg hover:bg-brand-700 dark:hover:bg-darcula-keyword">Guardar Proyecto</button>
                 </div>
             </form>
         </div>

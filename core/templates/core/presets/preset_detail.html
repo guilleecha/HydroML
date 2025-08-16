@@ -1,0 +1,232 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load preset_filters %}
+
+{% block page_title %}{{ preset.name }} - Hyperparameter Preset - HydroML{% endblock %}
+
+{% block content %}
+<div class="flex-1 bg-background-primary">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-brand-50 to-brand-100 dark:from-darcula-background-lighter dark:to-darcula-background border-b border-border-default">
+        <div class="px-8 py-6">
+            <div class="max-w-4xl mx-auto">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold text-foreground-default dark:text-darcula-foreground">
+                            {{ preset.name }}
+                        </h1>
+                        <p class="mt-1 text-foreground-muted dark:text-darcula-foreground-muted">
+                            {% if preset.description %}
+                                {{ preset.description }}
+                            {% else %}
+                                Hyperparameter preset details
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <a href="{% url 'core:preset_update' preset.id %}"
+                           class="inline-flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            Edit
+                        </a>
+                        <a href="{% url 'core:preset_list' %}"
+                           class="inline-flex items-center px-4 py-2 border border-border-default text-foreground-default dark:text-darcula-foreground hover:bg-background-tertiary dark:hover:bg-darcula-background-lighter font-medium rounded-lg transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                            </svg>
+                            Back to Presets
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="max-w-4xl mx-auto px-8 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Preset Information -->
+            <div class="lg:col-span-1">
+                <div class="bg-background-secondary dark:bg-darcula-background-lighter rounded-xl border border-border-default p-6">
+                    <h3 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground mb-4">
+                        Preset Information
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted mb-1">
+                                Name
+                            </label>
+                            <p class="text-foreground-default dark:text-darcula-foreground">{{ preset.name }}</p>
+                        </div>
+                        
+                        {% if preset.description %}
+                        <div>
+                            <label class="block text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted mb-1">
+                                Description
+                            </label>
+                            <p class="text-foreground-default dark:text-darcula-foreground">{{ preset.description }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted mb-1">
+                                Model Type
+                            </label>
+                            <p class="text-foreground-default dark:text-darcula-foreground">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-brand-100 text-brand-800 dark:bg-darcula-accent/20 dark:text-darcula-accent">
+                                    {{ preset.get_model_type_display }}
+                                </span>
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted mb-1">
+                                Parameters Count
+                            </label>
+                            <p class="text-foreground-default dark:text-darcula-foreground">{{ preset.hyperparameters_count }}</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted mb-1">
+                                Created
+                            </label>
+                            <p class="text-foreground-default dark:text-darcula-foreground">{{ preset.created_at|date:"M d, Y H:i" }}</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted mb-1">
+                                Last Updated
+                            </label>
+                            <p class="text-foreground-default dark:text-darcula-foreground">{{ preset.updated_at|date:"M d, Y H:i" }}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="mt-6 pt-6 border-t border-border-muted dark:border-darcula-border">
+                        <div class="flex flex-col space-y-2">
+                            <a href="{% url 'core:preset_update' preset.id %}"
+                               class="inline-flex items-center justify-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                                Edit Preset
+                            </a>
+                            <a href="{% url 'core:preset_delete' preset.id %}"
+                               class="inline-flex items-center justify-center px-4 py-2 border border-red-300 text-red-600 hover:bg-red-50 dark:border-red-600 dark:text-red-400 dark:hover:bg-red-900/20 font-medium rounded-lg transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                Delete Preset
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Hyperparameters -->
+            <div class="lg:col-span-2">
+                <div class="bg-background-secondary dark:bg-darcula-background-lighter rounded-xl border border-border-default p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">
+                            Hyperparameters
+                        </h3>
+                        <button id="copy-json-btn"
+                                class="inline-flex items-center px-3 py-1 text-xs font-medium text-foreground-muted dark:text-darcula-foreground-muted hover:text-brand-600 dark:hover:text-darcula-accent border border-border-default hover:border-brand-300 dark:hover:border-darcula-accent rounded-md transition-colors">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                            Copy JSON
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <!-- Formatted Parameters Table -->
+                        {% if preset.hyperparameters %}
+                        <div class="overflow-hidden rounded-lg border border-border-muted dark:border-darcula-border">
+                            <table class="min-w-full divide-y divide-border-muted dark:divide-darcula-border">
+                                <thead class="bg-background-tertiary dark:bg-darcula-background">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-foreground-muted dark:text-darcula-foreground-muted uppercase tracking-wider">
+                                            Parameter
+                                        </th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-foreground-muted dark:text-darcula-foreground-muted uppercase tracking-wider">
+                                            Value
+                                        </th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-foreground-muted dark:text-darcula-foreground-muted uppercase tracking-wider">
+                                            Type
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-background-primary dark:bg-darcula-background-lighter divide-y divide-border-muted dark:divide-darcula-border">
+                                    {% for key, value in preset.hyperparameters.items %}
+                                    <tr class="hover:bg-background-secondary dark:hover:bg-darcula-background transition-colors">
+                                        <td class="px-4 py-3 text-sm font-medium text-foreground-default dark:text-darcula-foreground">
+                                            {{ key }}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-foreground-default dark:text-darcula-foreground font-mono">
+                                            {% if value|length > 50 %}
+                                                <span class="truncate" title="{{ value }}">{{ value|truncatechars:50 }}</span>
+                                            {% else %}
+                                                {{ value }}
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-foreground-muted dark:text-darcula-foreground-muted">
+                                            <span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-background-tertiary dark:bg-darcula-background text-foreground-muted dark:text-darcula-foreground-muted rounded-full">
+                                                {{ value|get_type|title }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Raw JSON -->
+                        <div>
+                            <label class="block text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted mb-2">
+                                Raw JSON
+                            </label>
+                            <pre id="json-content" class="bg-background-primary dark:bg-darcula-background p-4 rounded-lg border border-border-default text-sm font-mono text-foreground-default dark:text-darcula-foreground overflow-x-auto">{{ preset.hyperparameters|pprint }}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const copyBtn = document.getElementById('copy-json-btn');
+    const jsonContent = document.getElementById('json-content');
+    
+    if (copyBtn && jsonContent) {
+        copyBtn.addEventListener('click', function() {
+            const textArea = document.createElement('textarea');
+            textArea.value = `{{ preset.hyperparameters|safe }}`;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            // Show feedback
+            const originalText = copyBtn.innerHTML;
+            copyBtn.innerHTML = `
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Copied!
+            `;
+            
+            setTimeout(() => {
+                copyBtn.innerHTML = originalText;
+            }, 2000);
+        });
+    }
+});
+</script>
+{% endblock %}

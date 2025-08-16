@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
-    <form method="post" class="bg-white shadow-md rounded-lg">
+    <form method="post" class="bg-background-primary dark:bg-darcula-background-darker shadow-md rounded-lg border border-border-default dark:border-darcula-border-light">
         {% csrf_token %}
         
         <div class="p-6 border-b border-gray-200">
@@ -53,7 +53,7 @@
         </div>
 
         <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-2 rounded-b-lg">
-            <a href="{% url 'projects:project_detail' pk=project.pk %}" class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            <a href="{% url 'projects:project_detail' pk=project.pk %}" class="px-4 py-2 border border-border-default dark:border-darcula-border-light text-sm font-medium rounded-md text-foreground-muted dark:text-darcula-foreground-muted bg-background-primary dark:bg-darcula-background hover:bg-background-secondary dark:hover:bg-darcula-background-lighter transition-colors">
                 Cancelar
             </a>
             <button type="submit" class="px-4 py-2 bg-purple-600 text-white font-bold rounded-lg hover:bg-purple-700">

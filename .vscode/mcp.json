@@ -10,10 +10,28 @@
   "servers": {
     "supabase": {
       "command": "cmd",
-      "args": ["/c", "npx", "-y", "@supabase/mcp-server-supabase@latest", "--read-only", "--project-ref=jooajpwddqzijccjnkja"],
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--read-only",
+        "--project-ref=jooajpwddqzijccjnkja"
+      ],
       "env": {
         "SUPABASE_ACCESS_TOKEN": "${input:supabase-access-token}"
       }
+    },
+    
+    // --- BLOQUE AÑADIDO ---
+    "MCP_DOCKER": {
+      "command": "docker",
+      "args": [
+        "mcp",
+        "gateway",
+        "run"
+      ],
+      "type": "stdio"
     }
   }
 }

@@ -1,4 +1,5 @@
 {% extends 'core/base.html' %}
+{% load static %}
 {% block content %}
   <div class="container mx-auto px-4 py-8">
     <h2 class="text-3xl font-bold mb-6">Resumen de Carga de Datos</h2>
@@ -24,7 +25,7 @@
       </div>
 
       <!-- Data Types Table -->
-      <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+      <div class="bg-background-primary dark:bg-darcula-background-darker p-6 rounded-lg shadow-md mb-6 border border-border-default dark:border-darcula-border-light">
         <h3 class="text-xl font-semibold mb-4">Tipos de Datos por Columna</h3>
         <table class="w-full text-sm text-left text-gray-700">
           <thead class="text-xs text-gray-800 uppercase bg-gray-100">
@@ -39,7 +40,7 @@
       </div>
 
       <!-- Missing Values Table -->
-      <div class="bg-white p-6 rounded-lg shadow-md">
+      <div class="bg-background-primary dark:bg-darcula-background-darker p-6 rounded-lg shadow-md border border-border-default dark:border-darcula-border-light">
         <h3 class="text-xl font-semibold mb-4">Análisis de Valores Faltantes</h3>
         <table class="w-full text-sm text-left text-gray-700">
           <thead class="text-xs text-gray-800 uppercase bg-gray-100">
@@ -62,76 +63,11 @@
   </div>
 
   <script>
-    const datasourceId = "{{ datasource.id }}";
-    const statusEl = document.getElementById('status');
-    const processingIndicator = document.getElementById('processing-indicator');
-    const qualityReport = document.getElementById('quality-report');
-    const errorSection = document.getElementById('error-section');
-
-    async function pollStatus() {
-      try {
-        const res = await fetch(`{% url 'projects:datasource_upload_summary' datasource_id=datasource.id %}`, {
-          headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        });
-        const data = await res.json();
-        statusEl.textContent = data.status;
-        
-        if (data.status === 'READY') {
-          processingIndicator.style.display = 'none';
-          qualityReport.style.display = 'block';
-          displayQualityReport(data.quality_report);
-          return;
-        } else if (data.status === 'ERROR') {
-          processingIndicator.style.display = 'none';
-          errorSection.style.display = 'block';
-          document.getElementById('error-message').textContent = data.quality_report?.error || 'Error desconocido';
-          return;
-        }
-      } catch (err) {
-        statusEl.textContent = 'Error verificando estado';
-        processingIndicator.style.display = 'none';
-        errorSection.style.display = 'block';
-        document.getElementById('error-message').textContent = err.toString();
-        return;
-      }
-      setTimeout(pollStatus, 2000);
-    }
-
-    function displayQualityReport(report) {
-      // Update general statistics
-      document.getElementById('rows-count').textContent = report.shape[0];
-      document.getElementById('columns-count').textContent = report.shape[1];
-
-      // Populate data types table
-      const dataTypesTable = document.getElementById('data-types-table');
-      dataTypesTable.innerHTML = '';
-      for (const [column, dtype] of Object.entries(report.data_types)) {
-        const row = document.createElement('tr');
-        row.className = 'bg-white border-b hover:bg-gray-50';
-        row.innerHTML = `
-          <td class="px-6 py-4 font-mono">${column}</td>
-          <td class="px-6 py-4 font-mono">${dtype}</td>
-        `;
-        dataTypesTable.appendChild(row);
-      }
-
-      // Populate missing values table
-      const missingValuesTable = document.getElementById('missing-values-table');
-      missingValuesTable.innerHTML = '';
-      const totalRows = report.shape[0];
-      for (const [column, missingCount] of Object.entries(report.missing_values)) {
-        const percentage = totalRows > 0 ? ((missingCount / totalRows) * 100).toFixed(2) : 0;
-        const row = document.createElement('tr');
-        row.className = 'bg-white border-b hover:bg-gray-50';
-        row.innerHTML = `
-          <td class="px-6 py-4 font-mono">${column}</td>
-          <td class="px-6 py-4">${missingCount}</td>
-          <td class="px-6 py-4">${percentage}%</td>
-        `;
-        missingValuesTable.appendChild(row);
-      }
-    }
-
-    pollStatus();
+    // Configure datasource poller
+    window.datasourcePollerConfig = {
+        datasourceId: "{{ datasource.id }}",
+        statusUrl: "{% url 'projects:datasource_upload_summary' datasource_id=datasource.id %}"
+    };
   </script>
+  <script src="{% static 'js/datasource_status_poller.js' %}"></script>
 {% endblock %}

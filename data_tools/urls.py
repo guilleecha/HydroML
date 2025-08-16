@@ -8,24 +8,19 @@ from .views.api_views import get_datasource_columns
 app_name = 'data_tools'
 
 urlpatterns = [
-    # --- Rutas para el Visor de Datos ---
-    path('viewer/<uuid:pk>/',
-         visualization_views.data_viewer_page,
-         name='data_viewer_page'),
+    # --- Ruta para Data Studio (anteriormente Data Preparer) ---
+    path('studio/<uuid:pk>/',
+         preparation_views.data_preparer_page,
+         name='data_studio_page'),
 
     path('api/get_data/<uuid:pk>/',
          visualization_views.get_datasource_json,
          name='get_datasource_json'),
 
-    # --- Ruta para la Herramienta de Preparación ---
-    path('preparer/<uuid:pk>/',
-         preparation_views.data_preparer_page,
-         name='data_preparer_page'),
-
     # --- RUTA NUEVA PARA LA HERRAMIENTA DE FUSIÓN ---
-    path('fusion/for-project/<uuid:project_id>/',
+    path('tools/fuse-datasources/for-project/<uuid:pk>/',
          fusion_views.data_fusion_page,
-         name='data_fusion_page'),
+         name='data_fusion'),
 
     # --- API Endpoints ---
     path('api/get-columns/<uuid:datasource_id>/',
@@ -37,6 +32,15 @@ urlpatterns = [
         get_datasource_columns,
         name="get_datasource_columns"
     ),
+
+    path('api/get-fusion-columns/',
+         api_views.get_fusion_columns_api,
+         name='get_fusion_columns_api'),
+
+    # New Chart Generation API
+    path('api/generate-chart/',
+         api_views.generate_chart_api,
+         name='generate_chart_api'),
 
     # --- Ruta para la Ingeniería de Características ---
     path("feature-engineering/<uuid:datasource_id>/",

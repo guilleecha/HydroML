@@ -1,0 +1,574 @@
+{% extends "base.html" %}
+{% load static %}
+{% load experiment_extras %}
+
+{% block title %}{{ suite.name }} - Suite Detail{% endblock %}
+
+{% block extra_head %}
+<!-- Plotly for charts -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<!-- AG Grid for results table -->
+<script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.1.0/dist/ag-grid-community.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.1.0/styles/ag-grid.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.1.0/styles/ag-theme-quartz.css">
+
+<style>
+    .suite-header-card {
+        background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+        color: white;
+    }
+    
+    .metric-card {
+        transition: transform 0.2s ease-in-out;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .ag-theme-quartz {
+        --ag-background-color: var(--background-primary);
+        --ag-header-background-color: var(--background-secondary);
+        --ag-odd-row-background-color: var(--background-primary);
+        --ag-row-hover-color: var(--background-secondary);
+        --ag-selected-row-background-color: var(--brand-100);
+        --ag-border-color: var(--border-default);
+        --ag-header-foreground-color: var(--foreground-default);
+        --ag-foreground-color: var(--foreground-default);
+    }
+    
+    .status-badge {
+        @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    }
+    
+    .status-draft { @apply bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300; }
+    .status-queued { @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300; }
+    .status-running { @apply bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300; }
+    .status-finished { @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300; }
+    .status-failed { @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300; }
+    .status-completed { @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 max-w-7xl">
+    <!-- Breadcrumb Navigation -->
+    {% if breadcrumbs %}
+    <nav class="flex mb-6" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            {% for breadcrumb in breadcrumbs %}
+                <li class="inline-flex items-center">
+                    {% if not forloop.first %}
+                        <svg class="w-6 h-6 text-foreground-muted" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 111.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                    {% endif %}
+                    {% if breadcrumb.url %}
+                        <a href="{{ breadcrumb.url }}" class="ml-1 text-sm font-medium text-foreground-secondary hover:text-brand-primary transition-colors md:ml-2">
+                            {{ breadcrumb.name }}
+                        </a>
+                    {% else %}
+                        <span class="ml-1 text-sm font-medium text-foreground-default md:ml-2">{{ breadcrumb.name }}</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ol>
+    </nav>
+    {% endif %}
+
+    <!-- Suite Header -->
+    <div class="suite-header-card rounded-xl p-6 mb-8 shadow-lg">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex-1">
+                <h1 class="text-3xl font-bold mb-2">{{ suite.name }}</h1>
+                <p class="text-lg opacity-90 mb-4">{{ suite.get_study_type_display }}</p>
+                {% if suite.description %}
+                <p class="opacity-80 max-w-3xl">{{ suite.description }}</p>
+                {% endif %}
+            </div>
+            <div class="mt-4 lg:mt-0 lg:ml-6">
+                <span class="status-badge status-{{ suite.status|lower }}">
+                    {{ suite.get_status_display }}
+                </span>
+            </div>
+        </div>
+        
+        <!-- Suite Metadata -->
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-6 pt-6 border-t border-white border-opacity-20">
+            <div class="text-center">
+                <div class="text-2xl font-bold">{{ total_experiments }}</div>
+                <div class="text-sm opacity-80">Total Experimentos</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl font-bold">{{ completed_count }}</div>
+                <div class="text-sm opacity-80">Completados</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl font-bold">{{ progress_percentage|floatformat:1 }}%</div>
+                <div class="text-sm opacity-80">Progreso</div>
+            </div>
+            <div class="text-center">
+                <div class="text-xl font-bold">{{ optimization_metric|upper }}</div>
+                <div class="text-sm opacity-80">Métrica Objetivo</div>
+            </div>
+            {% if suite.base_experiment %}
+            <div class="text-center">
+                <div class="text-sm font-medium">{{ suite.base_experiment.name|truncatechars:20 }}</div>
+                <div class="text-sm opacity-80">Experimento Base</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Performance Comparison Chart -->
+    {% if chart_data %}
+    <div class="bg-background-primary border border-border-default rounded-xl p-6 mb-8 shadow-card">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-semibold text-foreground-default">Comparación de Rendimiento - Top 10</h2>
+            <div class="text-sm text-foreground-muted">
+                Métrica: <span class="font-medium">{{ optimization_metric|upper }}</span>
+                {% if is_lower_better %}(menor es mejor){% else %}(mayor es mejor){% endif %}
+            </div>
+        </div>
+        <div id="performance-chart" style="height: 400px;"></div>
+    </div>
+    {% endif %}
+
+    <!-- Optuna Optimization Charts (only for completed hyperparameter sweep suites) -->
+    {% if has_optuna_data %}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        
+        <!-- Optimization History Plot -->
+        {% if trial_data_json %}
+        <div class="bg-background-primary border border-border-default rounded-xl p-6 shadow-card">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-foreground-default">Historial de Optimización</h2>
+                <div class="text-sm text-foreground-muted">
+                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    Progreso por Trial
+                </div>
+            </div>
+            <div id="optimization-history-chart" style="height: 350px;"></div>
+            <p class="text-xs text-foreground-muted mt-3">
+                Este gráfico muestra la evolución del rendimiento a medida que Optuna explora diferentes combinaciones de hiperparámetros.
+            </p>
+        </div>
+        {% endif %}
+
+        <!-- Parameter Importances Plot -->
+        {% if param_importances_json %}
+        <div class="bg-background-primary border border-border-default rounded-xl p-6 shadow-card">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-foreground-default">Importancia de Hiperparámetros</h2>
+                <div class="text-sm text-foreground-muted">
+                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
+                    </svg>
+                    Análisis de Sensibilidad
+                </div>
+            </div>
+            <div id="parameter-importance-chart" style="height: 350px;"></div>
+            <p class="text-xs text-foreground-muted mt-3">
+                Los hiperparámetros con mayor importancia tienen más influencia en el rendimiento del modelo.
+            </p>
+        </div>
+        {% endif %}
+        
+    </div>
+    {% endif %}
+
+    <!-- Results Table -->
+    <div class="bg-background-primary border border-border-default rounded-xl p-6 shadow-card">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-semibold text-foreground-default">Resultados Detallados</h2>
+            <div class="text-sm text-foreground-muted">
+                {{ child_experiments.count }} experimento{{ child_experiments.count|pluralize }}
+            </div>
+        </div>
+        
+        <!-- AG Grid Results Table -->
+        <div id="results-grid" class="ag-theme-quartz" style="height: 600px; width: 100%;"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Performance Chart
+{% if chart_data %}
+document.addEventListener('DOMContentLoaded', function() {
+    const chartData = {{ chart_data_json|safe }};
+    const optimizationMetric = '{{ optimization_metric|upper }}';
+    const isLowerBetter = {{ is_lower_better|yesno:"true,false" }};
+    
+    if (chartData && chartData.length > 0) {
+        const trace = {
+            x: chartData.map(d => d.experiment_name),
+            y: chartData.map(d => d.metric_value),
+            type: 'bar',
+            marker: {
+                color: chartData.map((d, i) => {
+                    // Color gradient from best to worst
+                    const intensity = 1 - (i / chartData.length);
+                    return `rgba(59, 130, 246, ${0.4 + intensity * 0.6})`;
+                }),
+                line: {
+                    color: 'rgba(59, 130, 246, 1)',
+                    width: 1
+                }
+            },
+            text: chartData.map(d => d.metric_value.toFixed(4)),
+            textposition: 'outside',
+            textfont: {
+                size: 12
+            }
+        };
+        
+        const layout = {
+            title: {
+                text: `${optimizationMetric} por Experimento`,
+                font: { size: 16 }
+            },
+            xaxis: {
+                title: 'Experimentos',
+                tickangle: -45,
+                tickfont: { size: 10 }
+            },
+            yaxis: {
+                title: optimizationMetric
+            },
+            margin: {
+                l: 60,
+                r: 40,
+                t: 60,
+                b: 120
+            },
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            font: {
+                color: getComputedStyle(document.documentElement).getPropertyValue('--foreground-default')
+            }
+        };
+        
+        const config = {
+            responsive: true,
+            displayModeBar: false
+        };
+        
+        Plotly.newPlot('performance-chart', [trace], layout, config);
+    }
+});
+{% endif %}
+
+// Optuna Optimization History Chart
+{% if trial_data_json %}
+document.addEventListener('DOMContentLoaded', function() {
+    const trialData = {{ trial_data_json|safe }};
+    const optimizationMetric = '{{ optimization_metric|upper }}';
+    const isLowerBetter = {{ is_lower_better|yesno:"true,false" }};
+    
+    if (trialData && trialData.length > 0) {
+        // Extract trial numbers and scores
+        const trialNumbers = trialData.map((trial, index) => index + 1);
+        const scores = trialData.map(trial => trial.score);
+        
+        // Calculate running best scores for comparison
+        let runningBest = [];
+        let currentBest = null;
+        
+        for (let i = 0; i < scores.length; i++) {
+            const currentScore = scores[i];
+            if (currentBest === null || 
+                (isLowerBetter && currentScore < currentBest) || 
+                (!isLowerBetter && currentScore > currentBest)) {
+                currentBest = currentScore;
+            }
+            runningBest.push(currentBest);
+        }
+        
+        const trialTrace = {
+            x: trialNumbers,
+            y: scores,
+            mode: 'markers+lines',
+            type: 'scatter',
+            name: 'Score por Trial',
+            marker: {
+                color: 'rgba(99, 102, 241, 0.8)',
+                size: 6
+            },
+            line: {
+                color: 'rgba(99, 102, 241, 0.5)',
+                width: 1
+            }
+        };
+        
+        const bestTrace = {
+            x: trialNumbers,
+            y: runningBest,
+            mode: 'lines',
+            type: 'scatter',
+            name: 'Mejor Score Acumulado',
+            line: {
+                color: 'rgba(34, 197, 94, 0.9)',
+                width: 3
+            }
+        };
+        
+        const layout = {
+            title: {
+                text: `Evolución de ${optimizationMetric} durante la Optimización`,
+                font: { size: 14 }
+            },
+            xaxis: {
+                title: 'Número de Trial',
+                showgrid: true,
+                gridcolor: 'rgba(156, 163, 175, 0.2)'
+            },
+            yaxis: {
+                title: optimizationMetric,
+                showgrid: true,
+                gridcolor: 'rgba(156, 163, 175, 0.2)'
+            },
+            legend: {
+                orientation: 'h',
+                y: -0.2,
+                x: 0.5,
+                xanchor: 'center'
+            },
+            margin: {
+                l: 60,
+                r: 40,
+                t: 60,
+                b: 80
+            },
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            font: {
+                color: getComputedStyle(document.documentElement).getPropertyValue('--foreground-default'),
+                size: 11
+            }
+        };
+        
+        const config = {
+            responsive: true,
+            displayModeBar: false
+        };
+        
+        Plotly.newPlot('optimization-history-chart', [trialTrace, bestTrace], layout, config);
+    }
+});
+{% endif %}
+
+// Parameter Importances Chart
+{% if param_importances_json %}
+document.addEventListener('DOMContentLoaded', function() {
+    const paramImportances = {{ param_importances_json|safe }};
+    
+    if (paramImportances && Object.keys(paramImportances).length > 0) {
+        // Convert object to arrays and sort by importance (descending)
+        const paramNames = Object.keys(paramImportances);
+        const importanceValues = Object.values(paramImportances);
+        
+        // Create arrays of data sorted by importance
+        const sortedData = paramNames.map((name, index) => ({
+            name: name,
+            importance: importanceValues[index]
+        })).sort((a, b) => b.importance - a.importance);
+        
+        const sortedNames = sortedData.map(item => item.name);
+        const sortedImportances = sortedData.map(item => item.importance);
+        
+        const trace = {
+            x: sortedImportances,
+            y: sortedNames,
+            type: 'bar',
+            orientation: 'h',
+            marker: {
+                color: sortedImportances.map((value, index) => {
+                    // Color gradient from most to least important
+                    const intensity = 1 - (index / sortedImportances.length);
+                    return `rgba(168, 85, 247, ${0.4 + intensity * 0.6})`;
+                }),
+                line: {
+                    color: 'rgba(168, 85, 247, 1)',
+                    width: 1
+                }
+            },
+            text: sortedImportances.map(val => val.toFixed(3)),
+            textposition: 'outside',
+            textfont: {
+                size: 10
+            }
+        };
+        
+        const layout = {
+            title: {
+                text: 'Importancia Relativa de Hiperparámetros',
+                font: { size: 14 }
+            },
+            xaxis: {
+                title: 'Importancia',
+                showgrid: true,
+                gridcolor: 'rgba(156, 163, 175, 0.2)'
+            },
+            yaxis: {
+                title: 'Hiperparámetros',
+                automargin: true
+            },
+            margin: {
+                l: 120,
+                r: 60,
+                t: 60,
+                b: 60
+            },
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            font: {
+                color: getComputedStyle(document.documentElement).getPropertyValue('--foreground-default'),
+                size: 11
+            }
+        };
+        
+        const config = {
+            responsive: true,
+            displayModeBar: false
+        };
+        
+        Plotly.newPlot('parameter-importance-chart', [trace], layout, config);
+    }
+});
+{% endif %}
+
+// Results Table with AG Grid
+document.addEventListener('DOMContentLoaded', function() {
+    const experimentData = [
+        {% for data in experiment_data %}
+        {
+            id: '{{ data.experiment.id }}',
+            name: '{{ data.experiment.name|escapejs }}',
+            status: '{{ data.experiment.status }}',
+            status_display: '{{ data.experiment.get_status_display|escapejs }}',
+            created_at: '{{ data.experiment.created_at|date:"Y-m-d H:i" }}',
+            {% for key in hyperparameter_keys %}
+            hp_{{ key }}: {% if key in data.hyperparameters %}'{{ data.hyperparameters|lookup:key }}'{% else %}null{% endif %},
+            {% endfor %}
+            {% if data.performance_metrics %}
+            r2_score: {{ data.performance_metrics.r2|default:"null" }},
+            mse: {{ data.performance_metrics.mse|default:"null" }},
+            mae: {{ data.performance_metrics.mae|default:"null" }},
+            rmse: {{ data.performance_metrics.rmse|default:"null" }},
+            {% endif %}
+            optimization_metric_value: {{ data.optimization_metric_value|default:"null" }}
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+    
+    // Define column definitions
+    const columnDefs = [
+        {
+            headerName: 'Experimento',
+            field: 'name',
+            cellRenderer: function(params) {
+                const url = `/experiments/${params.data.id}/`;
+                return `<a href="${url}" class="text-brand-primary hover:text-brand-secondary font-medium">${params.value}</a>`;
+            },
+            width: 200,
+            pinned: 'left'
+        },
+        {
+            headerName: 'Estado',
+            field: 'status_display',
+            cellRenderer: function(params) {
+                const status = params.data.status.toLowerCase();
+                return `<span class="status-badge status-${status}">${params.value}</span>`;
+            },
+            width: 120
+        },
+        {% for key in hyperparameter_keys %}
+        {
+            headerName: '{{ key }}',
+            field: 'hp_{{ key }}',
+            width: 100,
+            type: 'numericColumn'
+        },
+        {% endfor %}
+        {
+            headerName: 'R²',
+            field: 'r2_score',
+            width: 80,
+            type: 'numericColumn',
+            valueFormatter: function(params) {
+                return params.value !== null ? params.value.toFixed(4) : '-';
+            }
+        },
+        {
+            headerName: 'RMSE',
+            field: 'rmse',
+            width: 80,
+            type: 'numericColumn',
+            valueFormatter: function(params) {
+                return params.value !== null ? params.value.toFixed(4) : '-';
+            }
+        },
+        {
+            headerName: 'MAE',
+            field: 'mae',
+            width: 80,
+            type: 'numericColumn',
+            valueFormatter: function(params) {
+                return params.value !== null ? params.value.toFixed(4) : '-';
+            }
+        },
+        {
+            headerName: '{{ optimization_metric|upper }}',
+            field: 'optimization_metric_value',
+            width: 100,
+            type: 'numericColumn',
+            valueFormatter: function(params) {
+                return params.value !== null ? params.value.toFixed(4) : '-';
+            },
+            cellStyle: function(params) {
+                if (params.value !== null) {
+                    return { fontWeight: 'bold', color: 'var(--brand-primary)' };
+                }
+                return null;
+            }
+        },
+        {
+            headerName: 'Creado',
+            field: 'created_at',
+            width: 140,
+            type: 'dateColumn'
+        }
+    ];
+    
+    const gridOptions = {
+        columnDefs: columnDefs,
+        rowData: experimentData,
+        defaultColDef: {
+            sortable: true,
+            filter: true,
+            resizable: true,
+            tooltipValueGetter: (params) => params.value
+        },
+        animateRows: true,
+        rowHeight: 40,
+        headerHeight: 45,
+        pagination: true,
+        paginationPageSize: 20,
+        domLayout: 'normal',
+        onGridReady: function(params) {
+            params.api.autoSizeAllColumns(false);
+        }
+    };
+    
+    // Initialize the grid
+    const eGridDiv = document.querySelector('#results-grid');
+    if (eGridDiv) {
+        new agGrid.Grid(eGridDiv, gridOptions);
+    }
+});
+</script>
+{% endblock %}

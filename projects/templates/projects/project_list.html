@@ -1,29 +1,108 @@
-{% extends "core/base.html" %} {# <-- ¡Cambiado! Ahora hereda de la nueva base #}
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block page_title %}Workspace{% endblock %}
+
+{% block header_actions %}
+<div class="flex items-center space-x-3">
+    <a href="{% url 'projects:project_create' %}" 
+       class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gray-800 dark:bg-gray-700 border border-transparent rounded-lg hover:bg-gray-900 dark:hover:bg-gray-600 transition-colors">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        Crear Nuevo Workspace
+    </a>
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="flex justify-between items-center mb-6">
-    <h1 class="text-3xl font-bold text-gray-800">Mis Proyectos 📚</h1>
-    <a href="{% url 'projects:project_create' %}" class="btn btn-primary">Crear Nuevo Proyecto</a>
-</div>
-
-<div class="bg-white shadow-md rounded-lg">
-    <ul class="divide-y divide-gray-200">
+{% if projects %}
+    <!-- Projects Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for project in projects %}
-            <li class="p-4 hover:bg-gray-50 transition">
-                <a href="{% url 'projects:project_detail' pk=project.pk %}" class="block">
-                    <div class="flex items-center justify-between">
-                        <p class="text-lg font-medium text-blue-700 truncate">{{ project.name }}</p>
-                        <p class="text-sm text-gray-500">{{ project.created_at|date:"d M, Y" }}</p>
+            <div class="bg-background-primary dark:bg-darcula-background-darker border border-border-default dark:border-darcula-border rounded-xl shadow-card hover:shadow-card-hover transition-all duration-200 overflow-hidden">
+                <!-- Card Header -->
+                <div class="p-6 pb-4">
+                    <div class="flex items-start justify-between mb-3">
+                        <h3 class="text-lg font-semibold text-foreground-default truncate pr-4">
+                            {{ project.name }}
+                        </h3>
+                        <span class="text-xs text-foreground-muted bg-background-secondary px-2 py-1 rounded-full whitespace-nowrap">
+                            {{ project.created_at|date:"d M Y" }}
+                        </span>
                     </div>
-                    <p class="mt-2 text-sm text-gray-600">{{ project.description|default:"Sin descripción." }}</p>
-                </a>
-            </li>
-        {% empty %}
-            <li class="p-6 text-center">
-                <p class="text-gray-500">Aún no has creado ningún proyecto.</p>
-                <p class="mt-1 text-sm text-gray-500">¡Haz clic en "Nuevo Proyecto" para empezar!</p>
-            </li>
+                    
+                    <!-- Project Description -->
+                    <p class="text-sm text-foreground-secondary line-clamp-2 mb-4">
+                        {{ project.description|default:"Sin descripción disponible." }}
+                    </p>
+                </div>
+
+                <!-- Project Stats -->
+                <div class="px-6 pb-4">
+                    <div class="flex items-center space-x-4 text-sm text-foreground-muted">
+                        <div class="flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            <span>{{ project.datasources.count }} dato{{ project.datasources.count|pluralize:"s" }}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                            </svg>
+                            <span>{{ project.experiments.count }} experimento{{ project.experiments.count|pluralize:"s" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Footer -->
+                <div class="px-6 py-4 bg-background-secondary dark:bg-darcula-background border-t border-border-default dark:border-darcula-border">
+                    <a href="{% url 'projects:project_detail' pk=project.pk %}" 
+                       class="inline-flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-foreground-default bg-background-primary border border-border-default rounded-lg hover:bg-background-tertiary hover:border-border-muted transition-colors">
+                        Ver Proyecto
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
         {% endfor %}
-    </ul>
-</div>
+    </div>
+{% else %}
+    <!-- Empty State -->
+    <div class="text-center py-16">
+        <div class="mx-auto w-24 h-24 bg-background-secondary rounded-full flex items-center justify-center mb-6">
+            <svg class="w-12 h-12 text-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+            </svg>
+        </div>
+        
+        <h3 class="text-xl font-semibold text-foreground-default mb-2">
+            Aún no has creado ningún workspace
+        </h3>
+        
+        <p class="text-foreground-secondary mb-8 max-w-md mx-auto">
+            Los workspaces te permiten organizar tus datos y experimentos de machine learning en un espacio de trabajo colaborativo.
+        </p>
+        
+        <a href="{% url 'projects:project_create' %}" 
+           class="inline-flex items-center px-6 py-3 text-base font-medium text-white bg-gray-800 dark:bg-gray-700 border border-transparent rounded-lg hover:bg-gray-900 dark:hover:bg-gray-600 transition-colors">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Crear Nuevo Workspace
+        </a>
+    </div>
+{% endif %}
+
+<!-- Additional styles for line clamping -->
+<style>
+.line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+</style>
 {% endblock %}

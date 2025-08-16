@@ -4,11 +4,61 @@ from django.views.generic.edit import DeleteView, UpdateView
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import JsonResponse
 
 from ..models import Project, DataSource
 from ..forms.datasource_forms import DataSourceUpdateForm, DataSourceUploadForm
 from data_tools.tasks import convert_file_to_parquet_task
-from django.http import JsonResponse
+
+
+@login_required
+def datasource_upload_form_partial(request):
+    """
+    Returns the upload form as a partial template for AJAX loading.
+    """
+    # Get project_id from query parameter or use the first project
+    project_id = request.GET.get('project_id')
+    if project_id:
+        project = get_object_or_404(Project, id=project_id, owner=request.user)
+    else:
+        project = request.user.projects.first()
+    
+    if not project:
+        return JsonResponse({
+            'success': False,
+            'error': 'No se encontró ningún proyecto. Crea un proyecto primero.'
+        })
+    
+    if request.method == 'POST':
+        form = DataSourceUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            datasource = form.save(commit=False)
+            datasource.project = project
+            datasource.save()
+            
+            # Trigger the Parquet conversion task in the background
+            convert_file_to_parquet_task.delay(datasource.id)
+            
+            # Return JSON response for AJAX
+            return JsonResponse({
+                'success': True,
+                'message': 'Fuente de datos creada exitosamente',
+                'redirect_url': f'/projects/{project.id}/'
+            })
+        else:
+            # Return form with errors
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors
+            })
+    else:
+        form = DataSourceUploadForm()
+
+    context = {
+        'form': form,
+        'project': project,
+    }
+    return render(request, 'projects/datasource_form_partial.html', context)
 
 
 @login_required

@@ -1,0 +1,486 @@
+{% load static %}
+{% load experiment_extras %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Experimento - {{ experiment.name }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #334155;
+            background: white;
+            font-size: 14px;
+        }
+        
+        .report-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+        
+        .report-header {
+            text-align: center;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .report-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+        
+        .report-subtitle {
+            font-size: 16px;
+            color: #64748b;
+            margin-bottom: 16px;
+        }
+        
+        .report-metadata {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .metadata-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .metadata-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+        
+        .metadata-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .section {
+            margin-bottom: 32px;
+            break-inside: avoid;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .section-subtitle {
+            font-size: 16px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 12px;
+            margin-top: 20px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .info-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+        
+        .info-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1e293b;
+            word-break: break-word;
+        }
+        
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .metric-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+        
+        .table th {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            color: #475569;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .table td {
+            border: 1px solid #e2e8f0;
+            padding: 10px 8px;
+            color: #334155;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        
+        .table tr:nth-child(even) {
+            background: #f8fafc;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-completed {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        
+        .status-running {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+        
+        .status-failed {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .text-muted {
+            color: #64748b;
+            font-style: italic;
+        }
+        
+        .no-data {
+            padding: 32px;
+            text-align: center;
+            color: #64748b;
+            font-style: italic;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+        
+        @media print {
+            body {
+                font-size: 12px;
+            }
+            
+            .report-container {
+                padding: 16px;
+            }
+            
+            .section {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            
+            .report-header {
+                page-break-after: avoid;
+            }
+        }
+        
+        @page {
+            margin: 2cm;
+            size: A4;
+        }
+    </style>
+</head>
+<body>
+    <div class="report-container">
+        <!-- Header Section -->
+        <div class="report-header">
+            <h1 class="report-title">Reporte de Experimento</h1>
+            <p class="report-subtitle">{{ experiment.name }}</p>
+            
+            <div class="report-metadata">
+                <div class="metadata-item">
+                    <div class="metadata-label">Proyecto</div>
+                    <div class="metadata-value">{{ experiment.project.name }}</div>
+                </div>
+                <div class="metadata-item">
+                    <div class="metadata-label">Fecha Creación</div>
+                    <div class="metadata-value">{{ experiment.created_at|date:"d/m/Y" }}</div>
+                </div>
+                <div class="metadata-item">
+                    <div class="metadata-label">Estado</div>
+                    <div class="metadata-value">
+                        {% if experiment.status == 'completed' %}
+                            <span class="status-badge status-completed">Completado</span>
+                        {% elif experiment.status == 'running' %}
+                            <span class="status-badge status-running">En Ejecución</span>
+                        {% elif experiment.status == 'failed' %}
+                            <span class="status-badge status-failed">Fallido</span>
+                        {% else %}
+                            <span class="status-badge">{{ experiment.get_status_display }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="metadata-item">
+                    <div class="metadata-label">Propietario</div>
+                    <div class="metadata-value">{{ experiment.project.owner.get_full_name|default:experiment.project.owner.username }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Experiment Information -->
+        <div class="section">
+            <h2 class="section-title">Información del Experimento</h2>
+            
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-label">Nombre</div>
+                    <div class="info-value">{{ experiment.name }}</div>
+                </div>
+                
+                {% if experiment.description %}
+                <div class="info-card">
+                    <div class="info-label">Descripción</div>
+                    <div class="info-value">{{ experiment.description }}</div>
+                </div>
+                {% endif %}
+                
+                <div class="info-card">
+                    <div class="info-label">Dataset</div>
+                    <div class="info-value">{{ experiment.data_source.name|default:"No especificado" }}</div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-label">Target Variable</div>
+                    <div class="info-value">{{ experiment.target_column|default:"No especificado" }}</div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-label">Tipo de Problema</div>
+                    <div class="info-value">{{ experiment.get_problem_type_display|default:"No especificado" }}</div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-label">Algoritmo</div>
+                    <div class="info-value">{{ experiment.get_algorithm_display|default:"No especificado" }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Configuration Section -->
+        {% if experiment.configuration %}
+        <div class="section">
+            <h2 class="section-title">Configuración</h2>
+            
+            <h3 class="section-subtitle">Parámetros del Modelo</h3>
+            <div class="code-block">{{ experiment.configuration|pprint }}</div>
+        </div>
+        {% endif %}
+        
+        <!-- Results Section -->
+        {% if experiment.results %}
+        <div class="section">
+            <h2 class="section-title">Resultados del Experimento</h2>
+            
+            <!-- Performance Metrics -->
+            {% if experiment.results.performance_metrics %}
+            <h3 class="section-subtitle">Métricas de Rendimiento</h3>
+            <div class="metrics-grid">
+                {% for metric, value in experiment.results.performance_metrics.items %}
+                <div class="metric-card">
+                    <div class="metric-label">{{ metric|title }}</div>
+                    <div class="metric-value">
+                        {% if value %}
+                            {% if "score" in metric.lower or "accuracy" in metric.lower or "precision" in metric.lower or "recall" in metric.lower or "f1" in metric.lower %}
+                                {{ value|floatformat:4 }}
+                            {% else %}
+                                {{ value|floatformat:2 }}
+                            {% endif %}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <!-- Feature Importance -->
+            {% if experiment.results.feature_importance %}
+            <h3 class="section-subtitle">Importancia de Variables</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Variable</th>
+                        <th>Importancia</th>
+                        <th>Importancia Normalizada (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for feature, importance in experiment.results.feature_importance.items %}
+                    <tr>
+                        <td>{{ feature }}</td>
+                        <td>{{ importance|floatformat:6 }}</td>
+                        <td>{{ importance|mul:100|floatformat:2 }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+            
+            <!-- Prediction Data Sample -->
+            {% if experiment.results.prediction_data %}
+            <h3 class="section-subtitle">Muestra de Predicciones</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Valor Real</th>
+                        <th>Predicción</th>
+                        <th>Error Absoluto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in experiment.results.prediction_data|slice:":10" %}
+                    <tr>
+                        <td>{{ item.actual|floatformat:4 }}</td>
+                        <td>{{ item.predicted|floatformat:4 }}</td>
+                        <td>{{ item.actual|sub:item.predicted|abs|floatformat:4 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if experiment.results.prediction_data|length > 10 %}
+            <p class="text-muted text-center">
+                Mostrando primeras 10 predicciones de {{ experiment.results.prediction_data|length }} total.
+            </p>
+            {% endif %}
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="section">
+            <h2 class="section-title">Resultados del Experimento</h2>
+            <div class="no-data">
+                No hay resultados disponibles para este experimento.
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- MLflow Information -->
+        {% if experiment.mlflow_run_id %}
+        <div class="section">
+            <h2 class="section-title">Información MLflow</h2>
+            
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-label">Run ID</div>
+                    <div class="info-value">{{ experiment.mlflow_run_id }}</div>
+                </div>
+                
+                {% if experiment.mlflow_experiment_id %}
+                <div class="info-card">
+                    <div class="info-label">Experiment ID</div>
+                    <div class="info-value">{{ experiment.mlflow_experiment_id }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Footer -->
+        <div class="section" style="margin-top: 48px; padding-top: 24px; border-top: 2px solid #e2e8f0;">
+            <p class="text-center text-muted">
+                Reporte generado el {{ "now"|date:"d/m/Y H:i" }} por HydroML Platform
+            </p>
+        </div>
+    </div>
+</body>
+</html>

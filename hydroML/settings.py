@@ -61,7 +61,7 @@ INSTALLED_APPS = [
 INSTALLED_APPS += [
     'crispy_forms',
     'crispy_tailwind',
-    
+    'taggit',
 ]
 
 TAILWIND_APP_NAME = 'core'

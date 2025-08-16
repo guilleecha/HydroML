@@ -1,28 +1,28 @@
 from django.urls import path
 from . import views
-from .views import ExperimentDeleteView, ExperimentUpdateView
 
 
-app_name = 'projects'
+app_name = 'core'
 
 urlpatterns = [
-    # URL para la lista de proyectos (página principal)
-    path('', views.project_list, name='project_list'),
-
-    # URL para crear un proyecto
-    path('project/new/', views.create_project, name='create_project'),
-
-    # URL para el detalle de un proyecto específico
-    path('project/<uuid:project_id>/', views.project_detail, name='project_detail'),
-
-    # URL para la subida de archivos (ya la teníamos)
-    path('project/<uuid:project_id>/upload/', views.upload_datasource, name='upload_datasource'),
-
-    path('project/<uuid:project_id>/experiment/new/', views.create_experiment, name='create_experiment'),
-
-    path('experiment/<uuid:pk>/', views.experiment_detail, name='experiment_detail'),
-
-    path('experiment/<uuid:pk>/edit/', ExperimentUpdateView.as_view(), name='update_experiment'),
-
-    path('experiment/<uuid:pk>/delete/', ExperimentDeleteView.as_view(), name='delete_experiment'),
+    # Dashboard
+    path('dashboard/', views.dashboard_view, name='dashboard'),
+    
+    # Help/FAQ page
+    path('help/', views.help_page, name='help'),
+    
+    # Hyperparameter Presets
+    path('presets/', views.preset_list, name='preset_list'),
+    path('presets/create/', views.preset_create, name='preset_create'),
+    path('presets/<int:preset_id>/', views.preset_detail, name='preset_detail'),
+    path('presets/<int:preset_id>/edit/', views.preset_update, name='preset_update'),
+    path('presets/<int:preset_id>/delete/', views.preset_delete, name='preset_delete'),
+    
+    # API endpoints
+    path('api/presets/', views.preset_api_list, name='preset_api_list'),
+    path('api/presets/<int:preset_id>/', views.preset_api_detail, name='preset_api_detail'),
+    
+    # API endpoints for notifications (commented out until Notification model is implemented)
+    # path('api/notifications/', views.NotificationAPIView.as_view(), name='notifications_api'),
+    # path('api/notifications/count/', views.get_unread_count, name='notifications_count'),
 ]

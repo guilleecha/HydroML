@@ -1,0 +1,126 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block page_title %}Hyperparameter Presets - HydroML{% endblock %}
+
+{% block content %}
+<div class="flex-1 bg-background-primary">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-brand-50 to-brand-100 dark:from-darcula-background-lighter dark:to-darcula-background border-b border-border-default">
+        <div class="px-8 py-8">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold text-foreground-default dark:text-darcula-foreground">
+                            Hyperparameter Presets
+                        </h1>
+                        <p class="mt-2 text-lg text-foreground-muted dark:text-darcula-foreground-muted">
+                            Save and reuse hyperparameter configurations for your ML experiments
+                        </p>
+                    </div>
+                    <div>
+                        <a href="{% url 'core:preset_create' %}"
+                           class="inline-flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Create New Preset
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-8 py-8">
+        {% if presets %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for preset in presets %}
+            <div class="bg-background-secondary dark:bg-darcula-background-lighter rounded-xl border border-border-default p-6 hover:shadow-lg transition-shadow">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground mb-2">
+                            {{ preset.name }}
+                        </h3>
+                        <!-- Model Type Badge -->
+                        <div class="mb-2">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-brand-100 text-brand-800 dark:bg-darcula-accent/20 dark:text-darcula-accent">
+                                {{ preset.get_model_type_display }}
+                            </span>
+                        </div>
+                        {% if preset.description %}
+                        <p class="text-sm text-foreground-muted dark:text-darcula-foreground-muted mb-3">
+                            {{ preset.description|truncatechars:100 }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center space-x-2 ml-4">
+                        <a href="{% url 'core:preset_update' preset.id %}"
+                           class="p-2 text-foreground-muted dark:text-darcula-foreground-muted hover:text-brand-600 dark:hover:text-darcula-accent transition-colors"
+                           title="Edit">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                        </a>
+                        <a href="{% url 'core:preset_delete' preset.id %}"
+                           class="p-2 text-foreground-muted dark:text-darcula-foreground-muted hover:text-red-600 transition-colors"
+                           title="Delete">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-foreground-muted dark:text-darcula-foreground-muted">Parameters:</span>
+                        <span class="font-medium text-foreground-default dark:text-darcula-foreground">{{ preset.hyperparameters_count }}</span>
+                    </div>
+                    
+                    <div class="text-xs text-foreground-muted dark:text-darcula-foreground-muted">
+                        {{ preset.get_hyperparameter_summary }}
+                    </div>
+                    
+                    <div class="text-xs text-foreground-muted dark:text-darcula-foreground-muted">
+                        Updated {{ preset.updated_at|date:"M d, Y" }}
+                    </div>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-border-muted dark:border-darcula-border">
+                    <a href="{% url 'core:preset_detail' preset.id %}"
+                       class="inline-flex items-center text-sm font-medium text-brand-600 dark:text-darcula-accent hover:text-brand-700 dark:hover:text-darcula-foreground">
+                        View Details
+                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-12">
+            <svg class="w-16 h-16 text-foreground-muted dark:text-darcula-foreground-muted mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+            </svg>
+            <h3 class="text-xl font-medium text-foreground-default dark:text-darcula-foreground mb-2">
+                No Hyperparameter Presets Yet
+            </h3>
+            <p class="text-foreground-muted dark:text-darcula-foreground-muted mb-6">
+                Create your first preset to save and reuse hyperparameter configurations across your ML experiments.
+            </p>
+            <a href="{% url 'core:preset_create' %}"
+               class="inline-flex items-center px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Create Your First Preset
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

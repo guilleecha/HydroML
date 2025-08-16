@@ -1,0 +1,352 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block page_title %}{{ view_title }}{% endblock %}
+
+{% block title %}{{ view_title }} - HydroML{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        background: var(--color-background-primary);
+        border: 1px solid var(--color-border-default);
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: box-shadow 0.2s ease;
+    }
+    
+    .form-card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+    
+    .section-header {
+        color: var(--color-foreground-default);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--color-brand-primary);
+    }
+    
+    .help-text {
+        font-size: 0.875rem;
+        color: var(--color-foreground-muted);
+        margin-top: 0.25rem;
+    }
+    
+    .form-control {
+        background: var(--color-background-primary);
+        border: 1px solid var(--color-border-default);
+        color: var(--color-foreground-default);
+    }
+    
+    .form-control:focus {
+        background: var(--color-background-primary);
+        border-color: var(--color-brand-primary);
+        color: var(--color-foreground-default);
+        box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+    }
+    
+    .btn-primary {
+        background-color: var(--color-brand-primary);
+        border-color: var(--color-brand-primary);
+        color: white;
+        font-weight: 600;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-primary:hover {
+        background-color: var(--color-brand-secondary);
+        border-color: var(--color-brand-secondary);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    
+    .json-editor {
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        background-color: var(--color-background-secondary);
+        border: 1px solid var(--color-border-default);
+        border-radius: 6px;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    label {
+        color: var(--color-foreground-default);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+    
+    .alert-info {
+        background-color: var(--color-info-secondary);
+        border-color: var(--color-info-primary);
+        color: var(--color-info-primary);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+{% if breadcrumbs %}
+<nav aria-label="breadcrumb" class="mb-6">
+    <ol class="breadcrumb">
+        {% for crumb in breadcrumbs %}
+            {% if crumb.url %}
+                <li class="breadcrumb-item">
+                    <a href="{{ crumb.url }}" class="text-brand-600 hover:text-brand-500 transition-colors">
+                        {{ crumb.name }}
+                    </a>
+                </li>
+            {% else %}
+                <li class="breadcrumb-item active text-foreground-muted" aria-current="page">
+                    {{ crumb.name }}
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ol>
+</nav>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-foreground-default mb-2">
+                    <svg class="inline-block w-8 h-8 mr-3 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.78 0-2.678-2.153-1.415-3.414l5-5A2 2 0 009 11.172V5l-1-1z"></path>
+                    </svg>
+                    {{ view_title }}
+                </h1>
+                <p class="text-foreground-muted text-lg">
+                    Crea un nuevo suite de experimentos para <strong>{{ project.name }}</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Information Alert -->
+    <div class="alert alert-info mb-6">
+        <div class="flex items-start">
+            <svg class="w-5 h-5 text-info-primary mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+                <h4 class="font-semibold text-info-primary mb-1">¿Qué es un Suite de Experimentos?</h4>
+                <p class="text-sm text-info-primary">
+                    Un suite de experimentos te permite ejecutar múltiples experimentos relacionados de forma sistemática, 
+                    como barridos de hiperparámetros, estudios de ablación, o comparaciones de algoritmos. 
+                    Define un experimento base y un espacio de búsqueda para explorar diferentes configuraciones automáticamente.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Form -->
+    <div class="max-w-4xl mx-auto">
+        <div class="form-card p-8">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                
+                <!-- General Information Section -->
+                <div class="mb-8">
+                    <h2 class="section-header text-xl mb-4">
+                        <svg class="inline-block w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Información General
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 gap-6">
+                        <div class="form-group">
+                            <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium mb-2">
+                                {{ form.name.label }}
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.help_text %}
+                                <p class="help-text">{{ form.name.help_text }}</p>
+                            {% endif %}
+                            {% if form.name.errors %}
+                                <div class="text-danger-primary text-sm mt-1">
+                                    {{ form.name.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium mb-2">
+                                {{ form.description.label }}
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.help_text %}
+                                <p class="help-text">{{ form.description.help_text }}</p>
+                            {% endif %}
+                            {% if form.description.errors %}
+                                <div class="text-danger-primary text-sm mt-1">
+                                    {{ form.description.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Study Configuration Section -->
+                <div class="mb-8">
+                    <h2 class="section-header text-xl mb-4">
+                        <svg class="inline-block w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        Configuración del Estudio
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="form-group">
+                            <label for="{{ form.study_type.id_for_label }}" class="block text-sm font-medium mb-2">
+                                {{ form.study_type.label }}
+                            </label>
+                            {{ form.study_type }}
+                            {% if form.study_type.help_text %}
+                                <p class="help-text">{{ form.study_type.help_text }}</p>
+                            {% endif %}
+                            {% if form.study_type.errors %}
+                                <div class="text-danger-primary text-sm mt-1">
+                                    {{ form.study_type.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.base_experiment.id_for_label }}" class="block text-sm font-medium mb-2">
+                                {{ form.base_experiment.label }}
+                            </label>
+                            {{ form.base_experiment }}
+                            {% if form.base_experiment.help_text %}
+                                <p class="help-text">{{ form.base_experiment.help_text }}</p>
+                            {% endif %}
+                            {% if form.base_experiment.errors %}
+                                <div class="text-danger-primary text-sm mt-1">
+                                    {{ form.base_experiment.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group md:col-span-2">
+                            <label for="{{ form.optimization_metric.id_for_label }}" class="block text-sm font-medium mb-2">
+                                {{ form.optimization_metric.label }}
+                            </label>
+                            {{ form.optimization_metric }}
+                            {% if form.optimization_metric.help_text %}
+                                <p class="help-text">{{ form.optimization_metric.help_text }}</p>
+                            {% endif %}
+                            {% if form.optimization_metric.errors %}
+                                <div class="text-danger-primary text-sm mt-1">
+                                    {{ form.optimization_metric.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Space Section -->
+                <div class="mb-8">
+                    <h2 class="section-header text-xl mb-4">
+                        <svg class="inline-block w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                        </svg>
+                        Parámetros de Búsqueda
+                    </h2>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.search_space.id_for_label }}" class="block text-sm font-medium mb-2">
+                            {{ form.search_space.label }}
+                        </label>
+                        {{ form.search_space }}
+                        {% if form.search_space.help_text %}
+                            <p class="help-text">{{ form.search_space.help_text }}</p>
+                        {% endif %}
+                        {% if form.search_space.errors %}
+                            <div class="text-danger-primary text-sm mt-1">
+                                {{ form.search_space.errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- JSON Help -->
+                        <div class="mt-3 p-4 bg-background-secondary border border-border-default rounded-lg">
+                            <h4 class="text-sm font-semibold text-foreground-default mb-2">
+                                <svg class="inline-block w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Ejemplo de Espacio de Búsqueda:
+                            </h4>
+                            <pre class="text-xs text-foreground-muted bg-background-primary p-3 rounded border overflow-x-auto"><code>{
+  "learning_rate": [0.01, 0.1, 0.2],
+  "n_estimators": [50, 100, 200, 300],
+  "max_depth": [3, 5, 7, 10],
+  "min_samples_split": [2, 5, 10]
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 pt-6 border-t border-border-default">
+                    <div class="text-sm text-foreground-muted">
+                        <svg class="inline-block w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        El suite se creará en estado borrador. Podrás ejecutarlo desde la página del proyecto.
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <a href="{% url 'projects:project_detail' pk=project.pk %}" 
+                           class="btn btn-outline-secondary px-6 py-2 border border-border-default text-foreground-default hover:bg-background-secondary transition-colors rounded-lg">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <svg class="inline-block w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Crear Suite de Experimentos
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add syntax highlighting or validation for JSON field if needed
+    const searchSpaceField = document.getElementById('{{ form.search_space.id_for_label }}');
+    
+    if (searchSpaceField) {
+        searchSpaceField.addEventListener('blur', function() {
+            try {
+                if (this.value.trim()) {
+                    JSON.parse(this.value);
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                }
+            } catch (e) {
+                this.classList.remove('is-valid');
+                this.classList.add('is-invalid');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

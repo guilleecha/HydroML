@@ -1,136 +1,350 @@
 {% extends "core/base.html" %}
 {% load static %}
 
+{% block page_title %}{{ project.name }}{% endblock %}
+
+{% block header_actions %}
+<div class="flex items-center space-x-3">
+    <button type="button" 
+            @click="openUploadPanel()"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-brand-600 dark:bg-darcula-accent hover:bg-brand-700 dark:hover:bg-darcula-accent/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 dark:focus:ring-darcula-accent transition-colors">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+        </svg>
+        Subir Datos
+    </button>
+    <button type="button" 
+            @click="openNewExperimentPanel()"
+            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gray-800 dark:bg-gray-700 border border-transparent rounded-lg hover:bg-gray-900 dark:hover:bg-gray-600 transition-colors">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+        </svg>
+        Nuevo Experimento ML
+    </button>
+</div>
+{% endblock %}
+
 {% block content %}
-<div class="max-w-7xl mx-auto">
-    <div class="bg-white p-6 mb-6 border border-gray-200 rounded-lg">
-        <h1 class="text-3xl font-bold text-gray-900">{{ project.name }}</h1>
-        <p class="mt-2 text-gray-600">{{ project.description|default:"Este proyecto no tiene una descripción." }}</p>
-    </div>
+<!-- Project Description -->
+{% if project.description %}
+<div class="mb-8 p-4 bg-background-primary border border-border-default rounded-xl">
+    <p class="text-foreground-secondary">{{ project.description }}</p>
+</div>
+{% endif %}
 
-    <div class="mb-6">
-        <div class="border-b border-gray-200">
-            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                <button id="tab-datasets-btn" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-blue-600 border-blue-600">
-                    Fuentes de Datos
-                </button>
-                <button id="tab-experiments-btn" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">
-                    Experimentos de ML
-                </button>
-            </nav>
-        </div>
+<!-- Navigation Tabs -->
+<div class="mb-8">
+    <div class="border-b border-border-default">
+        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+            <button id="tab-datasets-btn" 
+                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-brand-600 border-brand-600 transition-colors">
+                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                Fuentes de Datos ({{ datasources.count }})
+            </button>
+            <button id="tab-experiments-btn" 
+                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-foreground-secondary border-transparent hover:text-foreground-default hover:border-border-muted transition-colors">
+                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                </svg>
+                Experimentos ML ({{ experiments.count }})
+            </button>
+        </nav>
     </div>
+</div>
 
-    <div>
-        <div id="tab-datasets" class="">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold text-gray-800">Archivos del Proyecto</h2>
-                <div class="flex space-x-2">
-                    <a href="{% url 'projects:datasource_upload' project_id=project.id %}" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-sm hover:bg-green-700 text-sm">
-                        + Subir Archivo
+<!-- Datasets Tab Content -->
+<div id="tab-datasets" class="">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for ds in datasources %}
+            <div class="bg-background-primary border border-border-default rounded-xl shadow-card p-4 hover:shadow-lg transition-shadow">
+                <!-- DataSource Header -->
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex-1 min-w-0">
+                        <h3 class="text-lg font-semibold text-foreground-default truncate">{{ ds.name }}</h3>
+                        <p class="text-sm text-foreground-muted mt-1 truncate">{{ ds.filename }}</p>
+                    </div>
+                    <span class="ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        {% if ds.data_type == 'ORIGINAL' %}bg-blue-50 dark:bg-darcula-background-lighter text-blue-700 dark:text-darcula-accent border border-blue-200 dark:border-darcula-border-light
+                        {% elif ds.data_type == 'PREPARED' %}bg-green-50 dark:bg-darcula-background-lighter text-green-700 dark:text-darcula-string border border-green-200 dark:border-darcula-border-light
+                        {% elif ds.data_type == 'FUSED' %}bg-purple-50 dark:bg-darcula-background-lighter text-purple-700 dark:text-darcula-keyword border border-purple-200 dark:border-darcula-border-light
+                        {% else %}bg-yellow-50 dark:bg-darcula-background-lighter text-yellow-700 dark:text-darcula-accent border border-yellow-200 dark:border-darcula-border-light{% endif %}">
+                        {{ ds.get_data_type_display }}
+                    </span>
+                </div>
+
+                <!-- DataSource Info -->
+                <div class="mb-4 space-y-2">
+                    {% if ds.total_rows %}
+                    <div class="flex items-center text-sm text-foreground-secondary">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        {{ ds.total_rows|floatformat:0 }} filas
+                    </div>
+                    {% endif %}
+                    <div class="flex items-center text-sm text-foreground-muted">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        {{ ds.created_at|date:"d M, Y" }}
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-wrap gap-2">
+                    <a href="{% url 'data_tools:data_studio_page' pk=ds.pk %}" 
+                       class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 border border-brand-600 rounded-lg transition-colors">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.78 0-2.678-2.153-1.415-3.414l5-5A2 2 0 009 11.172V5l-1-1z"></path>
+                        </svg>
+                        Data Studio
+                    </a>
+                    <a href="{% url 'projects:datasource_upload_summary' datasource_id=ds.id %}" 
+                       class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-brand-700 bg-brand-50 border border-brand-200 rounded-lg hover:bg-brand-100 transition-colors">
+                        Reporte
+                    </a>
+                </div>
+
+                <!-- Management Actions -->
+                <div class="mt-4 pt-4 border-t border-border-muted flex justify-between">
+                    <a href="{% url 'projects:datasource_update' pk=ds.pk %}" 
+                       class="text-xs font-medium text-brand-600 hover:text-brand-700 transition-colors">
+                        Editar
+                    </a>
+                    <a href="{% url 'projects:datasource_delete' pk=ds.pk %}" 
+                       class="text-xs font-medium text-danger-600 hover:text-danger-700 transition-colors">
+                        Eliminar
                     </a>
                 </div>
             </div>
-            <div class="bg-white border border-gray-200 rounded-lg">
-                <ul class="divide-y divide-gray-200">
-                    {% for ds in datasources %}
-                        <li class="p-4 flex items-center justify-between hover:bg-gray-50">
-                            <div class="flex items-center">
-                                <div>
-                                    <p class="text-md font-medium text-gray-900">{{ ds.name }}</p>
-                                    <p class="text-sm text-gray-500">{{ ds.filename }}</p>
-                                </div>
-                                <span class="ml-4 px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                    {% if ds.data_type == 'ORIGINAL' %} bg-blue-100 text-blue-800 
-                                    {% elif ds.data_type == 'PREPARED' %} bg-green-100 text-green-800
-                                    {% elif ds.data_type == 'FUSED' %} bg-purple-100 text-purple-800
-                                    {% else %} bg-yellow-100 text-yellow-800 {% endif %}">
-                                    {{ ds.get_data_type_display }}
-                                </span>
-                            </div>
-                            <div class="flex space-x-2">
-                                <a href="{% url 'data_tools:data_viewer_page' pk=ds.pk %}" class="px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Ver</a>
-                                <a href="{% url 'data_tools:data_preparer_page' pk=ds.pk %}" class="px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Preparar</a>
-                                <a href="{% url 'projects:datasource_upload_summary' datasource_id=ds.id %}" class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full hover:bg-blue-200 transition-colors">
-                                  Ver Reporte
-                                </a>
-                                <a href="{% url 'projects:datasource_update' pk=ds.pk %}" class="text-indigo-600 hover:text-indigo-900 font-semibold">
-                                  Editar
-                                </a>
-                                <a href="{% url 'projects:datasource_delete' pk=ds.pk %}" class="px-3 py-1 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100">Eliminar</a>
-                            </div>
-                        </li>
-                    {% empty %}
-                        <li class="p-6 text-center text-gray-500">Este proyecto aún no tiene fuentes de datos.</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-
-        <div id="tab-experiments" class="hidden">
-             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold text-gray-800">Experimentos de Machine Learning</h2>
-                <div class="flex space-x-2">
-                     <a href="{% url 'experiments:ml_experiment_create' project_id=project.id %}" class="px-4 py-2 bg-cyan-600 text-white font-semibold rounded-lg shadow-sm hover:bg-cyan-700 text-sm">
-                        🧪 Nuevo Experimento ML
-                    </a>
+        {% empty %}
+            <div class="col-span-full">
+                <div class="text-center py-12">
+                    <svg class="mx-auto h-12 w-12 text-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-foreground-default">No hay fuentes de datos</h3>
+                    <p class="mt-1 text-sm text-foreground-muted">Sube tu primer archivo de datos para comenzar.</p>
+                    <div class="mt-6">
+                        <button type="button" 
+                                @click="openUploadPanel()"
+                                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-gray-800 dark:bg-gray-700 hover:bg-gray-900 dark:hover:bg-gray-600 transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Subir primer archivo
+                        </button>
+                    </div>
                 </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {% for exp in project.ml_experiments.all %}
-                    <div class="bg-white border border-gray-200 rounded-lg p-6 flex flex-col justify-between hover:shadow-lg transition-shadow">
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="font-bold text-lg text-gray-800">{{ exp.name }}</span>
-                                <span class="px-2 py-1 rounded-full bg-gray-200 text-gray-700 text-xs font-semibold">{{ exp.status }}</span>
-                            </div>
-                            <p class="text-sm text-gray-600 mb-2">Modelo: <span class="font-mono">{{ exp.model_name }}</span></p>
-                            {% if exp.status == 'COMPLETED' and exp.results.mean_nse %}
-                                <p class="text-sm text-gray-700">NSE Promedio: <span class="font-semibold">{{ exp.results.mean_nse|floatformat:3 }}</span></p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Experiments Tab Content -->
+<div id="tab-experiments" class="hidden">
+    <!-- Section Header with Actions -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+        <div>
+            <h2 class="text-xl font-semibold text-foreground-default">Experimentos ML</h2>
+            <p class="text-foreground-muted text-sm">Gestiona tus experimentos y suites de experimentos</p>
+        </div>
+        <div class="flex flex-wrap gap-3 mt-4 sm:mt-0">
+            <a href="{% url 'experiments:suite_create' project_pk=project.id %}" 
+               class="inline-flex items-center px-4 py-2 border border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white transition-colors rounded-lg text-sm font-medium">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.78 0-2.678-2.153-1.415-3.414l5-5A2 2 0 009 11.172V5l-1-1z"></path>
+                </svg>
+                Crear Suite
+            </a>
+            <button type="button" 
+                    @click="openNewExperimentPanel()"
+                    class="inline-flex items-center px-4 py-2 bg-brand-primary text-white hover:bg-brand-secondary transition-colors rounded-lg text-sm font-medium">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Crear Experimento
+            </button>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for exp in experiments %}
+            <div class="bg-background-primary border border-border-default rounded-xl shadow-card p-4 hover:shadow-lg transition-shadow">
+                <!-- Experiment Header -->
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex-1 min-w-0">
+                        <h3 class="text-lg font-semibold text-foreground-default truncate">{{ exp.name }}</h3>
+                        <p class="text-sm text-foreground-muted mt-1">{{ exp.model_name }}</p>
+                    </div>
+                    <span class="ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        {% if exp.status == 'DRAFT' %}bg-gray-50 dark:bg-darcula-background-lighter text-gray-700 dark:text-darcula-foreground-muted border border-gray-200 dark:border-darcula-border-light
+                        {% elif exp.status == 'RUNNING' %}bg-blue-50 dark:bg-darcula-background-lighter text-blue-700 dark:text-darcula-accent border border-blue-200 dark:border-darcula-border-light
+                        {% elif exp.status == 'FINISHED' %}bg-green-50 dark:bg-darcula-background-lighter text-green-700 dark:text-darcula-string border border-green-200 dark:border-darcula-border-light
+                        {% elif exp.status == 'PUBLISHED' %}bg-purple-50 dark:bg-darcula-background-lighter text-purple-700 dark:text-darcula-keyword border border-purple-200 dark:border-darcula-border-light
+                        {% elif exp.status == 'FAILED' %}bg-red-50 dark:bg-darcula-background-lighter text-red-700 dark:text-darcula-error border border-red-200 dark:border-darcula-border-light
+                        {% else %}bg-yellow-50 dark:bg-darcula-background-lighter text-yellow-700 dark:text-darcula-warning border border-yellow-200 dark:border-darcula-border-light{% endif %}">
+                        {{ exp.get_status_display }}
+                    </span>
+                </div>
+
+                <!-- Experiment Info -->
+                <div class="mb-4 space-y-2">
+                    <div class="flex items-center text-sm text-foreground-secondary">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+                        </svg>
+                        {{ exp.target_column }}
+                    </div>
+                    {% if exp.status == 'FINISHED' and exp.results.mean_nse %}
+                    <div class="flex items-center text-sm text-foreground-secondary">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        NSE: {{ exp.results.mean_nse|floatformat:3 }}
+                    </div>
+                    {% endif %}
+                    <div class="flex items-center text-sm text-foreground-muted">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        {{ exp.created_at|date:"d M, Y" }}
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mt-6 flex items-center gap-3">
+                    <!-- Ver Detalles Button (Secondary) -->
+                    <a href="{% url 'experiments:ml_experiment_detail' pk=exp.pk %}" 
+                       class="inline-flex items-center px-3 py-2 text-sm font-semibold text-foreground-default bg-background-tertiary border border-border-default rounded-lg hover:bg-background-secondary transition-colors">
+                        Ver Detalles
+                        <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+
+                    <!-- Publicar Button (Conditional) -->
+                    {% if exp.status == 'FINISHED' and not exp.is_public %}
+                        <form method="post" action="{% url 'experiments:ml_experiment_publish' pk=exp.pk %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" 
+                                    class="inline-flex items-center px-3 py-2 text-sm font-medium text-brand-600 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors"
+                                    title="Hacer público este experimento">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                                </svg>
+                                Publicar
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-span-full">
+                <div class="text-center py-12">
+                    <svg class="mx-auto h-12 w-12 text-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-foreground-default">No hay experimentos</h3>
+                    <p class="mt-1 text-sm text-foreground-muted">Crea tu primer experimento de machine learning.</p>
+                    <div class="mt-6">
+                        <button type="button" 
+                                @click="openNewExperimentPanel()"
+                                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-gray-800 dark:bg-gray-700 hover:bg-gray-900 dark:hover:bg-gray-600 transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Crear experimento
+                        </button>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Experiment Suites Section -->
+    {% if experiment_suites %}
+    <div class="mt-12">
+        <h3 class="text-lg font-semibold text-foreground-default mb-6">Suites de Experimentos</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for suite in experiment_suites %}
+                <div class="bg-background-primary border border-border-default rounded-xl shadow-card p-4 hover:shadow-lg transition-shadow">
+                    <!-- Suite Header -->
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-lg font-semibold text-foreground-default truncate">{{ suite.name }}</h4>
+                            <p class="text-sm text-foreground-muted mt-1">{{ suite.get_study_type_display }}</p>
+                        </div>
+                        <span class="ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            {% if suite.status == 'DRAFT' %}bg-gray-50 dark:bg-darcula-background-lighter text-gray-700 dark:text-darcula-foreground-muted border border-gray-200 dark:border-darcula-border-light
+                            {% elif suite.status == 'QUEUED' %}bg-yellow-50 dark:bg-darcula-background-lighter text-yellow-700 dark:text-darcula-warning border border-yellow-200 dark:border-darcula-border-light
+                            {% elif suite.status == 'RUNNING' %}bg-blue-50 dark:bg-darcula-background-lighter text-blue-700 dark:text-darcula-accent border border-blue-200 dark:border-darcula-border-light
+                            {% elif suite.status == 'COMPLETED' %}bg-green-50 dark:bg-darcula-background-lighter text-green-700 dark:text-darcula-string border border-green-200 dark:border-darcula-border-light
+                            {% elif suite.status == 'FAILED' %}bg-red-50 dark:bg-darcula-background-lighter text-red-700 dark:text-darcula-error border border-red-200 dark:border-darcula-border-light
+                            {% else %}bg-gray-50 dark:bg-darcula-background-lighter text-gray-700 dark:text-darcula-foreground-muted border border-gray-200 dark:border-darcula-border-light{% endif %}">
+                            {{ suite.get_status_display }}
+                        </span>
+                    </div>
+
+                    <!-- Suite Info -->
+                    <div class="mb-4 space-y-2">
+                        {% if suite.base_experiment %}
+                        <div class="flex items-center text-sm text-foreground-secondary">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            Base: {{ suite.base_experiment.name|truncatechars:20 }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="flex items-center text-sm text-foreground-secondary">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            Experimentos: {{ suite.get_experiment_count }}
+                        </div>
+                        
+                        {% if suite.status == 'COMPLETED' %}
+                        <div class="flex items-center text-sm text-foreground-secondary">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Completados: {{ suite.get_completed_experiment_count }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Description -->
+                    {% if suite.description %}
+                    <p class="text-sm text-foreground-muted mb-4">{{ suite.description|truncatechars:100 }}</p>
+                    {% endif %}
+
+                    <!-- Actions -->
+                    <div class="flex items-center justify-between pt-4 border-t border-border-light">
+                        <span class="text-xs text-foreground-muted">{{ suite.created_at|timesince }} ago</span>
+                        <div class="flex items-center space-x-2">
+                            {% if suite.status == 'DRAFT' or suite.status == 'FAILED' %}
+                                <a href="{% url 'experiments:suite_run' pk=suite.pk %}" 
+                                   class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-white bg-brand-primary hover:bg-brand-secondary rounded-lg transition-colors"
+                                   onclick="return confirm('¿Está seguro de que desea ejecutar este suite? Se crearán múltiples experimentos.')">
+                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-6 4h1m4 0h1M4 7h16a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V8a1 1 0 011-1z"></path>
+                                    </svg>
+                                    Ejecutar
+                                </a>
                             {% endif %}
                         </div>
-                        <div class="mt-4 flex justify-end">
-                            <a href="{% url 'experiments:ml_experiment_detail' pk=exp.pk %}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">Ver Detalles</a>
-                        </div>
                     </div>
-                {% empty %}
-                    <p class="text-gray-500 col-span-full">No hay experimentos en este proyecto.</p>
-                {% endfor %}
-            </div>
+                </div>
+            {% endfor %}
         </div>
     </div>
+    {% endif %}
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const tabDatasetsBtn = document.getElementById('tab-datasets-btn');
-    const tabExperimentsBtn = document.getElementById('tab-experiments-btn');
-    const tabDatasets = document.getElementById('tab-datasets');
-    const tabExperiments = document.getElementById('tab-experiments');
-
-    function setActiveTab(activeBtn, inactiveBtn, activeTab, inactiveTab) {
-        activeTab.classList.remove('hidden');
-        inactiveTab.classList.add('hidden');
-        
-        activeBtn.classList.remove('text-gray-500', 'border-transparent', 'hover:text-gray-700', 'hover:border-gray-300');
-        activeBtn.classList.add('text-blue-600', 'border-blue-600');
-        
-        inactiveBtn.classList.remove('text-blue-600', 'border-blue-600');
-        inactiveBtn.classList.add('text-gray-500', 'border-transparent', 'hover:text-gray-700', 'hover:border-gray-300');
-    }
-
-    tabDatasetsBtn.addEventListener('click', function() {
-        setActiveTab(tabDatasetsBtn, tabExperimentsBtn, tabDatasets, tabExperiments);
-    });
-
-    tabExperimentsBtn.addEventListener('click', function() {
-        setActiveTab(tabExperimentsBtn, tabDatasetsBtn, tabExperiments, tabDatasets);
-    });
-});
-</script>
-{% endblock %}  
-{% block extra_css %}
-{# Aquí puedes añadir enlaces a CSS específicos de la página en el futuro si lo necesitas #}
-{% endblock extra_css %}
+<script src="{% static 'js/project_detail_tabs.js' %}"></script>
+{% endblock %}

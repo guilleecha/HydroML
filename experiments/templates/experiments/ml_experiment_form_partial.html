@@ -1,0 +1,117 @@
+{% load static %}
+{% load tailwind_filters %}
+
+<!-- New Experiment Form - Partial Template for Slide-Over Panel -->
+<form method="post" id="experiment-form" 
+      class="space-y-6"
+      data-get-columns-url="{% url 'data_tools:get_columns_api' datasource_id='00000000-0000-0000-0000-000000000000' %}"
+      @submit.prevent="submitExperimentForm($event)">
+    
+    {% csrf_token %}
+    
+    {% if form.errors %}
+        <div class="p-4 mb-4 text-sm text-red-800 dark:text-darcula-error rounded-lg bg-red-100 dark:bg-darcula-background-lighter border border-red-400 dark:border-darcula-error" role="alert">
+            <span class="font-bold">Por favor, corrige los siguientes errores:</span>
+            <ul class="mt-2 list-disc list-inside">
+                {% for field, errors in form.errors.items %}
+                    <li><strong>{{ field }}:</strong> {{ errors|striptags }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    {{ form.name|as_crispy_field }}
+    {{ form.description|as_crispy_field }}
+    {{ form.input_datasource|as_crispy_field }}
+
+    <div>
+        <label for="id_target_column_select" class="block text-sm font-medium text-foreground-default dark:text-darcula-foreground mb-1">Variable Objetivo</label>
+        <select id="id_target_column_select" name="target_column_select" class="block w-full border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background text-foreground-default dark:text-darcula-foreground rounded-md shadow-sm" disabled>
+            <option value="">Primero selecciona una Fuente de Datos</option>
+        </select>
+    </div>
+
+    <div class="mt-4">
+        <label class="block text-sm font-medium text-foreground-default dark:text-darcula-foreground">Selección de Variables Predictoras</label>
+        <div class="grid grid-cols-12 gap-4 mt-1">
+            <div class="col-span-5">
+                <span class="text-xs font-semibold text-foreground-muted dark:text-darcula-foreground-muted">Disponibles</span>
+                <select id="features-available" multiple class="w-full h-40 border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background text-foreground-default dark:text-darcula-foreground rounded-md"></select>
+            </div>
+            <div class="col-span-2 flex flex-col items-center justify-center space-y-2">
+                <button type="button" id="btn-add-feature" class="px-3 py-1.5 border border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background-lighter text-foreground-default dark:text-darcula-foreground rounded-md shadow-sm hover:bg-background-secondary dark:hover:bg-darcula-background">&gt;&gt;</button>
+                <button type="button" id="btn-remove-feature" class="px-3 py-1.5 border border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background-lighter text-foreground-default dark:text-darcula-foreground rounded-md shadow-sm hover:bg-background-secondary dark:hover:bg-darcula-background">&lt;&lt;</button>
+            </div>
+            <div class="col-span-5">
+                <span class="text-xs font-semibold text-foreground-muted dark:text-darcula-foreground-muted">Seleccionadas</span>
+                <select id="features-selected" multiple class="w-full h-40 border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background text-foreground-default dark:text-darcula-foreground rounded-md"></select>
+            </div>
+        </div>
+    </div>
+    
+    {{ form.model_name|as_crispy_field }}
+    
+    <div id="rf-fields" class="hidden space-y-4 mt-4 p-4 border border-border-default dark:border-darcula-border rounded-md bg-background-secondary dark:bg-darcula-background-lighter">
+        <h4 class="font-semibold text-foreground-default dark:text-darcula-keyword">Hiperparámetros de Random Forest</h4>
+        {{ form.rf_n_estimators|as_crispy_field }}
+        {{ form.rf_max_depth|as_crispy_field }}
+    </div>
+    <div id="gb-fields" class="hidden space-y-4 mt-4 p-4 border border-border-default dark:border-darcula-border rounded-md bg-background-secondary dark:bg-darcula-background-lighter">
+        <h4 class="font-semibold text-foreground-default dark:text-darcula-keyword">Hiperparámetros de Gradient Boosting</h4>
+        {{ form.gb_n_estimators|as_crispy_field }}
+        {{ form.gb_learning_rate|as_crispy_field }}
+    </div>
+
+    {{ form.split_strategy|as_crispy_field }}
+    
+    <!-- Custom Test Split Size Slider with Alpine.js -->
+    <div x-data="{ splitValue: {{ form.test_split_size.value|default:20 }} }" class="mb-4">
+        <label for="id_test_split_size" class="block text-sm font-medium text-foreground-default dark:text-darcula-foreground mb-2">
+            Tamaño del Conjunto de Prueba: <span x-text="splitValue + '%'" class="font-semibold text-brand-600 dark:text-darcula-accent"></span>
+        </label>
+        <div class="flex items-center space-x-4">
+            <span class="text-sm text-foreground-muted dark:text-darcula-foreground-muted">5%</span>
+            <input 
+                type="range" 
+                id="test_split_slider"
+                min="5" 
+                max="50" 
+                step="1"
+                x-model="splitValue"
+                class="flex-1 h-2 bg-background-secondary dark:bg-darcula-background-lighter rounded-lg appearance-none cursor-pointer slider"
+                x-on:input="$el.style.setProperty('--value', ($event.target.value - 5) / (50 - 5) * 100 + '%'); $el.style.background = `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${($event.target.value - 5) / (50 - 5) * 100}%, #e5e7eb ${($event.target.value - 5) / (50 - 5) * 100}%, #e5e7eb 100%)`"
+                x-init="$el.style.background = `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(splitValue - 5) / (50 - 5) * 100}%, #e5e7eb ${(splitValue - 5) / (50 - 5) * 100}%, #e5e7eb 100%)`"
+            >
+            <span class="text-sm text-foreground-muted dark:text-darcula-foreground-muted">50%</span>
+        </div>
+        <!-- Hidden input to send the actual value to Django -->
+        <input 
+            type="hidden" 
+            name="test_split_size" 
+            id="id_test_split_size"
+            x-model="splitValue / 100"
+        >
+    </div>
+    
+    {{ form.split_random_state|as_crispy_field }}
+
+    <div class="hidden">
+        {{ form.target_column }}
+        {{ form.feature_set }}
+    </div>
+    
+    <!-- Form Actions -->
+    <div class="border-t border-border-default dark:border-darcula-border pt-6 flex justify-end space-x-2">
+        <button type="button" 
+                @click="isNewExperimentPanelOpen = false"
+                class="px-4 py-2 border border-border-default dark:border-darcula-border text-sm font-medium rounded-md text-foreground-default dark:text-darcula-foreground bg-background-primary dark:bg-darcula-background hover:bg-background-tertiary dark:hover:bg-darcula-background-lighter">
+            Cancelar
+        </button>
+        <button type="submit" class="px-4 py-2 bg-brand-600 dark:bg-darcula-accent text-white dark:text-darcula-background font-bold rounded-lg hover:bg-brand-700 dark:hover:bg-darcula-keyword">
+            Guardar Experimento
+        </button>
+    </div>
+</form>
+
+<!-- Load the experiment form JavaScript -->
+<script src="{% static 'experiments/js/ml_experiment_form.js' %}"></script>

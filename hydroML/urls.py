@@ -13,6 +13,9 @@ urlpatterns = [
     # La raíz del sitio apunta a la vista 'home' de la app 'core'
     path('', core_views.home, name='home'),
 
+    # Core API routes
+    path('', include('core.urls')),
+
     # La ruta '/projects/' carga el archivo urls.py de la app 'projects'
     path('projects/', include('projects.urls')),
 
@@ -24,6 +27,9 @@ urlpatterns = [
 
     # La ruta '/accounts/' carga el archivo urls.py de la app 'accounts'
     path('accounts/', include('accounts.urls')),
+    
+    # Django built-in authentication URLs (password change, etc.)
+    path('accounts/', include('django.contrib.auth.urls')),
 ]
 
 if settings.DEBUG:

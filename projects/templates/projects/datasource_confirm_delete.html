@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="max-w-2xl mx-auto mt-10">
-    <div class="bg-white shadow-lg rounded-lg p-8">
+    <div class="bg-background-primary dark:bg-darcula-background-darker shadow-lg rounded-lg p-8 border border-border-default dark:border-darcula-border-light">
         <h1 class="text-2xl font-bold text-gray-800 mb-4">Confirmar Eliminación</h1>
         <p class="text-gray-600 mb-6">¿Estás seguro de que deseas eliminar la fuente de datos: <strong class="font-semibold">{{ object.name }}</strong>?</p>
         <p class="text-red-600 font-semibold">Esta acción no se puede deshacer.</p>
@@ -10,7 +10,7 @@
         <form method="post" class="mt-6">
             {% csrf_token %}
             <div class="flex justify-end space-x-4">
-                <a href="{% url 'projects:project_detail' pk=object.project.pk %}" class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                <a href="{% url 'projects:project_detail' pk=object.project.pk %}" class="px-4 py-2 border border-border-default dark:border-darcula-border-light text-sm font-medium rounded-md text-foreground-muted dark:text-darcula-foreground-muted bg-background-primary dark:bg-darcula-background hover:bg-background-secondary dark:hover:bg-darcula-background-lighter transition-colors">
                     Cancelar
                 </a>
                 <button type="submit" class="px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700">

@@ -1,0 +1,140 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block page_title %}{{ title }} - HydroML{% endblock %}
+
+{% block content %}
+<div class="flex-1 bg-background-primary">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-brand-50 to-brand-100 dark:from-darcula-background-lighter dark:to-darcula-background border-b border-border-default">
+        <div class="px-8 py-6">
+            <div class="max-w-4xl mx-auto">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold text-foreground-default dark:text-darcula-foreground">
+                            {{ title }}
+                        </h1>
+                        <p class="mt-1 text-foreground-muted dark:text-darcula-foreground-muted">
+                            {% if preset %}
+                                Edit your hyperparameter preset configuration
+                            {% else %}
+                                Create a new hyperparameter preset for reuse across experiments
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div>
+                        <a href="{% url 'core:preset_list' %}"
+                           class="inline-flex items-center px-4 py-2 border border-border-default text-foreground-default dark:text-darcula-foreground hover:bg-background-tertiary dark:hover:bg-darcula-background-lighter font-medium rounded-lg transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                            </svg>
+                            Back to Presets
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Content -->
+    <div class="max-w-4xl mx-auto px-8 py-8">
+        <div class="bg-background-secondary dark:bg-darcula-background-lighter rounded-xl border border-border-default p-8">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Name Field -->
+                <div>
+                    <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-foreground-default dark:text-darcula-foreground mb-2">
+                        {{ form.name.label }}
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.help_text %}
+                    <p class="mt-1 text-xs text-foreground-muted dark:text-darcula-foreground-muted">{{ form.name.help_text }}</p>
+                    {% endif %}
+                    {% if form.name.errors %}
+                    <div class="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {{ form.name.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Description Field -->
+                <div>
+                    <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-foreground-default dark:text-darcula-foreground mb-2">
+                        {{ form.description.label }}
+                    </label>
+                    {{ form.description }}
+                    {% if form.description.help_text %}
+                    <p class="mt-1 text-xs text-foreground-muted dark:text-darcula-foreground-muted">{{ form.description.help_text }}</p>
+                    {% endif %}
+                    {% if form.description.errors %}
+                    <div class="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {{ form.description.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Hyperparameters JSON Field -->
+                <div>
+                    <label for="{{ form.hyperparameters_json.id_for_label }}" class="block text-sm font-medium text-foreground-default dark:text-darcula-foreground mb-2">
+                        {{ form.hyperparameters_json.label }}
+                    </label>
+                    {{ form.hyperparameters_json }}
+                    {% if form.hyperparameters_json.help_text %}
+                    <p class="mt-1 text-xs text-foreground-muted dark:text-darcula-foreground-muted">{{ form.hyperparameters_json.help_text }}</p>
+                    {% endif %}
+                    {% if form.hyperparameters_json.errors %}
+                    <div class="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {{ form.hyperparameters_json.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Common Hyperparameter Examples -->
+                <div class="bg-background-tertiary dark:bg-darcula-background rounded-lg p-4">
+                    <h4 class="text-sm font-medium text-foreground-default dark:text-darcula-foreground mb-3">
+                        Common Hyperparameters Examples:
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <p class="font-medium text-foreground-muted dark:text-darcula-foreground-muted mb-2">Neural Networks:</p>
+                            <pre class="bg-background-primary dark:bg-darcula-background p-2 rounded border text-foreground-default dark:text-darcula-foreground overflow-x-auto">{
+  "learning_rate": 0.001,
+  "batch_size": 32,
+  "epochs": 100,
+  "hidden_layers": [64, 32],
+  "dropout_rate": 0.2
+}</pre>
+                        </div>
+                        <div>
+                            <p class="font-medium text-foreground-muted dark:text-darcula-foreground-muted mb-2">Random Forest:</p>
+                            <pre class="bg-background-primary dark:bg-darcula-background p-2 rounded border text-foreground-default dark:text-darcula-foreground overflow-x-auto">{
+  "n_estimators": 100,
+  "max_depth": 10,
+  "min_samples_split": 2,
+  "min_samples_leaf": 1,
+  "random_state": 42
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex items-center justify-between pt-6 border-t border-border-muted dark:border-darcula-border">
+                    <a href="{% url 'core:preset_list' %}"
+                       class="inline-flex items-center px-4 py-2 border border-border-default text-foreground-muted dark:text-darcula-foreground-muted hover:text-foreground-default dark:hover:text-darcula-foreground hover:bg-background-tertiary dark:hover:bg-darcula-background-lighter rounded-lg transition-colors">
+                        Cancel
+                    </a>
+                    <button type="submit"
+                            class="inline-flex items-center px-6 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        {{ submit_text }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

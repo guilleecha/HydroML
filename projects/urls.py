@@ -13,6 +13,11 @@ urlpatterns = [
 
     # CAMBIO AQUÍ: de <int:project_id> a <uuid:project_id>
     path('<uuid:project_id>/upload/', datasource_views.datasource_upload, name='datasource_upload'),
+    
+    # Partial form for AJAX loading
+    path('datasource/upload-form-partial/', 
+         datasource_views.datasource_upload_form_partial, 
+         name='datasource_upload_form_partial'),
 
     # Upload summary page (polls for processing status)
     path('datasource/<uuid:datasource_id>/upload-summary/',

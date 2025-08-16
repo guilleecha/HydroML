@@ -49,6 +49,13 @@ class DataSource(models.Model):
         help_text="Stores the data quality analysis results."
     )
 
+    quality_report_path = models.CharField(
+        max_length=500,
+        null=True,
+        blank=True,
+        help_text="Path to the Great Expectations HTML quality report"
+    )
+
     # AJUSTE 2: Relación de Linaje (ManyToManyField)
     # Esta relación es poderosa. Significa que un DataSource puede ser el resultado
     # de la combinación de VARIOS padres. Ideal para la fusión de datos.
