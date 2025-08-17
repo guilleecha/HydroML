@@ -1,3 +1,5 @@
-from .database_connection_forms import DatabaseConnectionForm
+# connectors/forms/__init__.py
 
-__all__ = ['DatabaseConnectionForm']
+from .database_connection_forms import DatabaseConnectionForm, DatabaseConnectionTestForm
+
+__all__ = ['DatabaseConnectionForm', 'DatabaseConnectionTestForm']

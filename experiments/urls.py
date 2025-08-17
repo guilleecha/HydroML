@@ -52,6 +52,16 @@ urlpatterns = [
          experiment_management_views.run_experiment_view,
          name='run_experiment'),
     
+    # Model registry URL
+    path('<uuid:pk>/register-model/',
+         experiment_management_views.register_model_view,
+         name='register_model'),
+    
+    # Promote to preset URL
+    path('<uuid:pk>/promote-to-preset/',
+         experiment_management_views.promote_to_preset_view,
+         name='promote_to_preset'),
+    
     # Nueva URL para el pipeline completo (legacy)
     path('<uuid:experiment_id>/trigger-full-pipeline/',
          experiment_management_views.trigger_full_experiment_task,
@@ -70,6 +80,11 @@ urlpatterns = [
     path('projects/<uuid:project_pk>/suites/create/',
          suite_views.ExperimentSuiteCreateView.as_view(),
          name='suite_create'),
+    
+    # Partial view for suite slide-over panel
+    path('projects/<uuid:project_pk>/suites/create-partial/',
+         suite_views.suite_create_partial,
+         name='suite_create_partial'),
     
     path('suites/<uuid:pk>/',
          suite_views.ExperimentSuiteDetailView.as_view(),

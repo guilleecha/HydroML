@@ -1,0 +1,153 @@
+{% load widget_tweaks %}
+
+<div class="space-y-6">
+    <div class="border-b border-gray-200 pb-5">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+            Nueva Suite de Experimentos
+        </h3>
+        <p class="mt-2 max-w-4xl text-sm text-gray-500">
+            Crea una nueva suite de experimentos para organizar y comparar múltiples experimentos relacionados.
+        </p>
+    </div>
+
+    <form 
+        method="post" 
+        action="{% url 'experiments:suite_create' project.pk %}"
+        x-data="{ submitting: false }"
+        @submit="submitting = true"
+        class="space-y-6"
+    >
+        {% csrf_token %}
+        
+        <!-- Hidden Project Field -->
+        <input type="hidden" name="project" value="{{ project.pk }}">
+        
+        <!-- Name Field -->
+        <div>
+            <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                {{ form.name.label }}
+                {% if form.name.field.required %}
+                    <span class="text-red-500">*</span>
+                {% endif %}
+            </label>
+            <div class="mt-1">
+                {% render_field form.name class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Nombre descriptivo para la suite" %}
+            </div>
+            {% if form.name.errors %}
+                <div class="mt-2 text-sm text-red-600">
+                    {{ form.name.errors.0 }}
+                </div>
+            {% endif %}
+            {% if form.name.help_text %}
+                <p class="mt-2 text-sm text-gray-500">{{ form.name.help_text }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Description Field -->
+        <div>
+            <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                {{ form.description.label }}
+                {% if form.description.field.required %}
+                    <span class="text-red-500">*</span>
+                {% endif %}
+            </label>
+            <div class="mt-1">
+                {% render_field form.description class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" rows="4" placeholder="Describe el propósito y objetivos de esta suite de experimentos" %}
+            </div>
+            {% if form.description.errors %}
+                <div class="mt-2 text-sm text-red-600">
+                    {{ form.description.errors.0 }}
+                </div>
+            {% endif %}
+            {% if form.description.help_text %}
+                <p class="mt-2 text-sm text-gray-500">{{ form.description.help_text }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Objective Field -->
+        <div>
+            <label for="{{ form.objective.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                {{ form.objective.label }}
+                {% if form.objective.field.required %}
+                    <span class="text-red-500">*</span>
+                {% endif %}
+            </label>
+            <div class="mt-1">
+                {% render_field form.objective class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" rows="3" placeholder="Especifica los objetivos técnicos y de negocio de esta suite" %}
+            </div>
+            {% if form.objective.errors %}
+                <div class="mt-2 text-sm text-red-600">
+                    {{ form.objective.errors.0 }}
+                </div>
+            {% endif %}
+            {% if form.objective.help_text %}
+                <p class="mt-2 text-sm text-gray-500">{{ form.objective.help_text }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Dataset Field -->
+        {% if form.dataset %}
+        <div>
+            <label for="{{ form.dataset.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                {{ form.dataset.label }}
+                {% if form.dataset.field.required %}
+                    <span class="text-red-500">*</span>
+                {% endif %}
+            </label>
+            <div class="mt-1">
+                {% render_field form.dataset class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" %}
+            </div>
+            {% if form.dataset.errors %}
+                <div class="mt-2 text-sm text-red-600">
+                    {{ form.dataset.errors.0 }}
+                </div>
+            {% endif %}
+            {% if form.dataset.help_text %}
+                <p class="mt-2 text-sm text-gray-500">{{ form.dataset.help_text }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Target Variable Field -->
+        {% if form.target_variable %}
+        <div>
+            <label for="{{ form.target_variable.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                {{ form.target_variable.label }}
+                {% if form.target_variable.field.required %}
+                    <span class="text-red-500">*</span>
+                {% endif %}
+            </label>
+            <div class="mt-1">
+                {% render_field form.target_variable class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" %}
+            </div>
+            {% if form.target_variable.errors %}
+                <div class="mt-2 text-sm text-red-600">
+                    {{ form.target_variable.errors.0 }}
+                </div>
+            {% endif %}
+            {% if form.target_variable.help_text %}
+                <p class="mt-2 text-sm text-gray-500">{{ form.target_variable.help_text }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Form Buttons -->
+        <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+            <button 
+                type="button" 
+                class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                @click="$store.hydroMLApp.closeNewSuitePanel()"
+            >
+                Cancelar
+            </button>
+            <button 
+                type="submit"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                :disabled="submitting"
+                x-text="submitting ? 'Creando...' : 'Crear Suite'"
+            >
+                Crear Suite
+            </button>
+        </div>
+    </form>
+</div>

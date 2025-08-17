@@ -1,0 +1,210 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - HydroML{% endblock %}
+
+{% block extra_css %}
+<style>
+    .connection-selector {
+        transition: all 0.2s ease-in-out;
+    }
+    .connection-selector:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    .connection-selector.selected {
+        border-color: #3b82f6;
+        background-color: #eff6ff;
+    }
+    .dark .connection-selector.selected {
+        background-color: #1e3a8a;
+        border-color: #60a5fa;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8" x-data="connectionSelector()">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center space-x-4">
+                {% if project %}
+                    <a href="{% url 'projects:project_detail' project.id %}" 
+                       class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </a>
+                {% endif %}
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ page_title }}</h1>
+                    <p class="mt-2 text-gray-600 dark:text-gray-400">
+                        {% if project %}
+                            Select a database connection to import data into <strong>{{ project.name }}</strong>
+                        {% else %}
+                            Select a database connection to import data
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        {% if connections %}
+            <!-- Connections Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {% for connection in connections %}
+                <div class="connection-selector bg-white dark:bg-gray-800 rounded-lg shadow-sm border-2 border-gray-200 dark:border-gray-700 p-6 cursor-pointer"
+                     @click="selectConnection('{{ connection.pk }}', '{{ connection.name|escapejs }}')">
+                    
+                    <!-- Connection Header -->
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                {% if connection.database_type == 'postgresql' %}
+                                    <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                                        </svg>
+                                    </div>
+                                {% elif connection.database_type == 'mysql' %}
+                                    <div class="w-10 h-10 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-orange-600 dark:text-orange-400" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                                        </svg>
+                                    </div>
+                                {% else %}
+                                    <div class="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-gray-600 dark:text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                                        </svg>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ connection.name }}</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">{{ connection.get_database_type_display }}</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Selection Indicator -->
+                        <div class="w-6 h-6 rounded-full border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center">
+                            <div class="w-3 h-3 bg-blue-600 rounded-full opacity-0 transition-opacity" 
+                                 :class="{'opacity-100': selectedConnection === '{{ connection.pk }}'}"></div>
+                        </div>
+                    </div>
+
+                    <!-- Connection Details -->
+                    <div class="space-y-2 text-sm">
+                        {% if connection.host %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-500 dark:text-gray-400">Host:</span>
+                            <span class="text-gray-900 dark:text-white font-medium">{{ connection.host }}</span>
+                        </div>
+                        {% endif %}
+                        {% if connection.port %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-500 dark:text-gray-400">Port:</span>
+                            <span class="text-gray-900 dark:text-white font-medium">{{ connection.port }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-500 dark:text-gray-400">Database:</span>
+                            <span class="text-gray-900 dark:text-white font-medium">{{ connection.database_name }}</span>
+                        </div>
+                        {% if connection.username %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-500 dark:text-gray-400">Username:</span>
+                            <span class="text-gray-900 dark:text-white font-medium">{{ connection.username }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Created Date -->
+                    <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                            Created {{ connection.created_at|date:"M d, Y" }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-between">
+                <a href="{% url 'connectors:database_connection_create' %}" 
+                   class="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Create new connection
+                </a>
+                
+                <button @click="proceedToQuery()" 
+                        :disabled="!selectedConnection"
+                        class="inline-flex items-center px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors disabled:cursor-not-allowed">
+                    Continue
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+            </div>
+
+        {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M4 7v10c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4V7c0-2.21-1.79-4-4-4H8c-2.21 0-4 1.79-4 4z"/>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No database connections</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    You need to create a database connection before importing data.
+                </p>
+                <div class="mt-6">
+                    <a href="{% url 'connectors:database_connection_create' %}" 
+                       class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Create database connection
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function connectionSelector() {
+    return {
+        selectedConnection: null,
+        selectedConnectionName: '',
+
+        selectConnection(connectionId, connectionName) {
+            this.selectedConnection = connectionId;
+            this.selectedConnectionName = connectionName;
+            
+            // Update visual selection
+            document.querySelectorAll('.connection-selector').forEach(el => {
+                el.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+        },
+
+        proceedToQuery() {
+            if (this.selectedConnection) {
+                {% if project %}
+                    const url = `{% url 'connectors:import_query_project' connection_id='CONNECTION_ID' project_id=project.id %}`.replace('CONNECTION_ID', this.selectedConnection);
+                {% else %}
+                    const url = `{% url 'connectors:import_query' connection_id='CONNECTION_ID' %}`.replace('CONNECTION_ID', this.selectedConnection);
+                {% endif %}
+                window.location.href = url;
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

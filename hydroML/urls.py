@@ -25,6 +25,9 @@ urlpatterns = [
     # La ruta '/experiments/' carga el archivo urls.py de la app 'experiments'
     path('experiments/', include('experiments.urls')),
 
+    # La ruta '/connectors/' carga el archivo urls.py de la app 'connectors'
+    path('connectors/', include('connectors.urls')),
+
     # La ruta '/accounts/' carga el archivo urls.py de la app 'accounts'
     path('accounts/', include('accounts.urls')),
     

@@ -1,9 +1,14 @@
 # data_tools/urls.py
 from django.urls import path
 # Importamos todos nuestros módulos de vistas
-from .views import visualization_views, preparation_views, fusion_views, api_views
+from .views import visualization_views, preparation_views, fusion_views
 from .views.feature_engineering_views import feature_engineering_page
-from .views.api_views import get_datasource_columns
+from .views.missing_data_views import run_deep_missing_analysis_api, missing_data_results_page
+# Import refactored API views
+from .views.api import (
+    get_columns_api, get_fusion_columns_api, generate_chart_api,
+    execute_sql_api, get_query_history_api, get_datasource_columns
+)
 
 app_name = 'data_tools'
 
@@ -24,7 +29,7 @@ urlpatterns = [
 
     # --- API Endpoints ---
     path('api/get-columns/<uuid:datasource_id>/',
-         api_views.get_columns_api,
+         get_columns_api,
          name='get_columns_api'),
 
     path(
@@ -34,13 +39,23 @@ urlpatterns = [
     ),
 
     path('api/get-fusion-columns/',
-         api_views.get_fusion_columns_api,
+         get_fusion_columns_api,
          name='get_fusion_columns_api'),
 
     # New Chart Generation API
     path('api/generate-chart/',
-         api_views.generate_chart_api,
+         generate_chart_api,
          name='generate_chart_api'),
+
+    # SQL Execution API
+    path('api/execute-sql/',
+         execute_sql_api,
+         name='execute_sql_api'),
+
+    # Query History API
+    path('api/query-history/',
+         get_query_history_api,
+         name='get_query_history_api'),
 
     # --- Ruta para la Ingeniería de Características ---
     path("feature-engineering/<uuid:datasource_id>/",
@@ -49,4 +64,13 @@ urlpatterns = [
          ),
 
     path('datasource/<uuid:datasource_id>/feature-engineering/', feature_engineering_page, name='feature_engineering'),
+
+    # --- Missing Data Toolkit URLs ---
+    path('run-deep-missing-analysis/',
+         run_deep_missing_analysis_api,
+         name='run_deep_missing_analysis_api'),
+
+    path('missing-data-results/<str:task_id>/',
+         missing_data_results_page,
+         name='missing_data_results_page'),
 ]

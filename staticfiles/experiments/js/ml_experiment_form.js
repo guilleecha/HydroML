@@ -318,9 +318,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return resp.json();
             })
             .then(data => {
-                console.log("Raw data received from API:", data);
-                console.log("Columns to process:", data.columns);
-                
                 if (data.error) throw new Error(data.error);
 
                 targetColumnSelect.innerHTML = '<option value="">Selecciona una columna...</option>';

@@ -482,6 +482,74 @@ def publish_experiment(request, pk):
     return redirect('experiments:ml_experiment_detail', pk=experiment.pk)
 
 
+@login_required
+@require_POST
+def register_model_view(request, pk):
+    """
+    Register the experiment's trained model in MLflow Model Registry.
+    
+    This view allows users to register their trained models from successful experiments
+    into the MLflow Model Registry for production deployment and version management.
+    The registered model name is derived from the project and experiment names.
+    
+    Args:
+        request (HttpRequest): The Django HTTP request object.
+        pk (str): The primary key (UUID) of the experiment.
+        
+    Returns:
+        HttpResponseRedirect: Redirect to the experiment detail page with
+                            success or error messages.
+                            
+    Raises:
+        Http404: If the experiment doesn't exist or the user doesn't own it.
+    """
+    experiment = get_object_or_404(MLExperiment, pk=pk, project__owner=request.user)
+    
+    # Check if experiment is finished
+    if experiment.status != MLExperiment.Status.FINISHED:
+        messages.error(request, "Solo se pueden registrar modelos de experimentos finalizados.")
+        return redirect('experiments:ml_experiment_detail', pk=experiment.pk)
+    
+    # Check if experiment has MLflow run ID
+    if not experiment.mlflow_run_id:
+        messages.error(request, "Este experimento no tiene un Run ID de MLflow asociado.")
+        return redirect('experiments:ml_experiment_detail', pk=experiment.pk)
+    
+    try:
+        import mlflow
+        
+        # Set MLflow tracking URI
+        mlflow.set_tracking_uri("http://mlflow:5000")
+        
+        # Construct model URI
+        model_uri = f"runs:/{experiment.mlflow_run_id}/model"
+        
+        # Construct model name
+        model_name = f"{experiment.project.name}-{experiment.name}".replace(" ", "_")
+        
+        # Register the model
+        registered_model = mlflow.register_model(
+            model_uri=model_uri,
+            name=model_name
+        )
+        
+        messages.success(
+            request, 
+            f"Modelo registrado exitosamente como '{model_name}' versión {registered_model.version} en MLflow."
+        )
+        
+        logger.info(f"User {request.user.username} registered model {model_name} from experiment {experiment.id}")
+        
+    except Exception as e:
+        logger.error(f"Error registering model for experiment {experiment.id}: {e}")
+        messages.error(
+            request, 
+            f"Error al registrar el modelo: {str(e)}"
+        )
+    
+    return redirect('experiments:ml_experiment_detail', pk=experiment.pk)
+
+
 def public_experiment_list_view(request):
     """
     Display a list of publicly available experiments.
@@ -601,3 +669,90 @@ def fork_experiment(request, pk):
             'original_experiment': original_experiment,
         }
         return render(request, 'experiments/fork_experiment.html', context)
+
+@login_required
+def promote_to_preset_view(request, pk):
+    """
+    Promote an experiment's hyperparameters to a reusable preset.
+    
+    This view allows users to create a HyperparameterPreset from a completed
+    experiment's hyperparameters. The view pre-fills the preset creation form
+    with the experiment's data for easy customization.
+    
+    Args:
+        request: Django HTTP request object
+        pk: UUID of the MLExperiment to promote
+        
+    Returns:
+        HttpResponse: Redirects to preset creation form with pre-filled data
+        
+    Raises:
+        Http404: If experiment doesn't exist or user doesn't have permission
+    """
+    from core.forms import HyperparameterPresetForm
+    from core.models import HyperparameterPreset
+    from django.urls import reverse
+    import json
+    
+    # Get the experiment and verify permissions
+    experiment = get_object_or_404(MLExperiment, pk=pk, user=request.user)
+    
+    # Validate experiment can be promoted
+    if experiment.status != 'FINISHED':
+        messages.error(request, "Only completed experiments can be promoted to presets.")
+        return redirect('experiments:ml_experiment_detail', pk=pk)
+    
+    if not experiment.hyperparameters:
+        messages.error(request, "This experiment has no hyperparameters to promote.")
+        return redirect('experiments:ml_experiment_detail', pk=pk)
+    
+    # Handle POST request (form submission)
+    if request.method == 'POST':
+        form = HyperparameterPresetForm(request.POST, user=request.user)
+        if form.is_valid():
+            preset = form.save(commit=False)
+            preset.user = request.user
+            preset.save()
+            
+            messages.success(
+                request, 
+                f"Successfully created preset '{preset.name}' from experiment '{experiment.name}'."
+            )
+            logger.info(f"User {request.user.username} promoted experiment {experiment.id} to preset {preset.id}")
+            
+            return redirect('core:hyperparameter_preset_list')
+        else:
+            # If form has errors, we'll re-render with the form
+            pass
+    else:
+        # Pre-fill form with experiment data
+        initial_data = {
+            'name': f"Preset from {experiment.name}",
+            'description': f"Hyperparameter preset created from experiment '{experiment.name}' "
+                          f"({experiment.model_type}) completed on {experiment.updated_at.strftime('%Y-%m-%d')}.",
+            'model_type': experiment.model_type,
+            'hyperparameters': json.dumps(experiment.hyperparameters, indent=2)
+        }
+        form = HyperparameterPresetForm(initial=initial_data, user=request.user)
+    
+    # Build breadcrumbs
+    breadcrumbs = []
+    if experiment.project:
+        breadcrumbs = create_project_breadcrumbs(experiment.project)
+        breadcrumbs.append({
+            'url': reverse('experiments:ml_experiment_detail', kwargs={'pk': experiment.pk}),
+            'title': experiment.name
+        })
+    breadcrumbs.append({
+        'url': None,
+        'title': 'Crear Preset'
+    })
+    
+    context = {
+        'form': form,
+        'experiment': experiment,
+        'breadcrumbs': breadcrumbs,
+        'page_title': f'Crear Preset desde "{experiment.name}"'
+    }
+    
+    return render(request, 'experiments/promote_to_preset.html', context)

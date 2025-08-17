@@ -70,6 +70,20 @@ class DataSource(models.Model):
     # Nueva relación para indicar si es una fuente de datos derivada
     is_derived = models.BooleanField(default=False, help_text="True si esta es una fuente de datos derivada.")
 
+    # Recipe Builder: Almacena los pasos de transformación aplicados
+    recipe_steps = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Lista de pasos de transformación aplicados a esta fuente de datos"
+    )
+
+    # Missing Data Toolkit: Almacena el análisis profundo de datos faltantes
+    missing_data_report = models.JSONField(
+        null=True,
+        blank=True,
+        help_text="Stores deep missing data analysis results including feature importance and combination counts"
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -85,6 +99,26 @@ class DataSource(models.Model):
         if self.file:
             return os.path.basename(self.file.name)
         return ""
+
+    @property
+    def total_rows(self):
+        """Returns the total number of rows in the dataset."""
+        if not self.file:
+            return 0
+        try:
+            import pandas as pd
+            file_path = self.file.path
+            if file_path.endswith('.parquet'):
+                df = pd.read_parquet(file_path)
+            elif file_path.endswith('.csv'):
+                df = pd.read_csv(file_path, encoding='latin-1')
+            elif file_path.endswith(('.xls', '.xlsx')):
+                df = pd.read_excel(file_path)
+            else:
+                df = pd.read_parquet(file_path)  # Fallback
+            return len(df)
+        except Exception:
+            return 0
 
     def __str__(self):
         return self.name or f"Fuente de datos {self.id}"

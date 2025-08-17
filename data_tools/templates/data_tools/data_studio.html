@@ -5,6 +5,11 @@
 {% block page_title %}Data Studio - {{ datasource.name }}{% endblock %}
 
 {% block extra_css %}
+<!-- CodeMirror CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/material-darker.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/default.min.css">
+
 <style>
     .data-studio-layout {
         height: calc(100vh - 120px);
@@ -19,47 +24,280 @@
         max-height: 100%;
     }
     
-    /* AG Grid header improvements */
+    /* Enhanced AG Grid theming with AG Grid best practices */
     .ag-theme-quartz .ag-header-cell,
     .ag-theme-quartz-dark .ag-header-cell {
-        padding: 8px 4px !important;
+        padding: 6px 8px !important;
+        min-height: 60px;
+        border-bottom: 2px solid var(--ag-border-color);
     }
     
     .ag-theme-quartz .ag-header-cell-text,
     .ag-theme-quartz-dark .ag-header-cell-text {
-        margin-bottom: 4px;
+        margin-bottom: 0;
+        font-weight: 600;
+    }
+    
+    /* Enhanced floating filters */
+    .ag-theme-quartz .ag-floating-filter-input,
+    .ag-theme-quartz-dark .ag-floating-filter-input {
+        border: 1px solid var(--ag-border-color);
+        border-radius: 4px;
+        padding: 4px 8px;
+        transition: border-color 0.2s ease;
+    }
+    
+    .ag-theme-quartz .ag-floating-filter-input:focus,
+    .ag-theme-quartz-dark .ag-floating-filter-input:focus {
+        border-color: var(--ag-accent-color);
+        outline: none;
+        box-shadow: 0 0 0 2px var(--ag-accent-color-alpha);
+    }
+    
+    /* Enhanced pagination styling */
+    .ag-theme-quartz .ag-paging-panel,
+    .ag-theme-quartz-dark .ag-paging-panel {
+        border-top: 1px solid var(--ag-border-color);
+        background-color: var(--ag-header-background-color);
+        padding: 8px 16px;
+    }
+    
+    .ag-theme-quartz .ag-paging-button,
+    .ag-theme-quartz-dark .ag-paging-button {
+        border: 1px solid var(--ag-border-color);
+        border-radius: 4px;
+        transition: all 0.2s ease;
+    }
+    
+    .ag-theme-quartz .ag-paging-button:hover,
+    .ag-theme-quartz-dark .ag-paging-button:hover {
+        background-color: var(--ag-selected-row-background-color);
+        border-color: var(--ag-accent-color);
     }
     
     .custom-header-container {
         display: flex;
-        flex-direction: column;
         align-items: center;
-        justify-content: center;
+        justify-content: flex-start;
         height: 100%;
-        padding: 8px 4px;
+        padding: 6px 8px;
+        gap: 12px;
     }
     
-    .header-text {
+    .custom-header-container .column-select-checkbox {
+        margin: 0;
+        flex-shrink: 0;
         cursor: pointer;
-        user-select: none;
+        order: -1; /* Ensure checkbox always comes first */
+    }
+    
+    .custom-header-container .header-text {
         font-weight: 600;
         text-align: center;
-        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .custom-header-container .header-text.sortable {
+        cursor: pointer;
+        user-select: none;
         transition: color 0.2s ease;
     }
     
-    .header-text:hover {
-        color: var(--ag-accent-color, #3b82f6);
+    .custom-header-container .header-text.sortable:hover {
+        color: #3b82f6;
     }
     
-    /* One Dark theme specific styles */
+    .custom-header-container .sort-indicator {
+        margin-left: 4px;
+        font-size: 10px;
+        color: #666;
+        transition: color 0.2s ease;
+    }
+    
+    /* Enhanced One Dark theme with AG Grid Quartz optimizations */
     .dark .ag-theme-quartz-dark {
+        /* Core colors optimized for Quartz theme */
         --ag-background-color: #282c34;
         --ag-foreground-color: #abb2bf;
         --ag-border-color: #3e4451;
         --ag-header-background-color: #2c313c;
         --ag-odd-row-background-color: #2c313c;
         --ag-accent-color: #61afef;
+        --ag-accent-color-alpha: rgba(97, 175, 239, 0.1);
+        --ag-selected-row-background-color: #3e4451;
+        --ag-cell-horizontal-border: #3e4451;
+        --ag-secondary-border-color: #3e4451;
+        --ag-row-hover-color: rgba(97, 175, 239, 0.05);
+        
+        /* Enhanced side panel styling for dark mode */
+        --ag-side-panel-background-color: #2c313c;
+        --ag-tool-panel-background-color: #2c313c;
+        --ag-panel-background-color: #282c34;
+        --ag-control-panel-background-color: #21252b;
+        
+        /* Enhanced input and control styling */
+        --ag-input-background-color: #3e4451;
+        --ag-input-border-color: #3e4451;
+        --ag-input-focus-border-color: #61afef;
+        --ag-checkbox-background-color: #3e4451;
+        --ag-checkbox-border-color: #528bff;
+        --ag-checkbox-checked-color: #61afef;
+        
+        /* Enhanced pagination colors */
+        --ag-paging-panel-background-color: #2c313c;
+        --ag-paging-button-background-color: #3e4451;
+        --ag-paging-button-disabled-background-color: #21252b;
+        
+        /* Enhanced floating filter colors */
+        --ag-floating-filter-background-color: #3e4451;
+        
+        /* Scrollbar styling optimized for Quartz */
+        --ag-scroll-spacer-border: #3e4451;
+        --ag-scrollbar-background-color: #2c313c;
+        --ag-scrollbar-thumb-color: #5c6370;
+    }
+    
+    /* Enhanced side panel styling */
+    .dark .ag-theme-quartz-dark .ag-side-buttons,
+    .dark .ag-theme-quartz-dark .ag-tool-panel-wrapper {
+        background-color: var(--ag-side-panel-background-color) !important;
+        border-color: var(--ag-border-color) !important;
+    }
+    
+    .dark .ag-theme-quartz-dark .ag-column-tool-panel .ag-column-tool-panel-column,
+    .dark .ag-theme-quartz-dark .ag-column-tool-panel .ag-column-tool-panel-column-group {
+        color: var(--ag-foreground-color) !important;
+    }
+    
+    .dark .ag-theme-quartz-dark .ag-column-tool-panel .ag-column-tool-panel-column:hover,
+    .dark .ag-theme-quartz-dark .ag-column-tool-panel .ag-column-tool-panel-column-group:hover {
+        background-color: var(--ag-selected-row-background-color) !important;
+    }
+    
+    /* Dark mode header text improvements */
+    .dark .custom-header-container .header-text {
+        color: #abb2bf;
+    }
+    
+    .dark .custom-header-container .header-text.sortable:hover {
+        color: #61afef;
+    }
+    
+    .dark .custom-header-container .sort-indicator {
+        color: #5c6370;
+    }
+    
+    .dark .custom-header-container .sort-indicator.active {
+        color: #61afef;
+    }
+    
+    /* Enhanced dark mode for right panel sections */
+    .dark .bg-background-primary {
+        background-color: #282c34 !important;
+    }
+    
+    .dark .bg-background-secondary {
+        background-color: #2c313c !important;
+    }
+    
+    /* CodeMirror SQL Editor Styling */
+    .CodeMirror {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 14px;
+        line-height: 1.4;
+        border: 1px solid var(--border-color, #e5e7eb);
+        border-radius: 6px;
+        height: auto;
+        min-height: 200px;
+    }
+    
+    .dark .CodeMirror {
+        background-color: #282c34;
+        color: #abb2bf;
+        border-color: #3e4451;
+    }
+    
+    .dark .CodeMirror .CodeMirror-cursor {
+        border-left: 1px solid #61afef;
+    }
+    
+    .dark .CodeMirror .CodeMirror-selected {
+        background: #3e4451;
+    }
+    
+    .dark .CodeMirror .CodeMirror-line::selection,
+    .dark .CodeMirror .CodeMirror-line > span::selection,
+    .dark .CodeMirror .CodeMirror-line > span > span::selection {
+        background: #3e4451;
+    }
+    
+    .dark .CodeMirror .CodeMirror-gutters {
+        background-color: #2c313c;
+        border-right: 1px solid #3e4451;
+    }
+    
+    .dark .CodeMirror .CodeMirror-linenumber {
+        color: #5c6370;
+    }
+    
+    .CodeMirror-focused .CodeMirror-cursor {
+        border-left: 1px solid #61afef;
+    }
+    
+    /* Light theme for CodeMirror */
+    .CodeMirror {
+        background-color: #ffffff;
+        color: #333333;
+    }
+    
+    .CodeMirror .CodeMirror-gutters {
+        background-color: #f8f9fa;
+        border-right: 1px solid #e5e7eb;
+    }
+    
+    .CodeMirror .CodeMirror-linenumber {
+        color: #6b7280;
+    }
+    
+    .dark .border-border-default {
+        border-color: #3e4451 !important;
+    }
+    
+    /* Text color hierarchy for dark mode */
+    .dark .text-foreground-default {
+        color: #abb2bf !important; /* Primary titles - bright */
+    }
+    
+    .dark h1, .dark h2, .dark h3, .dark h4 {
+        color: #abb2bf !important; /* Primary titles */
+    }
+    
+    .dark .text-brand-600 {
+        color: #61afef !important; /* Secondary titles/labels - blue accent */
+    }
+    
+    .dark .text-foreground-muted {
+        color: #5c6370 !important; /* Body text/descriptions - muted gray */
+    }
+    
+    .dark .text-foreground-muted.italic {
+        color: #4b5263 !important; /* Placeholders/muted text - dimmer gray */
+    }
+    
+    /* Enhanced Recipe Builder dark mode */
+    .dark .space-y-2 > div {
+        background-color: #2c313c !important;
+        border-color: #3e4451 !important;
+    }
+    
+    /* Chart container dark mode */
+    .dark #chart_container .border-border-default {
+        border-color: #3e4451 !important;
+        background-color: #2c313c !important;
     }
 </style>
 {% endblock %}
@@ -120,8 +358,20 @@
                             <h2 class="text-lg font-semibold text-foreground-default">Interactive Data Preview</h2>
                             <p class="text-sm text-foreground-muted">Select columns using checkboxes to perform operations</p>
                         </div>
-                        <div class="text-sm text-foreground-muted">
-                            <span id="selected-count">0</span> columns selected
+                        <div class="flex items-center gap-4">
+                            <!-- Column Management Toggle -->
+                            <button
+                                @click="toggleColumnPanel()"
+                                class="bg-gray-600 dark:bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
+                                title="Show/Hide Column Management Panel"
+                            >
+                                <i class="fas fa-columns mr-2"></i>
+                                Columns
+                            </button>
+                            
+                            <div class="text-sm text-foreground-muted">
+                                <span id="selected-count">0</span> columns selected
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -136,20 +386,475 @@
         </div>
 
         <!-- Right Panel - Action Tools (25%) -->
-        <div class="right-panel bg-background-secondary" style="flex: 0 0 25%; min-width: 350px;">
+        <div class="right-panel bg-background-secondary" style="flex: 0 0 25%; min-width: 350px;" 
+             x-data="recipeBuilder()" x-init="init()">
             <form method="post" id="data-studio-form" class="h-full flex flex-col">
                 {% csrf_token %}
                 
                 <!-- Action Panel Header -->
                 <div class="bg-background-primary border-b border-border-default px-6 py-4">
-                    <h3 class="text-lg font-semibold text-foreground-default">Data Operations</h3>
-                    <p class="text-sm text-foreground-muted">Transform and prepare your dataset</p>
+                    <h3 class="text-lg font-semibold text-foreground-default">Recipe Builder</h3>
+                    <p class="text-sm text-foreground-muted">Create and track your data preparation steps</p>
+                </div>
+
+                <!-- Recipe Actual Section -->
+                <div class="bg-background-primary border-b border-border-default px-6 py-4">
+                    <h4 class="text-base font-semibold text-foreground-default flex items-center mb-3">
+                        <svg class="w-5 h-5 mr-2 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                        </svg>
+                        Receta Actual
+                    </h4>
+                    
+                    <!-- Recipe Steps List -->
+                    <div class="space-y-2 max-h-40 overflow-y-auto" x-show="recipeSteps.length > 0">
+                        <template x-for="(step, index) in recipeSteps" :key="step.id || index">
+                            <div class="flex items-start justify-between p-3 bg-background-secondary border border-border-default rounded-lg">
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="flex-shrink-0 w-6 h-6 bg-brand-600 text-white text-xs font-bold rounded-full flex items-center justify-center" x-text="index + 1"></span>
+                                        <span class="text-sm font-medium text-foreground-default" x-text="getStepDescription(step)"></span>
+                                    </div>
+                                    <div class="mt-1 text-xs text-foreground-muted" x-text="getStepDetails(step)"></div>
+                                    <div class="mt-1 text-xs text-foreground-muted" x-text="formatTime(step.timestamp)"></div>
+                                </div>
+                                <button type="button" @click="removeStep(index)" 
+                                        class="flex-shrink-0 ml-2 text-danger-600 hover:text-danger-800 p-1">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+                    
+                    <!-- Empty State -->
+                    <div x-show="recipeSteps.length === 0" class="text-center py-8">
+                        <svg class="w-12 h-12 text-foreground-muted mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                        </svg>
+                        <p class="text-sm text-foreground-muted italic">No hay pasos en la receta aún</p>
+                        <p class="text-xs text-foreground-muted mt-1">Aplica transformaciones para comenzar</p>
+                    </div>
+
+                    <!-- Recipe Actions -->
+                    <div class="flex space-x-2 mt-4" x-show="recipeSteps.length > 0">
+                        <button type="button" @click="clearRecipe()" 
+                                class="flex-1 px-3 py-2 text-xs bg-danger-100 text-danger-700 hover:bg-danger-200 border border-danger-300 rounded-lg transition-colors">
+                            <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd"></path>
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 012 0v4a1 1 0 11-2 0V7zM12 7a1 1 0 10-2 0v4a1 1 0 102 0V7z" clip-rule="evenodd"></path>
+                            </svg>
+                            Limpiar Receta
+                        </button>
+                        <button type="button" @click="saveRecipe()" 
+                                class="flex-1 px-3 py-2 text-xs bg-brand-100 text-brand-700 hover:bg-brand-200 border border-brand-300 rounded-lg transition-colors">
+                            <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h5a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h5v5.586l-1.293-1.293zM9 4a1 1 0 012 0v2H9V4z"></path>
+                            </svg>
+                            Ver Receta
+                        </button>
+                    </div>
                 </div>
                 
                 <!-- Action Sections -->
                 <div class="flex-1 p-6 space-y-6 overflow-y-auto">
                     
-                    <!-- Section 1: Column Management -->
+                    <!-- Section 1: Missing Data Toolkit -->
+                    <div class="bg-background-primary border border-border-default rounded-lg shadow-sm">
+                        <div class="px-4 py-3 border-b border-border-default">
+                            <h4 class="text-base font-semibold text-foreground-default flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                Kit de Datos Faltantes
+                            </h4>
+                        </div>
+                        <div class="p-4" x-data="missingDataToolkit()">
+                            <!-- Tabs -->
+                            <div class="flex border-b border-border-default mb-4">
+                                <button 
+                                    @click="activeTab = 'constructor'"
+                                    :class="activeTab === 'constructor' ? 'border-brand-500 text-brand-600' : 'border-transparent text-foreground-muted hover:text-foreground-default'"
+                                    class="px-3 py-2 text-sm font-medium border-b-2 transition-colors">
+                                    Constructor Interactivo
+                                </button>
+                                <button 
+                                    @click="activeTab = 'analysis'"
+                                    :class="activeTab === 'analysis' ? 'border-brand-500 text-brand-600' : 'border-transparent text-foreground-muted hover:text-foreground-default'"
+                                    class="px-3 py-2 text-sm font-medium border-b-2 transition-colors ml-4">
+                                    Análisis Profundo
+                                </button>
+                                <button 
+                                    @click="activeTab = 'sql-editor'"
+                                    :class="activeTab === 'sql-editor' ? 'border-brand-500 text-brand-600' : 'border-transparent text-foreground-muted hover:text-foreground-default'"
+                                    class="px-3 py-2 text-sm font-medium border-b-2 transition-colors ml-4">
+                                    Editor SQL
+                                </button>
+                            </div>
+
+                            <!-- Constructor Interactivo Tab -->
+                            <div x-show="activeTab === 'constructor'" class="space-y-4">
+                                {% if nullity_report %}
+                                <!-- Nullity Summary -->
+                                <div class="bg-background-secondary border border-border-default rounded-lg p-4">
+                                    <h5 class="text-sm font-semibold text-foreground-default mb-3 flex items-center">
+                                        <svg class="w-4 h-4 mr-2 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4"></path>
+                                        </svg>
+                                        Resumen de Nulidad
+                                    </h5>
+                                    <div class="grid grid-cols-2 gap-3 text-xs">
+                                        <div class="bg-background-primary rounded p-2">
+                                            <div class="text-foreground-muted">Filas Completas</div>
+                                            <div class="font-semibold text-foreground-default">{{ nullity_report.summary.complete_rows|default:0 }} / {{ nullity_report.summary.total_rows|default:0 }}</div>
+                                            <div class="text-brand-600">{{ nullity_report.summary.complete_rows_percentage|default:0 }}%</div>
+                                        </div>
+                                        <div class="bg-background-primary rounded p-2">
+                                            <div class="text-foreground-muted">Datos Faltantes</div>
+                                            <div class="font-semibold text-foreground-default">{{ nullity_report.summary.missing_cells|default:0 }} / {{ nullity_report.summary.total_cells|default:0 }}</div>
+                                            <div class="text-danger-600">{{ nullity_report.summary.missing_percentage|default:0 }}%</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Top Missing Columns -->
+                                    {% if nullity_report.column_analysis %}
+                                    <div class="mt-3 pt-3 border-t border-border-default">
+                                        <div class="text-xs text-foreground-muted mb-2">Columnas con más datos faltantes:</div>
+                                        <div class="space-y-1">
+                                            {% for col_name, col_data in nullity_report.column_analysis.items %}
+                                                {% if col_data.missing_percentage > 0 %}
+                                                <div class="flex justify-between items-center text-xs">
+                                                    <span class="text-foreground-default truncate">{{ col_name }}</span>
+                                                    <span class="text-danger-600 font-medium">{{ col_data.missing_percentage|floatformat:1 }}%</span>
+                                                </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% else %}
+                                <div class="bg-warning-50 border border-warning-200 rounded-lg p-4">
+                                    <div class="flex items-center">
+                                        <svg class="w-5 h-5 text-warning-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                        </svg>
+                                        <span class="text-sm text-warning-800">Reporte de nulidad no disponible</span>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Quick Actions -->
+                                <div class="space-y-3">
+                                    <div class="text-sm font-medium text-foreground-default">Acciones Rápidas</div>
+                                    
+                                    <button 
+                                        @click="showMissingDataVisualization()"
+                                        class="w-full px-3 py-2 text-sm bg-background-secondary hover:bg-brand-50 border border-border-default hover:border-brand-300 rounded-lg transition-colors text-left">
+                                        <div class="flex items-center">
+                                            <svg class="w-4 h-4 mr-2 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4"></path>
+                                            </svg>
+                                            <div>
+                                                <div class="font-medium text-foreground-default">Visualizar Patrón de Faltantes</div>
+                                                <div class="text-xs text-foreground-muted">Matriz de datos faltantes y gráficos</div>
+                                            </div>
+                                        </div>
+                                    </button>
+                                    
+                                    <button 
+                                        @click="dropIncompleteRows()"
+                                        class="w-full px-3 py-2 text-sm bg-background-secondary hover:bg-danger-50 border border-border-default hover:border-danger-300 rounded-lg transition-colors text-left">
+                                        <div class="flex items-center">
+                                            <svg class="w-4 h-4 mr-2 text-danger-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                            <div>
+                                                <div class="font-medium text-foreground-default">Eliminar Filas Incompletas</div>
+                                                <div class="text-xs text-foreground-muted">Remover todas las filas con datos faltantes</div>
+                                            </div>
+                                        </div>
+                                    </button>
+
+                                    <button 
+                                        @click="showImputationOptions()"
+                                        class="w-full px-3 py-2 text-sm bg-background-secondary hover:bg-success-50 border border-border-default hover:border-success-300 rounded-lg transition-colors text-left">
+                                        <div class="flex items-center">
+                                            <svg class="w-4 h-4 mr-2 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 011-1h1a2 2 0 100-4H7a1 1 0 01-1-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"></path>
+                                            </svg>
+                                            <div>
+                                                <div class="font-medium text-foreground-default">Imputar Valores Faltantes</div>
+                                                <div class="text-xs text-foreground-muted">Rellenar con media, mediana o moda</div>
+                                            </div>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Análisis Profundo Tab -->
+                            <div x-show="activeTab === 'analysis'" class="space-y-4">
+                                <div class="text-sm text-foreground-muted mb-4">
+                                    Ejecuta un análisis comprensivo de los datos faltantes usando machine learning para identificar patrones y relaciones.
+                                </div>
+
+                                <!-- Target Variable Selection -->
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-sm font-medium text-foreground-default mb-2">
+                                            Variable Objetivo (Target)
+                                        </label>
+                                        <select x-model="targetVariable" 
+                                                class="w-full px-3 py-2 text-sm bg-background-primary border border-border-default rounded-lg focus:ring-2 focus:ring-brand-500">
+                                            <option value="">Seleccionar variable objetivo...</option>
+                                            {% for col_name in column_info.keys %}
+                                            <option value="{{ col_name }}">{{ col_name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <div class="text-xs text-foreground-muted mt-1">
+                                            Variable para calcular importancia de características
+                                        </div>
+                                    </div>
+
+                                    <!-- Required Variables -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-foreground-default mb-2">
+                                            Variables Requeridas
+                                        </label>
+                                        <div class="max-h-32 overflow-y-auto border border-border-default rounded-lg p-2 bg-background-primary">
+                                            {% for col_name in column_info.keys %}
+                                            <label class="flex items-center space-x-2 py-1 text-sm">
+                                                <input type="checkbox" 
+                                                       :checked="requiredVariables.includes('{{ col_name }}')"
+                                                       @change="toggleRequiredVariable('{{ col_name }}')"
+                                                       class="text-brand-600 rounded">
+                                                <span class="text-foreground-default">{{ col_name }}</span>
+                                                {% with column_info|get_item:col_name as col_data %}
+                                                <span class="text-xs text-foreground-muted">({{ col_data.pandas_dtype|default:"Unknown" }})</span>
+                                                {% endwith %}
+                                            </label>
+                                            {% endfor %}
+                                        </div>
+                                        <div class="text-xs text-foreground-muted mt-1">
+                                            Selecciona variables para análisis de combinaciones
+                                        </div>
+                                    </div>
+
+                                    <!-- Analysis Control -->
+                                    <div class="pt-3 border-t border-border-default">
+                                        <button 
+                                            @click="runDeepAnalysis()"
+                                            :disabled="!targetVariable || requiredVariables.length === 0 || analysisRunning"
+                                            class="w-full px-4 py-3 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors"
+                                            :class="analysisRunning ? 'cursor-not-allowed' : 'cursor-pointer'">
+                                            <div x-show="!analysisRunning" class="flex items-center justify-center">
+                                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                                </svg>
+                                                Ejecutar Análisis Profundo
+                                            </div>
+                                            <div x-show="analysisRunning" class="flex items-center justify-center">
+                                                <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                                                Analizando...
+                                            </div>
+                                        </button>
+                                        
+                                        <!-- Analysis Status -->
+                                        <div x-show="analysisStatus" class="mt-3 p-3 rounded-lg text-sm" 
+                                             :class="analysisSuccess ? 'bg-success-50 text-success-800 border border-success-200' : 'bg-danger-50 text-danger-800 border border-danger-200'">
+                                            <div class="flex items-center">
+                                                <svg x-show="analysisSuccess" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                                <svg x-show="!analysisSuccess" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                </svg>
+                                                <span x-text="analysisMessage"></span>
+                                            </div>
+                                            
+                                            <div x-show="analysisSuccess && analysisTaskId" class="mt-2">
+                                                <a :href="'/data-tools/missing-data-results/' + analysisTaskId + '/'" 
+                                                   class="inline-flex items-center text-brand-600 hover:text-brand-800 font-medium">
+                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4"></path>
+                                                    </svg>
+                                                    Ver Resultados Detallados
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Editor SQL Tab -->
+                            <div x-show="activeTab === 'sql-editor'" class="space-y-4">
+                                <div class="text-sm text-foreground-muted mb-4">
+                                    Ejecuta consultas SQL directamente sobre los datos del DataSource usando pandas SQL. Use "df" como nombre de la tabla.
+                                </div>
+
+                                <!-- SQL Query Editor -->
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-sm font-medium text-foreground-default mb-2">
+                                            Consulta SQL
+                                        </label>
+                                        <textarea 
+                                            x-model="sqlQuery"
+                                            id="sql-editor"
+                                            rows="8"
+                                            placeholder="SELECT * FROM df LIMIT 10;"
+                                            class="w-full px-3 py-2 text-sm bg-background-primary border border-border-default rounded-lg focus:ring-2 focus:ring-brand-500 font-mono"
+                                            style="resize: vertical;"></textarea>
+                                        <div class="text-xs text-foreground-muted mt-1">
+                                            Ejemplo: <code class="bg-background-secondary px-1 rounded">SELECT columna1, COUNT(*) FROM df GROUP BY columna1</code>
+                                        </div>
+                                    </div>
+
+                                    <!-- SQL Actions -->
+                                    <div class="flex gap-3">
+                                        <button 
+                                            @click="executeSqlQuery()"
+                                            :disabled="!sqlQuery.trim() || sqlExecuting"
+                                            class="flex-1 px-4 py-3 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors"
+                                            :class="sqlExecuting ? 'cursor-not-allowed' : 'cursor-pointer'">
+                                            <div x-show="!sqlExecuting" class="flex items-center justify-center">
+                                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                                </svg>
+                                                Ejecutar Consulta
+                                            </div>
+                                            <div x-show="sqlExecuting" class="flex items-center justify-center">
+                                                <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                                                Ejecutando...
+                                            </div>
+                                        </button>
+                                        <button 
+                                            @click="previewSqlResults()"
+                                            :disabled="!sqlQuery.trim() || sqlExecuting"
+                                            class="px-4 py-3 bg-background-secondary hover:bg-background-tertiary border border-border-default text-foreground-default font-medium rounded-lg transition-colors">
+                                            Previsualizar
+                                        </button>
+                                    </div>
+
+                                    <!-- SQL Status -->
+                                    <div x-show="sqlStatus" class="p-3 rounded-lg text-sm" 
+                                         :class="sqlSuccess ? 'bg-success-50 text-success-800 border border-success-200' : 'bg-danger-50 text-danger-800 border border-danger-200'">
+                                        <div class="flex items-start">
+                                            <svg x-show="sqlSuccess" class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                            <svg x-show="!sqlSuccess" class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                            <div>
+                                                <div x-text="sqlMessage"></div>
+                                                <div x-show="sqlSuccess && sqlResults" class="text-xs mt-1 text-success-600">
+                                                    <span x-text="sqlResultsCount"></span> filas retornadas
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Quick SQL Templates -->
+                                    <div class="border-t border-border-default pt-3">
+                                        <div class="text-xs font-medium text-foreground-default mb-2">Plantillas Rápidas:</div>
+                                        <div class="flex flex-wrap gap-2">
+                                            <button @click="sqlQuery = 'SELECT * FROM df LIMIT 10;'" 
+                                                    class="px-2 py-1 text-xs bg-background-secondary hover:bg-background-tertiary border border-border-default rounded">
+                                                Ver 10 filas
+                                            </button>
+                                            <button @click="sqlQuery = 'SELECT COUNT(*) as total_rows FROM df;'" 
+                                                    class="px-2 py-1 text-xs bg-background-secondary hover:bg-background-tertiary border border-border-default rounded">
+                                                Contar filas
+                                            </button>
+                                            <button @click="sqlQuery = 'SELECT * FROM df WHERE columna IS NOT NULL;'" 
+                                                    class="px-2 py-1 text-xs bg-background-secondary hover:bg-background-tertiary border border-border-default rounded">
+                                                Sin nulos
+                                            </button>
+                                            <button @click="sqlQuery = 'SELECT columna, COUNT(*) as count FROM df GROUP BY columna ORDER BY count DESC;'" 
+                                                    class="px-2 py-1 text-xs bg-background-secondary hover:bg-background-tertiary border border-border-default rounded">
+                                                Agrupar y contar
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Query History Section -->
+                                    <div class="border-t border-border-default pt-3">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="text-xs font-medium text-foreground-default">Historial de Consultas:</div>
+                                            <button 
+                                                @click="loadQueryHistory()"
+                                                :disabled="historyLoading"
+                                                class="px-2 py-1 text-xs bg-background-secondary hover:bg-background-tertiary border border-border-default rounded transition-colors">
+                                                <svg x-show="!historyLoading" class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                                </svg>
+                                                <div x-show="historyLoading" class="animate-spin rounded-full h-3 w-3 border-b border-gray-600 inline mr-1"></div>
+                                                Actualizar
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- History Items -->
+                                        <div x-show="queryHistory.length > 0" class="space-y-2 max-h-32 overflow-y-auto">
+                                            <template x-for="(query, index) in queryHistory" :key="query.id">
+                                                <div class="group p-2 bg-background-secondary hover:bg-background-tertiary border border-border-default rounded cursor-pointer"
+                                                     @click="loadHistoryQuery(query)">
+                                                    <div class="flex items-start justify-between">
+                                                        <div class="flex-1 min-w-0">
+                                                            <div class="text-xs font-mono text-foreground-default truncate" 
+                                                                 x-text="query.query_preview"
+                                                                 :title="query.sql_query"></div>
+                                                            <div class="flex items-center mt-1 space-x-2">
+                                                                <span class="text-xs text-foreground-muted" x-text="formatHistoryTime(query.timestamp)"></span>
+                                                                <span x-show="query.was_successful" class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-success-100 text-success-800">
+                                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                                                    </svg>
+                                                                    <span x-text="query.rows_returned || 0"></span> filas
+                                                                </span>
+                                                                <span x-show="!query.was_successful" class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-danger-100 text-danger-800">
+                                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                                                    </svg>
+                                                                    Error
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <button 
+                                                            @click.stop="loadHistoryQuery(query)"
+                                                            class="opacity-0 group-hover:opacity-100 ml-2 p-1 text-brand-600 hover:text-brand-800 transition-opacity">
+                                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                        
+                                        <!-- Empty History State -->
+                                        <div x-show="queryHistory.length === 0 && !historyLoading" 
+                                             class="text-center py-4 text-xs text-foreground-muted">
+                                            <svg class="w-6 h-6 mx-auto mb-2 text-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <p>No hay consultas en el historial</p>
+                                            <p class="mt-1">Ejecuta una consulta SQL para comenzar</p>
+                                        </div>
+                                        
+                                        <!-- History Loading State -->
+                                        <div x-show="historyLoading" class="text-center py-4">
+                                            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-600 mx-auto"></div>
+                                            <p class="text-xs text-foreground-muted mt-2">Cargando historial...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Column Management -->
                     <div class="bg-background-primary border border-border-default rounded-lg shadow-sm">
                         <div class="px-4 py-3 border-b border-border-default">
                             <h4 class="text-base font-semibold text-foreground-default flex items-center">
@@ -177,6 +882,7 @@
                             
                             <!-- Remove button -->
                             <button type="button" id="remove-selected-columns-btn" 
+                                    @click="removeSelectedColumns()"
                                     class="w-full px-4 py-2 bg-danger-600 hover:bg-danger-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     disabled>
                                 <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -187,7 +893,7 @@
                         </div>
                     </div>
 
-                    <!-- Section 2: Feature Engineering -->
+                    <!-- Section 3: Feature Engineering -->
                     <div class="bg-background-primary border border-border-default rounded-lg shadow-sm">
                         <div class="px-4 py-3 border-b border-border-default">
                             <h4 class="text-base font-semibold text-foreground-default flex items-center">
@@ -223,6 +929,7 @@
                             
                             <!-- Apply Transformation Button -->
                             <button type="button" id="apply_transformation_btn" 
+                                    @click="applyTransformation()"
                                     class="w-full px-4 py-2 bg-success-600 hover:bg-success-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     disabled>
                                 <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -230,18 +937,10 @@
                                 </svg>
                                 Aplicar Transformación
                             </button>
-                            
-                            <!-- Transformation History -->
-                            <div id="transformation_history" class="mt-4 hidden">
-                                <div class="text-sm font-medium text-foreground-default mb-2">Transformaciones Aplicadas:</div>
-                                <div id="history_list" class="space-y-1">
-                                    <!-- History items will be added by JavaScript -->
-                                </div>
-                            </div>
                         </div>
                     </div>
 
-                    <!-- Section 3: Data Type Configuration -->
+                    <!-- Section 4: Data Type Configuration -->
                     <div class="bg-background-primary border border-border-default rounded-lg shadow-sm">
                         <div class="px-4 py-3 border-b border-border-default">
                             <h4 class="text-base font-semibold text-foreground-default flex items-center">
@@ -283,7 +982,7 @@
                         </div>
                     </div>
 
-                    <!-- Section 4: Column Analysis -->
+                    <!-- Section 5: Column Analysis -->
                     <div class="bg-background-primary border border-border-default rounded-lg shadow-sm">
                         <div class="px-4 py-3 border-b border-border-default">
                             <h4 class="text-base font-semibold text-foreground-default flex items-center">
@@ -298,8 +997,21 @@
                                 Genera gráficos interactivos para analizar columnas numéricas.
                             </p>
                             
-                            <div class="space-y-3">
+                            <div class="space-y-4">
                                 <div>
+                                    <label for="chart_type_select" class="block text-sm font-medium text-foreground-default mb-2">
+                                        Tipo de Gráfico
+                                    </label>
+                                    <select id="chart_type_select" 
+                                            class="w-full px-3 py-2 bg-background-primary border border-border-default rounded-lg text-foreground-default focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                                        <option value="histogram">Histograma (1 columna)</option>
+                                        <option value="boxplot">Diagrama de Caja (1 columna)</option>
+                                        <option value="scatter">Diagrama de Dispersión (2 columnas)</option>
+                                    </select>
+                                </div>
+
+                                <!-- Single Column Selection (for histogram and boxplot) -->
+                                <div id="single_column_section">
                                     <label for="analysis_column_select" class="block text-sm font-medium text-foreground-default mb-2">
                                         Seleccionar Columna Numérica
                                     </label>
@@ -308,16 +1020,45 @@
                                         <option value="">Seleccione una columna...</option>
                                     </select>
                                 </div>
-                                
-                                <div>
-                                    <label for="chart_type_select" class="block text-sm font-medium text-foreground-default mb-2">
-                                        Tipo de Gráfico
-                                    </label>
-                                    <select id="chart_type_select" 
-                                            class="w-full px-3 py-2 bg-background-primary border border-border-default rounded-lg text-foreground-default focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
-                                        <option value="histogram">Histograma</option>
-                                        <option value="boxplot">Diagrama de Caja</option>
-                                    </select>
+
+                                <!-- Dual Column Selection (for scatter plots) -->
+                                <div id="dual_column_section" class="hidden space-y-3">
+                                    <div class="p-3 bg-brand-50 dark:bg-darcula-accent/10 border border-brand-200 dark:border-darcula-accent/30 rounded-lg">
+                                        <div class="flex items-center mb-2">
+                                            <svg class="w-4 h-4 text-brand-600 dark:text-darcula-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <span class="text-sm font-medium text-brand-700 dark:text-darcula-accent">Diagrama de Dispersión</span>
+                                        </div>
+                                        <p class="text-xs text-brand-600 dark:text-darcula-accent">
+                                            Selecciona dos columnas numéricas para analizar la relación entre variables.
+                                        </p>
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="x_axis_column_select" class="block text-sm font-medium text-foreground-default mb-2">
+                                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                                            </svg>
+                                            Eje X (Variable Independiente)
+                                        </label>
+                                        <select id="x_axis_column_select" 
+                                                class="w-full px-3 py-2 bg-background-primary border border-border-default rounded-lg text-foreground-default focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                                            <option value="">Seleccione columna para eje X...</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="y_axis_column_select" class="block text-sm font-medium text-foreground-default mb-2">
+                                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                                            </svg>
+                                            Eje Y (Variable Dependiente)
+                                        </label>
+                                        <select id="y_axis_column_select" 
+                                                class="w-full px-3 py-2 bg-background-primary border border-border-default rounded-lg text-foreground-default focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                                            <option value="">Seleccione columna para eje Y...</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 
                                 <button type="button" id="generate_chart_btn" 
@@ -386,5 +1127,598 @@
 window.gridRowData = {{ grid_data_json|safe }};
 window.columnDefsData = {{ column_defs_json|safe }};
 window.datasourceId = "{{ datasource.id }}";
+window.recipeStepsData = {{ recipe_steps|default:"[]"|safe }};
+
+// Alpine.js Recipe Builder Component
+function recipeBuilder() {
+    return {
+        recipeSteps: [],
+        nextStepId: 1,
+
+        init() {
+            // Load recipe from Django context (backend)
+            this.loadRecipeFromBackend();
+            
+            // Initialize integration with data studio
+            this.setupDataStudioIntegration();
+        },
+
+        addStep(type, description, details = '', metadata = {}) {
+            const step = {
+                id: this.nextStepId++,
+                action_type: type,
+                action_name: description,
+                timestamp: new Date().toISOString(),
+                details: {
+                    description: details,
+                    metadata: metadata
+                }
+            };
+            
+            this.recipeSteps.push(step);
+            
+            console.log('Added recipe step:', step);
+        },
+
+        removeStep(index) {
+            if (index >= 0 && index < this.recipeSteps.length) {
+                const removedStep = this.recipeSteps.splice(index, 1)[0];
+                console.log('Removed recipe step:', removedStep);
+            }
+        },
+
+        clearRecipe() {
+            if (confirm('¿Estás seguro de que quieres limpiar toda la receta?')) {
+                this.recipeSteps = [];
+                console.log('Recipe cleared');
+            }
+        },
+
+        saveRecipe() {
+            // Recipe steps are now automatically saved when transformations are applied
+            // This button could be used for additional functionality like creating a preset
+            console.log('Current recipe:', this.recipeSteps);
+            alert('La receta se guarda automáticamente con cada transformación aplicada');
+        },
+
+        loadRecipeFromBackend() {
+            try {
+                // Load recipe steps from Django context
+                if (window.recipeStepsData && Array.isArray(window.recipeStepsData)) {
+                    this.recipeSteps = window.recipeStepsData;
+                    if (this.recipeSteps.length > 0) {
+                        // Set next ID based on existing steps
+                        const maxId = Math.max(...this.recipeSteps.map((s, index) => s.id || index + 1), 0);
+                        this.nextStepId = maxId + 1;
+                    }
+                    console.log('Loaded recipe steps from backend:', this.recipeSteps);
+                }
+            } catch (error) {
+                console.error('Error loading recipe from backend:', error);
+                this.recipeSteps = [];
+            }
+        },
+
+        formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString('es-ES', { 
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit', 
+                minute: '2-digit'
+            });
+        },
+
+        // Get step description for display
+        getStepDescription(step) {
+            return step.action_name || step.description || 'Transformación';
+        },
+
+        // Get step details for display
+        getStepDetails(step) {
+            if (step.details && typeof step.details === 'object') {
+                if (step.details.description) {
+                    return step.details.description;
+                } else if (step.details.removed_columns) {
+                    return `Columnas eliminadas: ${step.details.removed_columns.join(', ')}`;
+                } else if (step.details.type_conversions) {
+                    const conversions = Object.entries(step.details.type_conversions).map(([col, type]) => `${col}: ${type}`);
+                    return `Conversiones: ${conversions.join(', ')}`;
+                }
+            }
+            return step.details || '';
+        },
+
+        setupDataStudioIntegration() {
+            // Integration with existing data studio functionality
+            const self = this;
+            
+            // Override the existing removeSelectedColumns function
+            if (window.dataStudio) {
+                const originalRemoveColumns = window.dataStudio.removeSelectedColumns.bind(window.dataStudio);
+                window.dataStudio.removeSelectedColumns = function() {
+                    const columnsToRemove = Array.from(this.selectedColumns);
+                    if (columnsToRemove.length > 0) {
+                        // Add to recipe before removing
+                        const description = `Eliminadas ${columnsToRemove.length} columna${columnsToRemove.length > 1 ? 's' : ''}`;
+                        const details = `Columnas: ${columnsToRemove.join(', ')}`;
+                        self.addStep('column_removal', description, details, { columns: columnsToRemove });
+                        
+                        // Call original function
+                        originalRemoveColumns();
+                    }
+                };
+
+                // Override the existing applyTransformation function
+                const originalApplyTransformation = window.dataStudio.applyTransformation.bind(window.dataStudio);
+                window.dataStudio.applyTransformation = function() {
+                    const transformationType = document.getElementById('transformation_type').value;
+                    if (transformationType) {
+                        // Get transformation details
+                        const transformationName = this.getTransformationDisplayName(transformationType);
+                        const parameters = this.getTransformationParameters();
+                        
+                        // Add to recipe before applying
+                        const description = `Aplicada: ${transformationName}`;
+                        const details = this.formatTransformationDetails(transformationType, parameters);
+                        self.addStep('feature_engineering', description, details, { 
+                            type: transformationType, 
+                            parameters: parameters 
+                        });
+                        
+                        // Call original function
+                        originalApplyTransformation();
+                    }
+                };
+
+                // Add helper methods to dataStudio
+                window.dataStudio.getTransformationDisplayName = function(type) {
+                    const names = {
+                        'mean_median_imputer': 'Imputación de valores nulos',
+                        'onehot_encoder': 'Codificación One-Hot',
+                        'equal_frequency_discretiser': 'Discretización por frecuencia'
+                    };
+                    return names[type] || type;
+                };
+
+                window.dataStudio.getTransformationParameters = function() {
+                    const form = document.getElementById('data-studio-form');
+                    const parameters = {};
+                    if (form) {
+                        const formData = new FormData(form);
+                        for (let [key, value] of formData.entries()) {
+                            if (key.includes('_strategy') || key.includes('_categories') || key.includes('_bins')) {
+                                parameters[key] = value;
+                            }
+                        }
+                    }
+                    return parameters;
+                };
+
+                window.dataStudio.formatTransformationDetails = function(type, parameters) {
+                    let details = '';
+                    switch(type) {
+                        case 'mean_median_imputer':
+                            details = `Estrategia: ${parameters.imputer_strategy || 'mean'}`;
+                            break;
+                        case 'onehot_encoder':
+                            details = `Top categorías: ${parameters.encoder_top_categories || '10'}`;
+                            break;
+                        case 'equal_frequency_discretiser':
+                            details = `Número de bins: ${parameters.discretiser_bins || '5'}`;
+                            break;
+                        default:
+                            details = JSON.stringify(parameters);
+                    }
+                    return details;
+                };
+            }
+        },
+
+        // Methods called from Alpine.js template
+        removeSelectedColumns() {
+            if (window.dataStudio) {
+                window.dataStudio.removeSelectedColumns();
+            }
+        },
+
+        applyTransformation() {
+            if (window.dataStudio) {
+                window.dataStudio.applyTransformation();
+            }
+        }
+    }
+}
+
+// Alpine.js Missing Data Toolkit Component
+function missingDataToolkit() {
+    return {
+        activeTab: 'constructor',
+        targetVariable: '',
+        requiredVariables: [],
+        analysisRunning: false,
+        analysisStatus: '',
+        analysisMessage: '',
+        analysisSuccess: false,
+        analysisTaskId: null,
+        
+        // SQL Editor variables
+        sqlQuery: '',
+        sqlExecuting: false,
+        sqlStatus: '',
+        sqlMessage: '',
+        sqlSuccess: false,
+        sqlResults: null,
+        sqlResultsCount: 0,
+        
+        // Query History variables
+        queryHistory: [],
+        historyLoading: false,
+
+        init() {
+            console.log('Missing Data Toolkit initialized');
+            // Load initial query history when switching to SQL tab
+            this.$watch('activeTab', (newTab) => {
+                if (newTab === 'sql-editor' && this.queryHistory.length === 0) {
+                    this.loadQueryHistory();
+                }
+            });
+        },
+
+        // Toggle required variable selection
+        toggleRequiredVariable(variable) {
+            const index = this.requiredVariables.indexOf(variable);
+            if (index > -1) {
+                this.requiredVariables.splice(index, 1);
+            } else {
+                this.requiredVariables.push(variable);
+            }
+            console.log('Required variables:', this.requiredVariables);
+        },
+
+        // Constructor Interactivo methods
+        showMissingDataVisualization() {
+            // TODO: Implement missing data visualization modal
+            console.log('Show missing data visualization');
+            alert('Funcionalidad de visualización en desarrollo');
+        },
+
+        dropIncompleteRows() {
+            if (confirm('¿Estás seguro de que quieres eliminar todas las filas con datos faltantes? Esta acción no se puede deshacer.')) {
+                // TODO: Implement drop incomplete rows functionality
+                console.log('Drop incomplete rows');
+                alert('Funcionalidad de eliminación de filas incompletas en desarrollo');
+            }
+        },
+
+        showImputationOptions() {
+            // TODO: Implement imputation options modal
+            console.log('Show imputation options');
+            alert('Funcionalidad de opciones de imputación en desarrollo');
+        },
+
+        // Deep Analysis methods
+        async runDeepAnalysis() {
+            if (!this.targetVariable || this.requiredVariables.length === 0) {
+                alert('Por favor selecciona una variable objetivo y al menos una variable requerida');
+                return;
+            }
+
+            this.analysisRunning = true;
+            this.analysisStatus = false;
+            this.analysisMessage = '';
+            this.analysisTaskId = null;
+
+            try {
+                console.log('Running deep analysis with:', {
+                    target: this.targetVariable,
+                    required: this.requiredVariables
+                });
+
+                const response = await fetch('/data-tools/run-deep-missing-analysis/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': this.getCsrfToken()
+                    },
+                    body: JSON.stringify({
+                        datasource_id: window.datasourceId,
+                        target_column: this.targetVariable,
+                        required_variables: this.requiredVariables
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    this.analysisSuccess = true;
+                    this.analysisStatus = true;
+                    this.analysisMessage = data.message || 'Análisis profundo ejecutado correctamente';
+                    this.analysisTaskId = data.task_id;
+                    console.log('Deep analysis started:', data);
+                } else {
+                    this.analysisSuccess = false;
+                    this.analysisStatus = true;
+                    this.analysisMessage = data.error || 'Error al ejecutar el análisis profundo';
+                    console.error('Deep analysis failed:', data);
+                }
+
+            } catch (error) {
+                this.analysisSuccess = false;
+                this.analysisStatus = true;
+                this.analysisMessage = 'Error de conexión al ejecutar el análisis';
+                console.error('Deep analysis error:', error);
+            } finally {
+                this.analysisRunning = false;
+            }
+        },
+
+        // SQL Editor methods
+        async executeSqlQuery() {
+            if (!this.sqlQuery.trim()) {
+                this.sqlStatus = 'Error: La consulta SQL no puede estar vacía';
+                this.sqlSuccess = false;
+                return;
+            }
+
+            this.sqlExecuting = true;
+            this.sqlStatus = '';
+            this.sqlResults = null;
+            
+            try {
+                const response = await fetch('/data-tools/api/execute-sql/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': this.getCsrfToken()
+                    },
+                    body: JSON.stringify({
+                        datasource_id: '{{ datasource.id }}',
+                        sql_query: this.sqlQuery
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Update the grid with SQL results
+                    this.updateGridWithSqlResults(data);
+                    this.sqlMessage = data.message;
+                    this.sqlSuccess = true;
+                    this.sqlResults = data.data;
+                    this.sqlResultsCount = data.rows_returned;
+                    
+                    // Reload query history after successful execution
+                    this.loadQueryHistory();
+                } else {
+                    this.sqlMessage = data.error || 'Error desconocido al ejecutar la consulta';
+                    this.sqlSuccess = false;
+                }
+                
+                this.sqlStatus = this.sqlMessage;
+                
+            } catch (error) {
+                console.error('Error executing SQL query:', error);
+                this.sqlMessage = `Error de conexión: ${error.message}`;
+                this.sqlSuccess = false;
+                this.sqlStatus = this.sqlMessage;
+            } finally {
+                this.sqlExecuting = false;
+            }
+        },
+
+        updateGridWithSqlResults(data) {
+            // Get the AG Grid instance
+            const gridInstance = window.dataStudio;
+            if (!gridInstance || !gridInstance.gridApi) {
+                console.error('Grid API not available');
+                return;
+            }
+
+            // Create new column definitions from SQL results
+            if (data.data && data.data.length > 0) {
+                const columns = data.columns.map(colName => ({
+                    headerName: colName,
+                    field: colName,
+                    sortable: true,
+                    filter: true,
+                    resizable: true,
+                    headerComponent: 'customHeaderComponent',
+                    headerComponentParams: {
+                        enableColumnSelection: true,
+                        enableRowSelection: false,
+                        enableSorting: true
+                    }
+                }));
+
+                // Update grid columns and data
+                gridInstance.gridApi.setColumnDefs(columns);
+                gridInstance.gridApi.setRowData(data.data);
+                
+                // Auto-size columns to fit content
+                setTimeout(() => {
+                    gridInstance.gridApi.sizeColumnsToFit();
+                }, 100);
+
+                console.log(`Grid updated with SQL results: ${data.rows_returned} rows, ${data.columns.length} columns`);
+            }
+        },
+
+        async previewSqlResults() {
+            // For preview, we'll just execute but show limited results
+            const originalQuery = this.sqlQuery;
+            
+            // Add LIMIT if not present for preview
+            let previewQuery = originalQuery.trim();
+            if (!previewQuery.toUpperCase().includes('LIMIT')) {
+                previewQuery += ' LIMIT 100';
+            }
+            
+            const tempQuery = this.sqlQuery;
+            this.sqlQuery = previewQuery;
+            
+            await this.executeSqlQuery();
+            
+            // Restore original query
+            this.sqlQuery = tempQuery;
+        },
+
+        // Query History methods
+        async loadQueryHistory() {
+            this.historyLoading = true;
+            try {
+                const response = await fetch(`/data-tools/api/query-history/?datasource_id=${window.datasourceId}&limit=10&successful_only=false`, {
+                    method: 'GET',
+                    headers: {
+                        'X-CSRFToken': this.getCsrfToken()
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    this.queryHistory = data.history;
+                    console.log('Query history loaded:', this.queryHistory.length, 'queries');
+                } else {
+                    console.error('Failed to load query history:', data.error);
+                    this.queryHistory = [];
+                }
+
+            } catch (error) {
+                console.error('Error loading query history:', error);
+                this.queryHistory = [];
+            } finally {
+                this.historyLoading = false;
+            }
+        },
+
+        loadHistoryQuery(query) {
+            // Load the historical query into the editor
+            this.sqlQuery = query.sql_query;
+            
+            // Update CodeMirror if it's initialized
+            const sqlTextarea = document.getElementById('sql-editor');
+            if (sqlTextarea && window.sqlEditor) {
+                window.sqlEditor.setValue(query.sql_query);
+            }
+            
+            console.log('Loaded history query:', query.query_preview);
+        },
+
+        formatHistoryTime(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) {
+                return 'Hace unos segundos';
+            } else if (diffMins < 60) {
+                return `Hace ${diffMins} min`;
+            } else if (diffHours < 24) {
+                return `Hace ${diffHours}h`;
+            } else if (diffDays < 7) {
+                return `Hace ${diffDays}d`;
+            } else {
+                return date.toLocaleDateString('es-ES', {
+                    month: 'short',
+                    day: 'numeric'
+                });
+            }
+        },
+
+        getCsrfToken() {
+            return document.querySelector('[name=csrfmiddlewaretoken]').value;
+        }
+    }
+}
+</script>
+
+<!-- CodeMirror JavaScript -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/sql/sql.min.js"></script>
+
+<script>
+// Initialize CodeMirror for SQL Editor
+document.addEventListener('DOMContentLoaded', function() {
+    const sqlTextarea = document.getElementById('sql-editor');
+    if (sqlTextarea) {
+        let sqlEditor = null;
+        
+        // Function to initialize CodeMirror
+        function initializeSqlEditor() {
+            if (sqlEditor) return; // Already initialized
+            
+            sqlEditor = CodeMirror.fromTextArea(sqlTextarea, {
+                mode: 'sql',
+                lineNumbers: true,
+                indentWithTabs: true,
+                smartIndent: true,
+                lineWrapping: true,
+                matchBrackets: true,
+                autoCloseBrackets: true,
+                theme: document.documentElement.classList.contains('dark') ? 'material-darker' : 'default',
+                extraKeys: {
+                    "Ctrl-Space": "autocomplete",
+                    "Ctrl-Enter": function(cm) {
+                        // Trigger SQL execution on Ctrl+Enter
+                        const executeButton = document.querySelector('[x-on\\:click="executeSqlQuery()"]');
+                        if (executeButton && !executeButton.disabled) {
+                            executeButton.click();
+                        }
+                    }
+                },
+                placeholder: "SELECT * FROM df LIMIT 10;"
+            });
+            
+            // Make CodeMirror globally accessible for query history
+            window.sqlEditor = sqlEditor;
+            
+            // Sync CodeMirror value with Alpine.js
+            sqlEditor.on('change', function(cm) {
+                sqlTextarea.value = cm.getValue();
+                // Trigger Alpine.js model update
+                sqlTextarea.dispatchEvent(new Event('input'));
+            });
+            
+            // Listen for theme changes
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        const isDark = document.documentElement.classList.contains('dark');
+                        sqlEditor.setOption('theme', isDark ? 'material-darker' : 'default');
+                    }
+                });
+            });
+            
+            observer.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
+        }
+        
+        // Initialize when SQL editor tab becomes active
+        function checkSqlTabActive() {
+            const sqlTab = document.querySelector('[x-show="activeTab === \'sql-editor\'"]');
+            if (sqlTab && !sqlTab.style.display.includes('none')) {
+                initializeSqlEditor();
+            }
+        }
+        
+        // Monitor tab changes
+        const tabButtons = document.querySelectorAll('[x-on\\:click*="activeTab"]');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                setTimeout(checkSqlTabActive, 100);
+            });
+        });
+        
+        // Check if SQL tab is initially active
+        setTimeout(checkSqlTabActive, 500);
+    }
+});
 </script>
 {% endblock %}

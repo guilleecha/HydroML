@@ -1,0 +1,213 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load core_tags %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_head %}
+    <style>
+        .json-textarea {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Breadcrumbs -->
+    {% if breadcrumbs %}
+        {% include 'core/components/breadcrumbs.html' with breadcrumbs=breadcrumbs %}
+    {% endif %}
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-foreground-default dark:text-darcula-foreground mb-2">
+                {{ page_title }}
+            </h1>
+            <p class="text-foreground-muted dark:text-darcula-foreground-muted">
+                Crea un preset reutilizable basado en los hiperparámetros del experimento "{{ experiment.name }}".
+            </p>
+        </div>
+
+        <!-- Experiment Info Card -->
+        <div class="bg-background-elevated dark:bg-darcula-background-elevated rounded-lg shadow-sm border border-border-default dark:border-darcula-border mb-6">
+            <div class="p-6">
+                <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">
+                            {{ experiment.name }}
+                        </h3>
+                        <p class="text-sm text-foreground-muted dark:text-darcula-foreground-muted mt-1">
+                            Tipo de modelo: <span class="font-medium">{{ experiment.get_model_type_display }}</span> •
+                            Completado: {{ experiment.updated_at|date:"d/m/Y H:i" }}
+                        </p>
+                        {% if experiment.description %}
+                            <p class="text-sm text-foreground-muted dark:text-darcula-foreground-muted mt-2">
+                                {{ experiment.description|truncatewords:20 }}
+                            </p>
+                        {% endif %}
+                    </div>
+                    <div class="flex-shrink-0">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
+                            {{ experiment.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Card -->
+        <div class="bg-background-elevated dark:bg-darcula-background-elevated rounded-lg shadow-sm border border-border-default dark:border-darcula-border">
+            <form method="post" class="p-6">
+                {% csrf_token %}
+
+                <!-- Form Header -->
+                <div class="mb-6">
+                    <h2 class="text-xl font-semibold text-foreground-default dark:text-darcula-foreground mb-2">
+                        Detalles del Preset
+                    </h2>
+                    <p class="text-sm text-foreground-muted dark:text-darcula-foreground-muted">
+                        Personaliza los detalles del preset antes de guardarlo. Los hiperparámetros se copiarán automáticamente del experimento.
+                    </p>
+                </div>
+
+                <!-- Form Fields -->
+                <div class="space-y-6">
+                    <!-- Name Field -->
+                    <div>
+                        <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-foreground-default dark:text-darcula-foreground mb-2">
+                            Nombre del Preset
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="mt-1 text-sm text-red-600 dark:text-red-400">
+                                {% for error in form.name.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-foreground-muted dark:text-darcula-foreground-muted">
+                            Un nombre descriptivo para identificar este preset.
+                        </p>
+                    </div>
+
+                    <!-- Description Field -->
+                    <div>
+                        <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-foreground-default dark:text-darcula-foreground mb-2">
+                            Descripción
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="mt-1 text-sm text-red-600 dark:text-red-400">
+                                {% for error in form.description.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-foreground-muted dark:text-darcula-foreground-muted">
+                            Describe cuándo y cómo usar este preset.
+                        </p>
+                    </div>
+
+                    <!-- Model Type Field -->
+                    <div>
+                        <label for="{{ form.model_type.id_for_label }}" class="block text-sm font-medium text-foreground-default dark:text-darcula-foreground mb-2">
+                            Tipo de Modelo
+                        </label>
+                        {{ form.model_type }}
+                        {% if form.model_type.errors %}
+                            <div class="mt-1 text-sm text-red-600 dark:text-red-400">
+                                {% for error in form.model_type.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-foreground-muted dark:text-darcula-foreground-muted">
+                            Heredado del experimento original.
+                        </p>
+                    </div>
+
+                    <!-- Hyperparameters Field -->
+                    <div>
+                        <label for="{{ form.hyperparameters.id_for_label }}" class="block text-sm font-medium text-foreground-default dark:text-darcula-foreground mb-2">
+                            Hiperparámetros (JSON)
+                        </label>
+                        <div class="relative">
+                            {{ form.hyperparameters }}
+                        </div>
+                        {% if form.hyperparameters.errors %}
+                            <div class="mt-1 text-sm text-red-600 dark:text-red-400">
+                                {% for error in form.hyperparameters.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-foreground-muted dark:text-darcula-foreground-muted">
+                            Configuración de hiperparámetros copiada del experimento. Puedes modificarla si es necesario.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex items-center justify-between pt-6 mt-8 border-t border-border-default dark:border-darcula-border">
+                    <a href="{% url 'experiments:ml_experiment_detail' pk=experiment.pk %}" 
+                       class="inline-flex items-center px-4 py-2 text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted bg-background-default dark:bg-darcula-background-default border border-border-default dark:border-darcula-border rounded-lg hover:bg-background-elevated dark:hover:bg-darcula-background-elevated transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Cancelar
+                    </a>
+                    
+                    <button type="submit" 
+                            class="inline-flex items-center px-6 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                        </svg>
+                        Crear Preset
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Info Card -->
+        <div class="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">
+                        Acerca de los Presets
+                    </h3>
+                    <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
+                        <p>Los presets te permiten reutilizar configuraciones de hiperparámetros exitosas en nuevos experimentos. Una vez creado, podrás aplicar este preset desde el formulario de creación de experimentos.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Apply JSON textarea styling
+document.addEventListener('DOMContentLoaded', function() {
+    const jsonTextarea = document.querySelector('textarea[name="hyperparameters"]');
+    if (jsonTextarea) {
+        jsonTextarea.classList.add('json-textarea');
+    }
+});
+</script>
+{% endblock %}

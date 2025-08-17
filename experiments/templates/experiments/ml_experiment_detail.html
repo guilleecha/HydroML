@@ -31,261 +31,679 @@
     </div>
     {% endif %}
 
-    <!-- Panel de Control -->
-    <div class="bg-background-primary dark:bg-darcula-background-darker border border-border-default dark:border-darcula-border rounded-xl shadow-card p-4 mb-8">
-        <h3 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground mb-4">Panel de Control</h3>
-        <div class="flex flex-wrap gap-4 items-center">
+{% extends "core/base.html" %}
+{% load static %}
 
-            <!-- Botón para ejecutar el pipeline completo -->
-            <form method="post" action="{% url 'experiments:run_experiment' pk=experiment.pk %}">
-                {% csrf_token %}
-                <button type="submit" 
-                        class="flex items-center px-4 py-2 text-sm font-medium text-white bg-gray-800 dark:bg-gray-700 border border-transparent rounded-lg hover:bg-gray-900 dark:hover:bg-gray-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed" 
-                        {% if experiment.status != 'DRAFT' %}disabled title="El experimento solo se puede ejecutar si está en estado 'Borrador'"{% endif %}>
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Ejecutar Experimento
-                </button>
-            </form>
+{% block content %}
+<div class="mx-auto py-8">
+    <div id="task-error-alert" class="mb-4"></div>
 
-            <!-- Botón para analizar el modelo -->
-            <form method="post" action="{% url 'experiments:trigger_feature_importance_task' experiment_id=experiment.pk %}">
-                {% csrf_token %}
-                <button type="submit" 
-                        class="flex items-center px-4 py-2 text-sm font-medium text-foreground-default bg-background-tertiary border border-border-default rounded-lg hover:bg-background-secondary transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed" 
-                        {% if experiment.status != 'FINISHED' %}disabled title="El análisis solo está disponible para experimentos finalizados"{% endif %}>
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Analizar Modelo
-                </button>
-            </form>
+    <!-- Header Section -->
+    <div class="bg-white dark:bg-darcula-background-lighter rounded-xl border border-border-default p-6 mb-8">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+            <div class="flex-1">
+                <h1 class="text-3xl font-bold text-foreground-default dark:text-darcula-foreground mb-2">{{ experiment.name }}</h1>
+                <p class="text-foreground-muted dark:text-darcula-foreground-muted">
+                    Experimento ML • Modelo: {{ experiment.model_name }} • Target: {{ experiment.target_column }}
+                </p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <span id="experiment-status-badge" 
+                      class="px-3 py-2 rounded-lg text-sm font-semibold border
+                      {% if experiment.status == 'FINISHED' %}bg-green-100 dark:bg-darcula-string/20 text-green-800 dark:text-darcula-string border-green-200 dark:border-darcula-string/30
+                      {% elif experiment.status == 'RUNNING' %}bg-blue-100 dark:bg-darcula-accent/20 text-blue-800 dark:text-darcula-accent border-blue-200 dark:border-darcula-accent/30
+                      {% elif experiment.status == 'FAILED' %}bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400 border-red-200 dark:border-red-800/30
+                      {% elif experiment.status == 'DRAFT' %}bg-gray-100 dark:bg-darcula-background-lighter text-gray-800 dark:text-darcula-foreground border-gray-200 dark:border-darcula-border
+                      {% else %}bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800/30
+                      {% endif %}"
+                      data-status-url="{% url 'experiments:get_experiment_status' experiment_id=experiment.id %}"
+                      data-initial-status="{{ experiment.status }}">
+                    {{ experiment.get_status_display }}
+                </span>
+            </div>
+        </div>
 
+        <!-- Tags Section -->
+        {% if experiment.tags.exists %}
+        <div class="mb-6">
+            <div class="flex flex-wrap gap-2">
+                {% for tag in experiment.tags.all %}
+                    <span class="inline-flex items-center px-3 py-1 bg-blue-100 dark:bg-darcula-background-lighter text-blue-800 dark:text-darcula-string text-sm font-medium rounded-full border border-blue-200 dark:border-darcula-border-light hover:bg-blue-200 dark:hover:bg-darcula-background transition-colors">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                        </svg>
+                        {{ tag.name }}
+                    </span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Control Panel -->
+        <div class="border-t border-border-default dark:border-darcula-border pt-6">
+            <h3 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground mb-4">Panel de Control</h3>
+            <div class="flex flex-wrap gap-3">
+                <!-- Botón para ejecutar el pipeline completo -->
+                <form method="post" action="{% url 'experiments:run_experiment' pk=experiment.pk %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 border border-transparent rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed" 
+                            {% if experiment.status != 'DRAFT' %}disabled title="El experimento solo se puede ejecutar si está en estado 'Borrador'"{% endif %}>
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Ejecutar Experimento
+                    </button>
+                </form>
+
+                <!-- Botón para analizar el modelo -->
+                <form method="post" action="{% url 'experiments:trigger_feature_importance_task' experiment_id=experiment.pk %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-foreground-default dark:text-darcula-foreground bg-background-primary dark:bg-darcula-background border border-border-default rounded-lg hover:bg-background-tertiary dark:hover:bg-darcula-background-lighter transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed" 
+                            {% if experiment.status != 'FINISHED' %}disabled title="El análisis solo está disponible para experimentos finalizados"{% endif %}>
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Analizar Modelo
+                    </button>
+                </form>
+
+                <!-- Botón para registrar modelo en MLflow -->
+                {% if experiment.status == 'FINISHED' and experiment.mlflow_run_id %}
+                <form method="post" action="{% url 'experiments:register_model' pk=experiment.pk %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-lg hover:bg-green-700 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                        </svg>
+                        Registrar Modelo
+                    </button>
+                </form>
+                {% endif %}
+            </div>
         </div>
     </div>
 
-    <!-- Pestañas -->
-    <div class="border-b border-gray-200">
-        <nav class="flex space-x-8 -mb-px" aria-label="Tabs">
-            <button id="tab-results-btn" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-brand-600 border-brand-600" type="button">Resultados y Gráficos</button>
-            <button id="tab-interpretability-btn" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-foreground-muted border-transparent hover:text-foreground-default transition-colors" type="button">Interpretabilidad</button>
-            <button id="tab-config-btn" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-foreground-muted border-transparent hover:text-foreground-default transition-colors" type="button">Configuración</button>
-            <button id="tab-report-btn" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-foreground-muted border-transparent hover:text-foreground-default transition-colors" type="button">Reporte</button>
-        </nav>
-    </div>
-
-    <!-- Contenido de las Pestañas -->
-    <div class="mt-6">
-        <div id="tab-results">
-            {% if experiment.status == 'FINISHED' and experiment.results %}
-                <!-- Métricas de Rendimiento -->
-                <div class="bg-background-primary dark:bg-darcula-background-darker border border-border-default dark:border-darcula-border rounded-xl shadow-card p-4 mb-8">
-                    <h3 class="text-xl font-semibold text-foreground-default dark:text-darcula-foreground mb-6">Métricas de Rendimiento</h3>
-                    {% if experiment.results.performance_metrics %}
-                        <!-- Check if this is cross-validation results -->
-                        {% if experiment.results.performance_metrics.cv_strategy %}
-                            <div class="mb-4 p-3 bg-blue-50 dark:bg-darcula-background-lighter border border-blue-200 dark:border-darcula-border-light rounded-lg">
-                                <div class="flex items-center">
-                                    <svg class="w-5 h-5 text-blue-600 dark:text-darcula-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                                    </svg>
-                                    <span class="text-sm font-medium text-blue-800 dark:text-darcula-string">
-                                        {% if experiment.results.performance_metrics.cv_strategy == 'TIME_SERIES_CV' %}
-                                            Time Series Cross-Validation ({{ experiment.results.performance_metrics.n_splits }} folds)
-                                        {% else %}
-                                            Cross-Validation Results
-                                        {% endif %}
-                                    </span>
-                                </div>
-                            </div>
-                            
-                            <!-- Cross-validation metrics with mean ± std -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                {% if experiment.results.performance_metrics.mean_r2 is not None %}
-                                <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-darcula-background-lighter dark:to-darcula-background border border-green-200 dark:border-darcula-border-light rounded-lg p-4 text-center">
-                                    <div class="text-xl font-bold text-green-600 dark:text-darcula-accent">{{ experiment.results.performance_metrics.mean_r2|floatformat:4 }}</div>
-                                    <div class="text-xs text-green-500 dark:text-darcula-string">± {{ experiment.results.performance_metrics.std_r2|floatformat:4 }}</div>
-                                    <div class="text-sm font-medium text-gray-600 dark:text-darcula-foreground-muted uppercase tracking-wide">R² Score</div>
-                                </div>
-                                {% endif %}
-                                
-                                {% if experiment.results.performance_metrics.mean_rmse is not None %}
-                                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-darcula-background-lighter dark:to-darcula-background border border-blue-200 dark:border-darcula-border-light rounded-lg p-4 text-center">
-                                    <div class="text-xl font-bold text-blue-600 dark:text-darcula-accent">{{ experiment.results.performance_metrics.mean_rmse|floatformat:4 }}</div>
-                                    <div class="text-xs text-blue-500 dark:text-darcula-string">± {{ experiment.results.performance_metrics.std_rmse|floatformat:4 }}</div>
-                                    <div class="text-sm font-medium text-gray-600 dark:text-darcula-foreground-muted uppercase tracking-wide">RMSE</div>
-                                </div>
-                                {% endif %}
-                                
-                                {% if experiment.results.performance_metrics.mean_mae is not None %}
-                                <div class="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-darcula-background-lighter dark:to-darcula-background border border-orange-200 dark:border-darcula-border-light rounded-lg p-4 text-center">
-                                    <div class="text-xl font-bold text-orange-600 dark:text-darcula-accent">{{ experiment.results.performance_metrics.mean_mae|floatformat:4 }}</div>
-                                    <div class="text-xs text-orange-500 dark:text-darcula-string">± {{ experiment.results.performance_metrics.std_mae|floatformat:4 }}</div>
-                                    <div class="text-sm font-medium text-gray-600 dark:text-darcula-foreground-muted uppercase tracking-wide">MAE</div>
-                                </div>
-                                {% endif %}
-                                
-                                {% if experiment.results.performance_metrics.mean_mse is not None %}
-                                <div class="bg-gradient-to-r from-red-50 to-pink-50 dark:from-darcula-background-lighter dark:to-darcula-background border border-red-200 dark:border-darcula-border-light rounded-lg p-4 text-center">
-                                    <div class="text-xl font-bold text-red-600 dark:text-darcula-accent">{{ experiment.results.performance_metrics.mean_mse|floatformat:4 }}</div>
-                                    <div class="text-xs text-red-500 dark:text-darcula-string">± {{ experiment.results.performance_metrics.std_mse|floatformat:4 }}</div>
-                                    <div class="text-sm font-medium text-gray-600 dark:text-darcula-foreground-muted uppercase tracking-wide">MSE</div>
-                                </div>
-                                {% endif %}
-                            </div>
-                            
-                            <!-- Fold-by-fold results -->
-                            {% if experiment.results.performance_metrics.fold_results %}
-                            <div class="mt-6">
-                                <h4 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground mb-4">Resultados por Fold</h4>
-                                <div class="overflow-x-auto">
-                                    <table class="min-w-full bg-white dark:bg-darcula-background border border-gray-200 dark:border-darcula-border rounded-lg">
-                                        <thead class="bg-gray-50 dark:bg-darcula-background-lighter">
-                                            <tr>
-                                                <th class="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-darcula-foreground">Fold</th>
-                                                <th class="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-darcula-foreground">Train Samples</th>
-                                                <th class="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-darcula-foreground">Test Samples</th>
-                                                <th class="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-darcula-foreground">R²</th>
-                                                <th class="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-darcula-foreground">RMSE</th>
-                                                <th class="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-darcula-foreground">MAE</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-gray-200 dark:divide-darcula-border">
-                                            {% for fold in experiment.results.performance_metrics.fold_results %}
-                                            <tr class="hover:bg-gray-50 dark:hover:bg-darcula-background-lighter">
-                                                <td class="px-4 py-2 text-sm text-gray-900 dark:text-darcula-foreground">{{ fold.fold }}</td>
-                                                <td class="px-4 py-2 text-sm text-gray-600 dark:text-darcula-foreground-muted">{{ fold.train_samples }}</td>
-                                                <td class="px-4 py-2 text-sm text-gray-600 dark:text-darcula-foreground-muted">{{ fold.test_samples }}</td>
-                                                <td class="px-4 py-2 text-sm font-medium text-gray-900 dark:text-darcula-foreground">{{ fold.r2|floatformat:4 }}</td>
-                                                <td class="px-4 py-2 text-sm text-gray-900 dark:text-darcula-foreground">{{ fold.rmse|floatformat:4 }}</td>
-                                                <td class="px-4 py-2 text-sm text-gray-900 dark:text-darcula-foreground">{{ fold.mae|floatformat:4 }}</td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            {% endif %}
-                            
-                        {% else %}
-                            <!-- Traditional single-split metrics -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                {% for metric_name, metric_value in experiment.results.performance_metrics.items %}
-                                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-darcula-background-lighter dark:to-darcula-background border border-blue-200 dark:border-darcula-border-light rounded-lg p-4 text-center">
-                                        <div class="text-2xl font-bold text-blue-600 dark:text-darcula-accent">{{ metric_value|floatformat:4 }}</div>
-                                        <div class="text-sm font-medium text-gray-600 dark:text-darcula-foreground-muted uppercase tracking-wide">{{ metric_name|upper }}</div>
-                                    </div>
+    <!-- Main Grid Layout -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        
+        <!-- Configuración Card -->
+        <div class="bg-white dark:bg-darcula-background-lighter rounded-xl border border-border-default shadow-card p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">Configuración</h3>
+                <svg class="w-5 h-5 text-brand-600 dark:text-darcula-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <dt class="text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted">Fuente de Datos</dt>
+                    <dd class="mt-1 text-sm text-foreground-default dark:text-darcula-foreground font-medium">{{ experiment.input_datasource.name }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted">Modelo</dt>
+                    <dd class="mt-1 text-sm text-foreground-default dark:text-darcula-foreground font-mono">{{ experiment.model_name }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted">Variable Objetivo</dt>
+                    <dd class="mt-1 text-sm text-foreground-default dark:text-darcula-foreground font-mono">{{ experiment.target_column }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted">Estrategia de División</dt>
+                    <dd class="mt-1 text-sm text-foreground-default dark:text-darcula-foreground">{{ experiment.get_split_strategy_display }}</dd>
+                </div>
+                
+                <!-- Feature Set Preview -->
+                <div>
+                    <dt class="text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted">Variables Predictoras ({{ experiment.feature_set|length }})</dt>
+                    <dd class="mt-1">
+                        <div class="max-h-24 overflow-y-auto">
+                            <div class="flex flex-wrap gap-1">
+                                {% for feature in experiment.feature_set|slice:":6" %}
+                                    <span class="px-2 py-1 bg-background-secondary dark:bg-darcula-background text-foreground-default dark:text-darcula-foreground text-xs rounded border dark:border-darcula-border">{{ feature }}</span>
                                 {% endfor %}
+                                {% if experiment.feature_set|length > 6 %}
+                                    <span class="px-2 py-1 bg-background-secondary dark:bg-darcula-background text-foreground-muted dark:text-darcula-foreground-muted text-xs rounded border dark:border-darcula-border">+{{ experiment.feature_set|length|add:"-6" }} más</span>
+                                {% endif %}
                             </div>
-                        {% endif %}
-                    {% else %}
-                        <p class="text-foreground-muted dark:text-darcula-foreground-muted">No hay métricas de rendimiento disponibles.</p>
-                    {% endif %}
-                </div>
-
-                <!-- Predicciones vs. Valores Reales -->
-                <div class="bg-background-primary dark:bg-darcula-background-darker border border-border-default dark:border-darcula-border rounded-xl shadow-card p-6 mb-8">
-                    <h3 class="text-xl font-semibold text-foreground-default dark:text-darcula-foreground mb-6">Predicciones vs. Valores Reales</h3>
-                    {% if experiment.results.prediction_data %}
-                        <div class="relative" style="height: 400px;">
-                            <canvas id="predictionScatterChart"></canvas>
                         </div>
-                    {% else %}
-                        <p class="text-foreground-muted dark:text-darcula-foreground-muted">No hay datos de predicción disponibles.</p>
-                    {% endif %}
+                    </dd>
                 </div>
 
-                <!-- Feature Importance (if available) -->
-                {% if experiment.results.feature_importance %}
-                <div class="bg-background-primary dark:bg-darcula-background-darker border border-border-default dark:border-darcula-border rounded-xl shadow-card p-6 mb-8">
-                    <h3 class="text-xl font-semibold text-foreground-default dark:text-darcula-foreground mb-6">Importancia de Variables</h3>
-                    <div class="relative" style="height: 400px;">
-                        <canvas id="featureImportanceChart"></canvas>
-                    </div>
+                <!-- MLflow Info -->
+                {% if experiment.mlflow_run_id %}
+                <div class="pt-3 border-t border-border-muted dark:border-darcula-border">
+                    <dt class="text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted">MLflow Tracking</dt>
+                    <dd class="mt-1">
+                        <span class="inline-flex items-center px-2 py-1 bg-blue-100 dark:bg-darcula-accent/20 text-blue-800 dark:text-darcula-accent text-xs font-medium rounded border border-blue-200 dark:border-darcula-accent/30">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Run: {{ experiment.mlflow_run_id|slice:":8" }}...
+                        </span>
+                    </dd>
                 </div>
                 {% endif %}
-            {% else %}
-                <div class="bg-background-primary dark:bg-darcula-background-darker border border-border-default dark:border-darcula-border rounded-xl shadow-card p-6">
-                    <div class="text-center py-8">
-                        <svg class="mx-auto h-16 w-16 text-foreground-muted dark:text-darcula-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
-                        <h3 class="mt-4 text-lg font-medium text-foreground-default dark:text-darcula-foreground">No hay resultados disponibles</h3>
-                        <p class="mt-2 text-sm text-foreground-muted dark:text-darcula-foreground-muted">
-                            {% if experiment.status == 'DRAFT' %}
-                                El experimento debe ser ejecutado para ver los resultados.
-                            {% elif experiment.status == 'RUNNING' %}
-                                El experimento está en ejecución. Los resultados aparecerán cuando termine.
-                            {% elif experiment.status == 'ERROR' %}
-                                El experimento falló durante la ejecución.
-                            {% else %}
-                                No hay datos de resultados disponibles para este experimento.
-                            {% endif %}
-                        </p>
+            </div>
+        </div>
+
+        <!-- Estado Card -->
+        <div class="bg-white dark:bg-darcula-background-lighter rounded-xl border border-border-default shadow-card p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">Estado</h3>
+                <svg class="w-5 h-5 text-green-600 dark:text-darcula-string" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="text-center">
+                    <div class="text-3xl font-bold mb-2
+                        {% if experiment.status == 'FINISHED' %}text-green-600 dark:text-darcula-string
+                        {% elif experiment.status == 'RUNNING' %}text-blue-600 dark:text-darcula-accent
+                        {% elif experiment.status == 'FAILED' %}text-red-600 dark:text-red-400
+                        {% else %}text-gray-600 dark:text-darcula-foreground
+                        {% endif %}">
+                        {{ experiment.get_status_display }}
                     </div>
+                    <p class="text-sm text-foreground-muted dark:text-darcula-foreground-muted">Estado del Experimento</p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 pt-4 border-t border-border-muted dark:border-darcula-border">
+                    <div>
+                        <dt class="text-xs font-medium text-foreground-muted dark:text-darcula-foreground-muted uppercase tracking-wide">Creado</dt>
+                        <dd class="mt-1 text-sm text-foreground-default dark:text-darcula-foreground">{{ experiment.created_at|date:"d M Y" }}</dd>
+                        <dd class="text-xs text-foreground-muted dark:text-darcula-foreground-muted">{{ experiment.created_at|time:"H:i" }}</dd>
+                    </div>
+                    {% if experiment.status == 'FINISHED' %}
+                    <div>
+                        <dt class="text-xs font-medium text-foreground-muted dark:text-darcula-foreground-muted uppercase tracking-wide">Completado</dt>
+                        <dd class="mt-1 text-sm text-foreground-default dark:text-darcula-foreground">{{ experiment.updated_at|date:"d M Y" }}</dd>
+                        <dd class="text-xs text-foreground-muted dark:text-darcula-foreground-muted">{{ experiment.updated_at|time:"H:i" }}</dd>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Progress Indicator -->
+                <div class="pt-4 border-t border-border-muted dark:border-darcula-border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-foreground-default dark:text-darcula-foreground">Progreso</span>
+                        <span class="text-sm text-foreground-muted dark:text-darcula-foreground-muted">
+                            {% if experiment.status == 'FINISHED' %}100%
+                            {% elif experiment.status == 'RUNNING' %}75%
+                            {% elif experiment.status == 'DRAFT' %}0%
+                            {% elif experiment.status == 'FAILED' %}Error
+                            {% else %}--
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-darcula-background rounded-full h-2">
+                        <div class="h-2 rounded-full transition-all duration-300
+                            {% if experiment.status == 'FINISHED' %}bg-green-600 dark:bg-darcula-string w-full
+                            {% elif experiment.status == 'RUNNING' %}bg-blue-600 dark:bg-darcula-accent w-3/4
+                            {% elif experiment.status == 'FAILED' %}bg-red-600 dark:bg-red-400 w-1/4
+                            {% else %}bg-gray-400 dark:bg-darcula-foreground-muted w-0
+                            {% endif %}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resultados (Métricas) Card -->
+        <div class="bg-white dark:bg-darcula-background-lighter rounded-xl border border-border-default shadow-card p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">Resultados (Métricas)</h3>
+                <svg class="w-5 h-5 text-purple-600 dark:text-darcula-keyword" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+            </div>
+            
+            {% if experiment.status == 'FINISHED' and experiment.results and experiment.results.performance_metrics %}
+                <!-- Cross-validation metrics display -->
+                {% if experiment.results.performance_metrics.cv_strategy %}
+                <div class="space-y-4">
+                    <div class="p-3 bg-blue-50 dark:bg-darcula-accent/10 border border-blue-200 dark:border-darcula-accent/30 rounded-lg">
+                        <div class="flex items-center">
+                            <svg class="w-4 h-4 text-blue-600 dark:text-darcula-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            <span class="text-sm font-medium text-blue-800 dark:text-darcula-accent">
+                                Cross-Validation ({{ experiment.results.performance_metrics.n_splits }} folds)
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        {% if experiment.results.performance_metrics.mean_r2 is not None %}
+                        <div class="text-center p-3 bg-green-50 dark:bg-darcula-string/10 border border-green-200 dark:border-darcula-string/30 rounded-lg">
+                            <div class="text-lg font-bold text-green-600 dark:text-darcula-string">{{ experiment.results.performance_metrics.mean_r2|floatformat:3 }}</div>
+                            <div class="text-xs text-green-500 dark:text-darcula-string">± {{ experiment.results.performance_metrics.std_r2|floatformat:3 }}</div>
+                            <div class="text-xs font-medium text-gray-600 dark:text-darcula-foreground-muted uppercase">R² Score</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if experiment.results.performance_metrics.mean_rmse is not None %}
+                        <div class="text-center p-3 bg-blue-50 dark:bg-darcula-accent/10 border border-blue-200 dark:border-darcula-accent/30 rounded-lg">
+                            <div class="text-lg font-bold text-blue-600 dark:text-darcula-accent">{{ experiment.results.performance_metrics.mean_rmse|floatformat:3 }}</div>
+                            <div class="text-xs text-blue-500 dark:text-darcula-accent">± {{ experiment.results.performance_metrics.std_rmse|floatformat:3 }}</div>
+                            <div class="text-xs font-medium text-gray-600 dark:text-darcula-foreground-muted uppercase">RMSE</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if experiment.results.performance_metrics.mean_mae is not None %}
+                        <div class="text-center p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800/30 rounded-lg">
+                            <div class="text-lg font-bold text-orange-600 dark:text-orange-400">{{ experiment.results.performance_metrics.mean_mae|floatformat:3 }}</div>
+                            <div class="text-xs text-orange-500 dark:text-orange-400">± {{ experiment.results.performance_metrics.std_mae|floatformat:3 }}</div>
+                            <div class="text-xs font-medium text-gray-600 dark:text-darcula-foreground-muted uppercase">MAE</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if experiment.results.performance_metrics.mean_mse is not None %}
+                        <div class="text-center p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg">
+                            <div class="text-lg font-bold text-red-600 dark:text-red-400">{{ experiment.results.performance_metrics.mean_mse|floatformat:3 }}</div>
+                            <div class="text-xs text-red-500 dark:text-red-400">± {{ experiment.results.performance_metrics.std_mse|floatformat:3 }}</div>
+                            <div class="text-xs font-medium text-gray-600 dark:text-darcula-foreground-muted uppercase">MSE</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                    <!-- Traditional single-split metrics -->
+                    <div class="grid grid-cols-2 gap-3">
+                        {% for metric_name, metric_value in experiment.results.performance_metrics.items %}
+                            <div class="text-center p-3 bg-blue-50 dark:bg-darcula-accent/10 border border-blue-200 dark:border-darcula-accent/30 rounded-lg">
+                                <div class="text-lg font-bold text-blue-600 dark:text-darcula-accent">{{ metric_value|floatformat:3 }}</div>
+                                <div class="text-xs font-medium text-gray-600 dark:text-darcula-foreground-muted uppercase">{{ metric_name }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-8">
+                    <svg class="mx-auto h-12 w-12 text-foreground-muted dark:text-darcula-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    <h4 class="mt-2 text-sm font-medium text-foreground-default dark:text-darcula-foreground">Sin Resultados</h4>
+                    <p class="mt-1 text-xs text-foreground-muted dark:text-darcula-foreground-muted">
+                        {% if experiment.status == 'DRAFT' %}Ejecuta el experimento
+                        {% elif experiment.status == 'RUNNING' %}En progreso...
+                        {% else %}No disponible
+                        {% endif %}
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Secondary Grid for Charts and Analysis -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+        
+        <!-- Resultados (Gráficos) Card -->
+        <div class="bg-white dark:bg-darcula-background-lighter rounded-xl border border-border-default shadow-card p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">Resultados (Gráficos)</h3>
+                <svg class="w-5 h-5 text-blue-600 dark:text-darcula-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                </svg>
+            </div>
+            
+            {% if experiment.status == 'FINISHED' and experiment.results %}
+                {% if experiment.results.prediction_data %}
+                    <div class="relative" style="height: 300px;">
+                        <canvas id="predictionScatterChart"></canvas>
+                    </div>
+                    <p class="text-xs text-foreground-muted dark:text-darcula-foreground-muted mt-2 text-center">
+                        Predicciones vs. Valores Reales
+                    </p>
+                {% else %}
+                    <div class="text-center py-12">
+                        <svg class="mx-auto h-8 w-8 text-foreground-muted dark:text-darcula-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                        </svg>
+                        <p class="mt-2 text-sm text-foreground-muted dark:text-darcula-foreground-muted">No hay datos de predicción disponibles</p>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-12">
+                    <svg class="mx-auto h-8 w-8 text-foreground-muted dark:text-darcula-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <p class="mt-2 text-sm text-foreground-muted dark:text-darcula-foreground-muted">Gráficos disponibles tras completar el experimento</p>
                 </div>
             {% endif %}
         </div>
 
-        <!-- Tab de Interpretabilidad -->
-        <div id="tab-interpretability" class="hidden">
+        <!-- Interpretabilidad (SHAP) Card -->
+        <div class="bg-white dark:bg-darcula-background-lighter rounded-xl border border-border-default shadow-card p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">Interpretabilidad (SHAP)</h3>
+                <svg class="w-5 h-5 text-indigo-600 dark:text-darcula-keyword" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            
             {% if experiment.status == 'FINISHED' and experiment.artifact_paths.shap_summary %}
-                <div class="bg-background-primary dark:bg-darcula-background-darker border border-border-default dark:border-darcula-border rounded-xl shadow-card p-6 mb-8">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-xl font-semibold text-foreground-default dark:text-darcula-foreground">Análisis de Interpretabilidad (SHAP)</h3>
-                        <div class="flex items-center text-sm text-foreground-muted dark:text-darcula-foreground-muted">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            SHAP Values Analysis
-                        </div>
+                <div class="space-y-4">
+                    <div class="bg-white dark:bg-darcula-background rounded-lg border border-border-default dark:border-darcula-border p-2">
+                        <img src="{% url 'core:serve_media' path=experiment.artifact_paths.shap_summary %}" 
+                             alt="SHAP Summary Plot"
+                             class="w-full h-auto rounded"
+                             style="max-height: 200px; object-fit: contain;">
                     </div>
-                    
-                    <div class="mb-4">
-                        <p class="text-sm text-foreground-muted dark:text-darcula-foreground-muted mb-4">
-                            Este gráfico muestra la importancia de cada característica y cómo sus valores impactan en las predicciones del modelo. 
-                            Los puntos de mayor intensidad representan valores más altos de la característica, mientras que la posición horizontal 
-                            indica si la característica contribuye positiva o negativamente a la predicción.
+                    <div class="p-3 bg-blue-50 dark:bg-darcula-accent/10 border border-blue-200 dark:border-darcula-accent/30 rounded-lg">
+                        <p class="text-xs text-blue-700 dark:text-darcula-accent">
+                            Análisis SHAP mostrando la importancia y el impacto de cada característica en las predicciones del modelo.
                         </p>
                     </div>
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <svg class="mx-auto h-8 w-8 text-foreground-muted dark:text-darcula-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <p class="mt-2 text-sm text-foreground-muted dark:text-darcula-foreground-muted">
+                        {% if experiment.status == 'FINISHED' %}Análisis no disponible
+                        {% else %}Análisis disponible tras completar el experimento
+                        {% endif %}
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- MLflow Integration Section -->
+    {% if experiment.mlflow_run_id %}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+        
+        <!-- MLflow Parámetros Card -->
+        <div class="bg-white dark:bg-darcula-background-lighter rounded-xl border border-border-default shadow-card p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">MLflow Parámetros</h3>
+                <svg class="w-5 h-5 text-green-600 dark:text-darcula-string" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
+                </svg>
+            </div>
+            
+            <div id="mlflow-params-content" data-experiment-id="{{ experiment.id }}">
+                <div class="text-center py-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
+                    <p class="mt-4 text-sm text-foreground-muted dark:text-darcula-foreground-muted">Cargando hiperparámetros...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- MLflow Métricas Card -->
+        <div class="bg-white dark:bg-darcula-background-lighter rounded-xl border border-border-default shadow-card p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">MLflow Métricas</h3>
+                <svg class="w-5 h-5 text-purple-600 dark:text-darcula-keyword" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+            </div>
+            
+            <div id="mlflow-metrics-content" data-experiment-id="{{ experiment.id }}">
+                <div class="text-center py-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
+                    <p class="mt-4 text-sm text-foreground-muted dark:text-darcula-foreground-muted">Cargando métricas detalladas...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Additional Tools Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+        
+        <!-- Artefactos Card -->
+        <div class="bg-white dark:bg-darcula-background-lighter rounded-xl border border-border-default shadow-card p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">Artefactos</h3>
+                <svg class="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+            </div>
+            
+            {% if experiment.status == 'FINISHED' %}
+                <div class="space-y-3">
+                    {% if experiment.artifact_paths.model %}
+                    <div class="flex items-center justify-between p-3 bg-green-50 dark:bg-darcula-background border border-green-200 dark:border-darcula-border rounded-lg">
+                        <div class="flex items-center">
+                            <svg class="w-4 h-4 text-green-600 dark:text-darcula-string mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="text-sm font-medium text-green-800 dark:text-darcula-string">Modelo</span>
+                        </div>
+                        <a href="{% url 'core:serve_media' path=experiment.artifact_paths.model %}" class="text-xs text-green-600 dark:text-darcula-string hover:text-green-700">Descargar</a>
+                    </div>
+                    {% endif %}
                     
-                    <!-- SHAP Summary Plot -->
-                    <div class="bg-white dark:bg-darcula-background rounded-lg border border-border-default dark:border-darcula-border p-4">
-                        <div class="flex justify-center">
-                            <img src="{% url 'core:serve_media' path=experiment.artifact_paths.shap_summary %}" 
-                                 alt="SHAP Summary Plot para {{ experiment.name }}"
-                                 class="max-w-full h-auto rounded-lg shadow-sm"
-                                 style="max-height: 600px;">
+                    {% if experiment.artifact_paths.predictions %}
+                    <div class="flex items-center justify-between p-3 bg-blue-50 dark:bg-darcula-background border border-blue-200 dark:border-darcula-border rounded-lg">
+                        <div class="flex items-center">
+                            <svg class="w-4 h-4 text-blue-600 dark:text-darcula-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            <span class="text-sm font-medium text-blue-800 dark:text-darcula-accent">Predicciones</span>
+                        </div>
+                        <a href="{% url 'core:serve_media' path=experiment.artifact_paths.predictions %}" class="text-xs text-blue-600 dark:text-darcula-accent hover:text-blue-700">Descargar</a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if experiment.artifact_paths.feature_importance %}
+                    <div class="flex items-center justify-between p-3 bg-purple-50 dark:bg-darcula-background border border-purple-200 dark:border-darcula-border rounded-lg">
+                        <div class="flex items-center">
+                            <svg class="w-4 h-4 text-purple-600 dark:text-darcula-keyword mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="text-sm font-medium text-purple-800 dark:text-darcula-keyword">Importancia</span>
+                        </div>
+                        <a href="{% url 'core:serve_media' path=experiment.artifact_paths.feature_importance %}" class="text-xs text-purple-600 dark:text-darcula-keyword hover:text-purple-700">Descargar</a>
+                    </div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <svg class="mx-auto h-8 w-8 text-foreground-muted dark:text-darcula-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <p class="mt-2 text-sm text-foreground-muted dark:text-darcula-foreground-muted">Artefactos disponibles tras completar</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Linaje Card -->
+        <div class="bg-white dark:bg-darcula-background-lighter rounded-xl border border-border-default shadow-card p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">Linaje</h3>
+                <svg class="w-5 h-5 text-gray-600 dark:text-darcula-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+            </div>
+            
+            <div class="space-y-3">
+                <div class="p-3 bg-background-secondary dark:bg-darcula-background border border-border-default dark:border-darcula-border rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-blue-600 dark:text-darcula-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-foreground-default dark:text-darcula-foreground truncate">{{ experiment.input_datasource.name }}</p>
+                            <p class="text-xs text-foreground-muted dark:text-darcula-foreground-muted">Fuente de Datos</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-3 bg-background-secondary dark:bg-darcula-background border border-border-default dark:border-darcula-border rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-green-600 dark:text-darcula-string" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-foreground-default dark:text-darcula-foreground truncate">{{ experiment.project.name }}</p>
+                            <p class="text-xs text-foreground-muted dark:text-darcula-foreground-muted">Proyecto</p>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if experiment.mlflow_run_id %}
+                <div class="p-3 bg-background-secondary dark:bg-darcula-background border border-border-default dark:border-darcula-border rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-purple-600 dark:text-darcula-keyword" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-foreground-default dark:text-darcula-foreground font-mono truncate">{{ experiment.mlflow_run_id|slice:":8" }}...</p>
+                            <p class="text-xs text-foreground-muted dark:text-darcula-foreground-muted">MLflow Run</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Reporte Card -->
+        <div class="bg-white dark:bg-darcula-background-lighter rounded-xl border border-border-default shadow-card p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">Reporte</h3>
+                <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+            </div>
+            
+            {% if experiment.status == 'FINISHED' %}
+                <div class="space-y-4">
+                    <div class="p-3 bg-blue-50 dark:bg-darcula-accent/10 border border-blue-200 dark:border-darcula-accent/30 rounded-lg">
+                        <h4 class="text-sm font-medium text-blue-800 dark:text-darcula-accent mb-2">Resumen Ejecutivo</h4>
+                        <div class="text-xs text-blue-700 dark:text-darcula-accent space-y-1">
+                            <p>• Modelo: {{ experiment.model_name }}</p>
+                            <p>• Variables: {{ experiment.feature_set|length }}</p>
+                            {% if experiment.results.performance_metrics.mean_r2 %}
+                            <p>• R² Score: {{ experiment.results.performance_metrics.mean_r2|floatformat:3 }}</p>
+                            {% endif %}
                         </div>
                     </div>
                     
-                    <!-- Interpretación del Gráfico -->
-                    <div class="mt-6 p-4 bg-blue-50 dark:bg-darcula-background-lighter border border-blue-200 dark:border-darcula-border-light rounded-lg">
-                        <h4 class="text-lg font-semibold text-blue-800 dark:text-darcula-accent mb-3">Cómo Interpretar el Gráfico</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                            <div>
-                                <h5 class="font-medium text-blue-700 dark:text-darcula-string mb-2">📊 Orden de Importancia</h5>
-                                <p class="text-blue-600 dark:text-darcula-foreground">Las características están ordenadas por importancia de arriba hacia abajo. Las características más importantes aparecen en la parte superior.</p>
-                            </div>
-                            <div>
-                                <h5 class="font-medium text-blue-700 dark:text-darcula-string mb-2">🎯 Impacto en Predicción</h5>
-                                <p class="text-blue-600 dark:text-darcula-foreground">Los puntos a la derecha aumentan la predicción, los de la izquierda la disminuyen. La intensidad del color indica el valor de la característica.</p>
-                            </div>
-                            <div>
-                                <h5 class="font-medium text-blue-700 dark:text-darcula-string mb-2">🌈 Codificación de Color</h5>
-                                <p class="text-blue-600 dark:text-darcula-foreground">Los colores rojos representan valores altos de la característica, mientras que los azules representan valores bajos.</p>
-                            </div>
-                            <div>
-                                <h5 class="font-medium text-blue-700 dark:text-darcula-string mb-2">📏 Distribución</h5>
-                                <p class="text-blue-600 dark:text-darcula-foreground">La dispersión horizontal muestra la variabilidad del impacto de cada característica en diferentes muestras del conjunto de datos.</p>
-                            </div>
+                    <div class="space-y-2">
+                        <button class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Generar PDF
+                        </button>
+                        <button class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-foreground-default dark:text-darcula-foreground bg-background-tertiary dark:bg-darcula-background border border-border-default dark:border-darcula-border rounded-lg hover:bg-background-secondary dark:hover:bg-darcula-background-lighter transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                            </svg>
+                            Compartir
+                        </button>
+                    </div>
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <svg class="mx-auto h-8 w-8 text-foreground-muted dark:text-darcula-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <p class="mt-2 text-sm text-foreground-muted dark:text-darcula-foreground-muted">Reporte disponible tras completar</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Actions Section -->
+    <div class="mt-8 pt-6 border-t border-border-default dark:border-darcula-border">
+        {% if experiment.status in "FINISHED,ANALYZED" and not experiment.is_public %}
+            <form action="{% url 'experiments:ml_experiment_publish' pk=experiment.pk %}" method="post" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors shadow-md hover:shadow-lg">
+                    Publicar Experimento
+                </button>
+            </form>
+        {% elif experiment.is_public %}
+            <div class="flex items-center gap-4">
+                <div class="inline-flex items-center px-3 py-1 text-sm font-semibold text-green-800 bg-green-100 dark:bg-green-900/20 rounded-full border border-green-200 dark:border-green-800">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Publicado el {{ experiment.published_at|date:"d/m/Y H:i" }}
+                </div>
+                
+                {% if user.is_authenticated and user != experiment.project.owner %}
+                    <a href="{% url 'experiments:ml_experiment_fork' pk=experiment.pk %}" 
+                       class="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        Fork Experiment
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Legacy tabs (hidden but kept for backwards compatibility) -->
+        <div id="tab-interpretability" class="hidden bg-white dark:bg-darcula-background-lighter rounded-xl border border-border-default shadow-card p-6">
+            {% if experiment.status == 'FINISHED' and experiment.artifact_paths.shap_summary %}
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-semibold text-foreground-default dark:text-darcula-foreground">Análisis de Interpretabilidad (SHAP)</h3>
+                    <div class="flex items-center text-sm text-foreground-muted dark:text-darcula-foreground-muted">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        SHAP Values Analysis
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <p class="text-sm text-foreground-muted dark:text-darcula-foreground-muted mb-4">
+                        Este gráfico muestra la importancia de cada característica y cómo sus valores impactan en las predicciones del modelo. 
+                        Los puntos de mayor intensidad representan valores más altos de la característica, mientras que la posición horizontal 
+                        indica si la característica contribuye positiva o negativamente a la predicción.
+                    </p>
+                </div>
+                
+                <!-- SHAP Summary Plot -->
+                <div class="bg-white dark:bg-darcula-background rounded-lg border border-border-default dark:border-darcula-border p-4">
+                    <div class="flex justify-center">
+                        <img src="{% url 'core:serve_media' path=experiment.artifact_paths.shap_summary %}" 
+                             alt="SHAP Summary Plot para {{ experiment.name }}"
+                             class="max-w-full h-auto rounded-lg shadow-sm"
+                             style="max-height: 600px;">
+                    </div>
+                </div>
+                
+                <!-- Interpretación del Gráfico -->
+                <div class="mt-6 p-4 bg-blue-50 dark:bg-darcula-background-lighter border border-blue-200 dark:border-darcula-border-light rounded-lg">
+                    <h4 class="text-lg font-semibold text-blue-800 dark:text-darcula-accent mb-3">Cómo Interpretar el Gráfico</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <h5 class="font-medium text-blue-700 dark:text-darcula-string mb-2">📊 Orden de Importancia</h5>
+                            <p class="text-blue-600 dark:text-darcula-foreground">Las características están ordenadas por importancia de arriba hacia abajo. Las características más importantes aparecen en la parte superior.</p>
+                        </div>
+                        <div>
+                            <h5 class="font-medium text-blue-700 dark:text-darcula-string mb-2">🎯 Impacto en Predicción</h5>
+                            <p class="text-blue-600 dark:text-darcula-foreground">Los puntos a la derecha aumentan la predicción, los de la izquierda la disminuyen. La intensidad del color indica el valor de la característica.</p>
+                        </div>
+                        <div>
+                            <h5 class="font-medium text-blue-700 dark:text-darcula-string mb-2">🌈 Codificación de Color</h5>
+                            <p class="text-blue-600 dark:text-darcula-foreground">Los colores rojos representan valores altos de la característica, mientras que los azules representan valores bajos.</p>
+                        </div>
+                        <div>
+                            <h5 class="font-medium text-blue-700 dark:text-darcula-string mb-2">📏 Distribución</h5>
+                            <p class="text-blue-600 dark:text-darcula-foreground">La dispersión horizontal muestra la variabilidad del impacto de cada característica en diferentes muestras del conjunto de datos.</p>
                         </div>
                     </div>
                 </div>
             {% elif experiment.status == 'FINISHED' %}
-                <div class="bg-background-primary dark:bg-darcula-background-darker border border-border-default dark:border-darcula-border rounded-xl shadow-card p-6">
-                    <div class="text-center py-8">
-                        <svg class="mx-auto h-12 w-12 text-foreground-muted dark:text-darcula-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
-                        <h3 class="mt-2 text-sm font-medium text-foreground-default dark:text-darcula-foreground">Análisis de Interpretabilidad No Disponible</h3>
+                <div class="text-center py-8">
+                    <svg class="mx-auto h-12 w-12 text-foreground-muted dark:text-darcula-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-foreground-default dark:text-darcula-foreground">Análisis de Interpretabilidad No Disponible</h3>
                         <p class="mt-1 text-sm text-foreground-muted dark:text-darcula-foreground-muted">
                             El análisis SHAP no se generó para este experimento. Esto puede ocurrir si hubo un error durante la generación 
                             o si el experimento se completó antes de la implementación de esta funcionalidad.
@@ -312,6 +730,249 @@
                         <h3 class="mt-2 text-sm font-medium text-foreground-default dark:text-darcula-foreground">Experimento en Progreso</h3>
                         <p class="mt-1 text-sm text-foreground-muted dark:text-darcula-foreground-muted">
                             El análisis de interpretabilidad estará disponible una vez que el experimento se complete exitosamente.
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Tab de Hiperparámetros de MLflow -->
+        {% if experiment.mlflow_run_id %}
+        <div id="tab-mlflow-params" class="hidden">
+            <div class="bg-background-primary dark:bg-darcula-background-darker border border-border-default dark:border-darcula-border rounded-xl shadow-card p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-semibold text-foreground-default dark:text-darcula-foreground">Hiperparámetros</h3>
+                    <div class="flex items-center text-sm text-foreground-muted dark:text-darcula-foreground-muted">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        MLflow Run ID: {{ experiment.mlflow_run_id|slice:":8" }}...
+                    </div>
+                </div>
+
+                {% if mlflow_error %}
+                    <div class="bg-red-50 dark:bg-darcula-background-lighter border border-red-200 dark:border-darcula-border-light rounded-lg p-4 mb-6">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-red-600 dark:text-darcula-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="text-sm font-medium text-red-800 dark:text-darcula-string">Error al conectar con MLflow: {{ mlflow_error }}</span>
+                        </div>
+                    </div>
+                {% elif mlflow_params %}
+                    <div class="mb-4">
+                        <p class="text-sm text-foreground-muted dark:text-darcula-foreground-muted mb-4">
+                            Hiperparámetros configurados para este experimento, registrados automáticamente en MLflow durante la ejecución.
+                        </p>
+                    </div>
+
+                    <div class="bg-white dark:bg-darcula-background rounded-lg border border-border-default dark:border-darcula-border">
+                        <div class="px-4 py-3 border-b border-gray-200 dark:border-darcula-border bg-gray-50 dark:bg-darcula-background-lighter">
+                            <h4 class="text-sm font-semibold text-foreground-default dark:text-darcula-foreground">Parámetros del Modelo</h4>
+                        </div>
+                        <div class="divide-y divide-gray-200 dark:divide-darcula-border">
+                            {% for param_name, param_value in mlflow_params.items %}
+                            <div class="px-4 py-3 hover:bg-gray-50 dark:hover:bg-darcula-background-lighter transition-colors">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-2 h-2 bg-blue-500 dark:bg-darcula-accent rounded-full"></div>
+                                        <span class="text-sm font-medium text-foreground-default dark:text-darcula-foreground">{{ param_name }}</span>
+                                    </div>
+                                    <div class="text-sm text-foreground-muted dark:text-darcula-foreground-muted font-mono bg-background-secondary dark:bg-darcula-background-lighter px-2 py-1 rounded border dark:border-darcula-border-light">
+                                        {{ param_value }}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <svg class="mx-auto h-12 w-12 text-foreground-muted dark:text-darcula-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-foreground-default dark:text-darcula-foreground">No hay parámetros disponibles</h3>
+                        <p class="mt-1 text-sm text-foreground-muted dark:text-darcula-foreground-muted">
+                            Los parámetros aparecerán aquí una vez que el experimento se complete exitosamente.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Tab de Métricas Detalladas de MLflow -->
+        <div id="tab-mlflow-metrics" class="hidden">
+            <div class="bg-background-primary dark:bg-darcula-background-darker border border-border-default dark:border-darcula-border rounded-xl shadow-card p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-semibold text-foreground-default dark:text-darcula-foreground">Métricas Detalladas</h3>
+                    <div class="flex items-center text-sm text-foreground-muted dark:text-darcula-foreground-muted">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        MLflow Run ID: {{ experiment.mlflow_run_id|slice:":8" }}...
+                    </div>
+                </div>
+
+                {% if mlflow_error %}
+                    <div class="bg-red-50 dark:bg-darcula-background-lighter border border-red-200 dark:border-darcula-border-light rounded-lg p-4 mb-6">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-red-600 dark:text-darcula-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="text-sm font-medium text-red-800 dark:text-darcula-string">Error al conectar con MLflow: {{ mlflow_error }}</span>
+                        </div>
+                    </div>
+                {% elif mlflow_metrics %}
+                    <div class="mb-4">
+                        <p class="text-sm text-foreground-muted dark:text-darcula-foreground-muted mb-4">
+                            Métricas de rendimiento registradas automáticamente durante el entrenamiento y evaluación del modelo.
+                        </p>
+                    </div>
+
+                    <!-- Performance Metrics Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                        {% for metric_name, metric_value in mlflow_metrics.items %}
+                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-darcula-background-lighter dark:to-darcula-background border border-blue-200 dark:border-darcula-border-light rounded-lg p-4 text-center">
+                            <div class="text-xl font-bold text-blue-600 dark:text-darcula-accent">
+                                {% if metric_value|floatformat:4 != metric_value|floatformat:0 %}
+                                    {{ metric_value|floatformat:4 }}
+                                {% else %}
+                                    {{ metric_value|floatformat:0 }}
+                                {% endif %}
+                            </div>
+                            <div class="text-sm font-medium text-gray-600 dark:text-darcula-foreground-muted uppercase tracking-wide mt-1">
+                                {{ metric_name|title }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Detailed Metrics Table -->
+                    <div class="bg-white dark:bg-darcula-background rounded-lg border border-border-default dark:border-darcula-border">
+                        <div class="px-4 py-3 border-b border-gray-200 dark:border-darcula-border bg-gray-50 dark:bg-darcula-background-lighter">
+                            <h4 class="text-sm font-semibold text-foreground-default dark:text-darcula-foreground">Todas las Métricas</h4>
+                        </div>
+                        <div class="divide-y divide-gray-200 dark:divide-darcula-border">
+                            {% for metric_name, metric_value in mlflow_metrics.items %}
+                            <div class="px-4 py-3 hover:bg-gray-50 dark:hover:bg-darcula-background-lighter transition-colors">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-2 h-2 bg-green-500 dark:bg-darcula-accent rounded-full"></div>
+                                        <span class="text-sm font-medium text-foreground-default dark:text-darcula-foreground">{{ metric_name }}</span>
+                                    </div>
+                                    <div class="text-sm text-foreground-muted dark:text-darcula-foreground-muted font-mono bg-background-secondary dark:bg-darcula-background-lighter px-2 py-1 rounded border dark:border-darcula-border-light">
+                                        {% if metric_value|floatformat:4 != metric_value|floatformat:0 %}
+                                            {{ metric_value|floatformat:4 }}
+                                        {% else %}
+                                            {{ metric_value|floatformat:0 }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <svg class="mx-auto h-12 w-12 text-foreground-muted dark:text-darcula-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-foreground-default dark:text-darcula-foreground">No hay métricas disponibles</h3>
+                        <p class="mt-1 text-sm text-foreground-muted dark:text-darcula-foreground-muted">
+                            Las métricas aparecerán aquí una vez que el experimento se complete exitosamente.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Tab de Artefactos de MLflow -->
+        <div id="tab-artifacts" class="hidden">
+            {% if experiment.mlflow_run_id %}
+                <div class="bg-background-primary dark:bg-darcula-background-darker border border-border-default dark:border-darcula-border rounded-xl shadow-card p-6 mb-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-semibold text-foreground-default dark:text-darcula-foreground">Artefactos de MLflow</h3>
+                        <div class="flex items-center text-sm text-foreground-muted dark:text-darcula-foreground-muted">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Run ID: {{ experiment.mlflow_run_id|slice:":8" }}...
+                        </div>
+                    </div>
+                    
+                    {% if mlflow_artifacts %}
+                        <div class="mb-4">
+                            <p class="text-sm text-foreground-muted dark:text-darcula-foreground-muted mb-4">
+                                Los siguientes artefactos fueron generados durante la ejecución del experimento y están almacenados en MLflow.
+                            </p>
+                        </div>
+                        
+                        <!-- Artifacts List -->
+                        <div class="bg-white dark:bg-darcula-background rounded-lg border border-border-default dark:border-darcula-border">
+                            <div class="divide-y divide-gray-200 dark:divide-darcula-border">
+                                {% for artifact in mlflow_artifacts %}
+                                <div class="p-4 hover:bg-gray-50 dark:hover:bg-darcula-background-lighter transition-colors">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-3">
+                                            {% if artifact.is_dir %}
+                                                <svg class="w-5 h-5 text-blue-500 dark:text-darcula-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                                                </svg>
+                                            {% else %}
+                                                <svg class="w-5 h-5 text-gray-500 dark:text-darcula-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                </svg>
+                                            {% endif %}
+                                            <div>
+                                                <p class="text-sm font-medium text-foreground-default dark:text-darcula-foreground">
+                                                    {{ artifact.path }}
+                                                </p>
+                                                {% if artifact.size and not artifact.is_dir %}
+                                                    <p class="text-xs text-foreground-muted dark:text-darcula-foreground-muted">
+                                                        Size: {{ artifact.size|filesizeformat }}
+                                                    </p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% if not artifact.is_dir %}
+                                            <a href="{{ artifact.download_url }}" 
+                                               target="_blank"
+                                               class="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 dark:text-darcula-string bg-blue-50 dark:bg-darcula-background-lighter rounded-md hover:bg-blue-100 dark:hover:bg-darcula-background focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 border dark:border-darcula-border-light">
+                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                                </svg>
+                                                Descargar
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                    {% else %}
+                        <div class="text-center py-8">
+                            <svg class="mx-auto h-12 w-12 text-foreground-muted dark:text-darcula-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-foreground-default dark:text-darcula-foreground">No hay artefactos disponibles</h3>
+                            <p class="mt-1 text-sm text-foreground-muted dark:text-darcula-foreground-muted">
+                                Los artefactos de MLflow aparecerán aquí una vez que el experimento se complete exitosamente.
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="bg-background-primary dark:bg-darcula-background-darker border border-border-default dark:border-darcula-border rounded-xl shadow-card p-6">
+                    <div class="text-center py-8">
+                        <svg class="mx-auto h-12 w-12 text-foreground-muted dark:text-darcula-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-foreground-default dark:text-darcula-foreground">MLflow no configurado</h3>
+                        <p class="mt-1 text-sm text-foreground-muted dark:text-darcula-foreground-muted">
+                            Este experimento no tiene un Run ID de MLflow asociado. Los artefactos estarán disponibles después de ejecutar el experimento.
                         </p>
                     </div>
                 </div>
@@ -375,22 +1036,33 @@
                                 <span class="px-2 py-1 bg-blue-100 dark:bg-darcula-background-lighter text-blue-800 dark:text-darcula-accent text-xs font-medium rounded-full border dark:border-darcula-border-light">
                                     Run ID: {{ experiment.mlflow_run_id|slice:":8" }}...
                                 </span>
-                                <a href="http://localhost:5000/#/experiments/{{ experiment.id }}/runs/{{ experiment.mlflow_run_id }}" 
-                                   target="_blank"
-                                   class="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-600 dark:text-darcula-string bg-blue-50 dark:bg-darcula-background-lighter rounded-md hover:bg-blue-100 dark:hover:bg-darcula-background focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 border dark:border-darcula-border-light">
-                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                                    </svg>
-                                    Ver en MLflow
-                                </a>
                             </div>
                             <p class="text-xs text-foreground-muted dark:text-darcula-foreground-muted mt-1">
-                                Métricas, parámetros y artefactos del modelo están disponibles en MLflow
+                                Métricas, parámetros y artefactos están disponibles en las pestañas dedicadas de este experimento
                             </p>
                         </dd>
                     </div>
                     {% endif %}
                 </dl>
+
+                <!-- Promote to Preset Button (Only for completed experiments) -->
+                {% if experiment.status == 'FINISHED' and experiment.hyperparameters %}
+                <div class="mt-6 pt-6 border-t border-border-default dark:border-darcula-border">
+                    <h4 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground mb-3">Acciones Rápidas</h4>
+                    <div class="flex flex-wrap gap-3">
+                        <a href="{% url 'experiments:promote_to_preset' pk=experiment.pk %}" 
+                           class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-lg hover:bg-green-700 transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                            </svg>
+                            Guardar como Preset
+                        </a>
+                        <p class="text-xs text-foreground-muted dark:text-darcula-foreground-muted mt-1 flex-grow">
+                            Guarda los hiperparámetros de este experimento como un preset reutilizable para futuros experimentos.
+                        </p>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
 
@@ -442,6 +1114,235 @@
                 </div>
             </div>
         </div>
+
+        <!-- Lineage Tab -->
+        <div id="tab-lineage" class="hidden">
+            <div class="bg-background-primary dark:bg-darcula-background-darker border border-border-default dark:border-darcula-border rounded-xl shadow-card p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-semibold text-foreground-default dark:text-darcula-foreground">Linaje y Trazabilidad</h3>
+                    <div class="flex items-center text-sm text-foreground-muted dark:text-darcula-foreground-muted">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        Historial completo del experimento
+                    </div>
+                </div>
+
+                <!-- Lineage Timeline -->
+                <div class="relative">
+                    <!-- Timeline line -->
+                    <div class="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-200 via-green-200 to-purple-200 dark:from-blue-600 dark:via-green-600 dark:to-purple-600"></div>
+                    
+                    <div class="space-y-8">
+                        {% if experiment.suite %}
+                        <!-- Experiment Suite Origin -->
+                        <div class="relative flex items-start">
+                            <div class="flex-shrink-0 w-12 h-12 bg-purple-100 dark:bg-purple-900/30 border-2 border-purple-300 dark:border-purple-600 rounded-full flex items-center justify-center">
+                                <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-6 flex-1">
+                                <div class="bg-white dark:bg-darcula-background-lighter border border-border-default dark:border-darcula-border rounded-lg p-4 shadow-sm">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">Suite de Experimentos</h4>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-700">
+                                            Origen
+                                        </span>
+                                    </div>
+                                    <p class="text-foreground-secondary dark:text-darcula-foreground-muted mb-3">{{ experiment.suite.name }}</p>
+                                    <p class="text-sm text-foreground-muted dark:text-darcula-foreground-muted mb-3">{{ experiment.suite.description|truncatewords:20 }}</p>
+                                    <div class="flex items-center justify-between">
+                                        <div class="text-xs text-foreground-muted dark:text-darcula-foreground-muted">
+                                            Tipo: {{ experiment.suite.get_study_type_display }}
+                                        </div>
+                                        <a href="{% url 'experiments:suite_detail' pk=experiment.suite.pk %}" 
+                                           class="inline-flex items-center px-3 py-1 text-xs font-medium text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-md hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors">
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                            </svg>
+                                            Ver Suite
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if experiment.forked_from %}
+                        <!-- Forked From -->
+                        <div class="relative flex items-start">
+                            <div class="flex-shrink-0 w-12 h-12 bg-orange-100 dark:bg-orange-900/30 border-2 border-orange-300 dark:border-orange-600 rounded-full flex items-center justify-center">
+                                <svg class="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-6 flex-1">
+                                <div class="bg-white dark:bg-darcula-background-lighter border border-border-default dark:border-darcula-border rounded-lg p-4 shadow-sm">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">Experimento Base</h4>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 border border-orange-200 dark:border-orange-700">
+                                            Forked
+                                        </span>
+                                    </div>
+                                    <p class="text-foreground-secondary dark:text-darcula-foreground-muted mb-3">{{ experiment.forked_from.name }} (v{{ experiment.forked_from.version }})</p>
+                                    <p class="text-sm text-foreground-muted dark:text-darcula-foreground-muted mb-3">{{ experiment.forked_from.description|truncatewords:20|default:"Experimento del cual se creó este fork" }}</p>
+                                    <div class="flex items-center justify-between">
+                                        <div class="text-xs text-foreground-muted dark:text-darcula-foreground-muted">
+                                            Modelo: {{ experiment.forked_from.model_name }}
+                                        </div>
+                                        <a href="{% url 'experiments:ml_experiment_detail' pk=experiment.forked_from.pk %}" 
+                                           class="inline-flex items-center px-3 py-1 text-xs font-medium text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-md hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors">
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                            </svg>
+                                            Ver Original
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Input DataSource and its lineage -->
+                        {% if lineage_datasources %}
+                            {% for datasource_item in lineage_datasources %}
+                            <div class="relative flex items-start">
+                                <div class="flex-shrink-0 w-12 h-12 bg-{{ datasource_item.color }}-100 dark:bg-{{ datasource_item.color }}-900/30 border-2 border-{{ datasource_item.color }}-300 dark:border-{{ datasource_item.color }}-600 rounded-full flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-{{ datasource_item.color }}-600 dark:text-{{ datasource_item.color }}-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        {{ datasource_item.icon|safe }}
+                                    </svg>
+                                </div>
+                                <div class="ml-6 flex-1">
+                                    <div class="bg-white dark:bg-darcula-background-lighter border border-border-default dark:border-darcula-border rounded-lg p-4 shadow-sm">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <h4 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">{{ datasource_item.title }}</h4>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-{{ datasource_item.color }}-100 dark:bg-{{ datasource_item.color }}-900/30 text-{{ datasource_item.color }}-800 dark:text-{{ datasource_item.color }}-300 border border-{{ datasource_item.color }}-200 dark:border-{{ datasource_item.color }}-700">
+                                                {{ datasource_item.type_display }}
+                                            </span>
+                                        </div>
+                                        <p class="text-foreground-secondary dark:text-darcula-foreground-muted mb-3">{{ datasource_item.datasource.name }}</p>
+                                        <p class="text-sm text-foreground-muted dark:text-darcula-foreground-muted mb-3">{{ datasource_item.datasource.description|truncatewords:20|default:"Fuente de datos utilizada para el entrenamiento" }}</p>
+                                        
+                                        {% if datasource_item.datasource.parents.exists %}
+                                        <div class="mb-3">
+                                            <p class="text-xs font-medium text-foreground-muted dark:text-darcula-foreground-muted mb-2">Derivado de:</p>
+                                            <div class="flex flex-wrap gap-2">
+                                                {% for parent in datasource_item.datasource.parents.all %}
+                                                <span class="inline-flex items-center px-2 py-1 text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md">
+                                                    {{ parent.name }}
+                                                </span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <div class="flex items-center justify-between">
+                                            <div class="text-xs text-foreground-muted dark:text-darcula-foreground-muted">
+                                                Subido: {{ datasource_item.datasource.uploaded_at|date:"d M Y H:i" }}
+                                            </div>
+                                            <a href="{% url 'data_tools:data_studio' datasource_id=datasource_item.datasource.pk %}" 
+                                               class="inline-flex items-center px-3 py-1 text-xs font-medium text-{{ datasource_item.color }}-700 dark:text-{{ datasource_item.color }}-300 bg-{{ datasource_item.color }}-50 dark:bg-{{ datasource_item.color }}-900/20 border border-{{ datasource_item.color }}-200 dark:border-{{ datasource_item.color }}-700 rounded-md hover:bg-{{ datasource_item.color }}-100 dark:hover:bg-{{ datasource_item.color }}-900/40 transition-colors">
+                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                                </svg>
+                                                Data Studio
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                        <!-- Direct Input DataSource -->
+                        <div class="relative flex items-start">
+                            <div class="flex-shrink-0 w-12 h-12 bg-blue-100 dark:bg-blue-900/30 border-2 border-blue-300 dark:border-blue-600 rounded-full flex items-center justify-center">
+                                <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-6 flex-1">
+                                <div class="bg-white dark:bg-darcula-background-lighter border border-border-default dark:border-darcula-border rounded-lg p-4 shadow-sm">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">Fuente de Datos</h4>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700">
+                                            {{ experiment.input_datasource.get_data_type_display }}
+                                        </span>
+                                    </div>
+                                    <p class="text-foreground-secondary dark:text-darcula-foreground-muted mb-3">{{ experiment.input_datasource.name }}</p>
+                                    <p class="text-sm text-foreground-muted dark:text-darcula-foreground-muted mb-3">{{ experiment.input_datasource.description|truncatewords:20|default:"Fuente de datos utilizada para el entrenamiento del modelo" }}</p>
+                                    <div class="flex items-center justify-between">
+                                        <div class="text-xs text-foreground-muted dark:text-darcula-foreground-muted">
+                                            Subido: {{ experiment.input_datasource.uploaded_at|date:"d M Y H:i" }}
+                                        </div>
+                                        <a href="{% url 'data_tools:data_studio' datasource_id=experiment.input_datasource.pk %}" 
+                                           class="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors">
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                            </svg>
+                                            Data Studio
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Current Experiment -->
+                        <div class="relative flex items-start">
+                            <div class="flex-shrink-0 w-12 h-12 bg-green-100 dark:bg-green-900/30 border-2 border-green-300 dark:border-green-600 rounded-full flex items-center justify-center">
+                                <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-6 flex-1">
+                                <div class="bg-white dark:bg-darcula-background-lighter border border-border-default dark:border-darcula-border rounded-lg p-4 shadow-sm ring-2 ring-green-200 dark:ring-green-600">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">Experimento Actual</h4>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-700">
+                                            {{ experiment.get_status_display }}
+                                        </span>
+                                    </div>
+                                    <p class="text-foreground-secondary dark:text-darcula-foreground-muted mb-3">{{ experiment.name }} (v{{ experiment.version }})</p>
+                                    <p class="text-sm text-foreground-muted dark:text-darcula-foreground-muted mb-3">{{ experiment.description|truncatewords:20|default:"Experimento de machine learning actualmente visualizado" }}</p>
+                                    <div class="grid grid-cols-2 gap-4 text-xs text-foreground-muted dark:text-darcula-foreground-muted">
+                                        <div>
+                                            <span class="font-medium">Modelo:</span> {{ experiment.model_name }}
+                                        </div>
+                                        <div>
+                                            <span class="font-medium">Creado:</span> {{ experiment.created_at|date:"d M Y H:i" }}
+                                        </div>
+                                        <div>
+                                            <span class="font-medium">Target:</span> {{ experiment.target_column }}
+                                        </div>
+                                        <div>
+                                            <span class="font-medium">Features:</span> {{ experiment.feature_set|length }} columnas
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lineage Summary -->
+                <div class="mt-8 p-4 bg-blue-50 dark:bg-darcula-background-lighter border border-blue-200 dark:border-darcula-border-light rounded-lg">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-blue-400 dark:text-darcula-accent mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div>
+                            <h4 class="text-sm font-medium text-blue-800 dark:text-darcula-accent">Sobre el Linaje</h4>
+                            <p class="mt-1 text-sm text-blue-700 dark:text-darcula-foreground">
+                                Este diagrama muestra la trazabilidad completa del experimento desde sus fuentes de datos originales 
+                                hasta el modelo final. Incluye transformaciones de datos, experimentos base y suites de optimización.
+                                Puedes hacer clic en cualquier elemento para explorar más detalles.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Acciones adicionales -->
@@ -480,6 +1381,64 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{% static 'experiments/js/experiment_status.js' %}"></script>
     <script src="{% static 'experiments/js/experiment_dashboard.js' %}"></script>
+    
+    <!-- Tab switching functionality -->
+    <script>
+        // Tab switching functionality
+        function switchTab(activeTabId, activeButtonId) {
+            // Hide all tabs
+            const tabs = ['tab-results', 'tab-interpretability', 'tab-mlflow-params', 'tab-mlflow-metrics', 'tab-config', 'tab-artifacts', 'tab-report'];
+            const buttons = ['tab-results-btn', 'tab-interpretability-btn', 'tab-mlflow-params-btn', 'tab-mlflow-metrics-btn', 'tab-config-btn', 'tab-artifacts-btn', 'tab-report-btn'];
+            
+            tabs.forEach(tabId => {
+                const tabElement = document.getElementById(tabId);
+                if (tabElement) {
+                    tabElement.classList.add('hidden');
+                }
+            });
+            
+            buttons.forEach(buttonId => {
+                const button = document.getElementById(buttonId);
+                if (button) {
+                    button.classList.remove('text-brand-600', 'border-brand-600');
+                    button.classList.add('text-foreground-muted', 'border-transparent');
+                }
+            });
+            
+            // Show active tab
+            const activeTab = document.getElementById(activeTabId);
+            if (activeTab) {
+                activeTab.classList.remove('hidden');
+            }
+            
+            // Update active button
+            const activeButton = document.getElementById(activeButtonId);
+            if (activeButton) {
+                activeButton.classList.remove('text-foreground-muted', 'border-transparent');
+                activeButton.classList.add('text-brand-600', 'border-brand-600');
+            }
+        }
+        
+        // Add event listeners
+        document.getElementById('tab-results-btn').addEventListener('click', () => switchTab('tab-results', 'tab-results-btn'));
+        document.getElementById('tab-interpretability-btn').addEventListener('click', () => switchTab('tab-interpretability', 'tab-interpretability-btn'));
+        
+        // Add MLflow tab listeners only if they exist
+        const mlflowParamsBtn = document.getElementById('tab-mlflow-params-btn');
+        if (mlflowParamsBtn) {
+            mlflowParamsBtn.addEventListener('click', () => switchTab('tab-mlflow-params', 'tab-mlflow-params-btn'));
+        }
+        
+        const mlflowMetricsBtn = document.getElementById('tab-mlflow-metrics-btn');
+        if (mlflowMetricsBtn) {
+            mlflowMetricsBtn.addEventListener('click', () => switchTab('tab-mlflow-metrics', 'tab-mlflow-metrics-btn'));
+        }
+        
+        document.getElementById('tab-config-btn').addEventListener('click', () => switchTab('tab-config', 'tab-config-btn'));
+        document.getElementById('tab-artifacts-btn').addEventListener('click', () => switchTab('tab-artifacts', 'tab-artifacts-btn'));
+        document.getElementById('tab-lineage-btn').addEventListener('click', () => switchTab('tab-lineage', 'tab-lineage-btn'));
+        document.getElementById('tab-report-btn').addEventListener('click', () => switchTab('tab-report', 'tab-report-btn'));
+    </script>
     
     <!-- Pass experiment data to JavaScript -->
     {% if experiment.status == 'FINISHED' and experiment.results %}

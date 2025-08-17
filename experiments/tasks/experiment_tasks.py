@@ -872,6 +872,23 @@ def run_full_experiment_pipeline_task(self, experiment_id):
                 for param_name, param_value in experiment.hyperparameters.items():
                     mlflow.log_param(f"hp_{param_name}", param_value)
             
+            # Sync tags from Django to MLflow
+            try:
+                experiment_tags = list(experiment.tags.names())
+                if experiment_tags:
+                    # Convert tag list to a dictionary for MLflow
+                    mlflow_tags = {f"tag_{i}": tag for i, tag in enumerate(experiment_tags)}
+                    # Also add a combined tags field
+                    mlflow_tags["all_tags"] = ",".join(experiment_tags)
+                    mlflow_tags["tag_count"] = str(len(experiment_tags))
+                    
+                    mlflow.set_tags(mlflow_tags)
+                    logger.info(f"Synced {len(experiment_tags)} tags to MLflow for experiment {experiment_id}: {experiment_tags}")
+                else:
+                    logger.info(f"No tags to sync for experiment {experiment_id}")
+            except Exception as tag_error:
+                logger.warning(f"Could not sync tags to MLflow for experiment {experiment_id}: {tag_error}")
+            
             logger.info(f"Created MLflow run {mlflow_run.info.run_id} for experiment {experiment_id}")
 
         # Choose pipeline based on validation strategy

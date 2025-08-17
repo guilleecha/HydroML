@@ -1,0 +1,315 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Data Sources - HydroML{% endblock %}
+
+{% block extra_css %}
+<style>
+    .connection-card {
+        transition: all 0.2s ease-in-out                    <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No data sources</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Get started by creating your first data source.
+                </p>   }
+    .connection-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    .status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 6px;
+    }
+    .status-success {
+        background-color: #10b981;
+    }
+    .status-pending {
+        background-color: #f59e0b;
+    }
+    .status-error {
+        background-color: #ef4444;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8" x-data="databaseConnectionsApp()">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Data Sources</h1>
+                    <p class="mt-2 text-gray-600 dark:text-gray-400">
+                        Manage your data sources for projects
+                    </p>
+                </div>
+                <a href="{% url 'connectors:database_connection_create' %}" 
+                   class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Add Connection
+                </a>
+            </div>
+        </div>
+
+        <!-- Connections Grid -->
+        {% if connections %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for connection in connections %}
+                <div class="connection-card bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                    <!-- Connection Header -->
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                {% if connection.database_type == 'postgresql' %}
+                                    <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                                        </svg>
+                                    </div>
+                                {% elif connection.database_type == 'mysql' %}
+                                    <div class="w-10 h-10 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-orange-600 dark:text-orange-400" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                                        </svg>
+                                    </div>
+                                {% else %}
+                                    <div class="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-gray-600 dark:text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                                        </svg>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ connection.name }}</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">{{ connection.get_database_type_display }}</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Actions Menu -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                                </svg>
+                            </button>
+                            <div x-show="open" @click.away="open = false" x-transition
+                                 class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-10 border border-gray-200 dark:border-gray-600">
+                                <div class="py-1">
+                                    <a href="{% url 'connectors:database_connection_edit' connection.pk %}" 
+                                       class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                        Edit
+                                    </a>
+                                    <button @click="testConnection('{{ connection.pk }}')"
+                                            class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                        Test Connection
+                                    </button>
+                                    <a href="{% url 'connectors:database_connection_delete' connection.pk %}" 
+                                       class="block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                        Delete
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Connection Details -->
+                    <div class="space-y-2 text-sm">
+                        {% if connection.host %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-500 dark:text-gray-400">Host:</span>
+                            <span class="text-gray-900 dark:text-white font-medium">{{ connection.host }}</span>
+                        </div>
+                        {% endif %}
+                        {% if connection.port %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-500 dark:text-gray-400">Port:</span>
+                            <span class="text-gray-900 dark:text-white font-medium">{{ connection.port }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-500 dark:text-gray-400">Database:</span>
+                            <span class="text-gray-900 dark:text-white font-medium">{{ connection.database_name }}</span>
+                        </div>
+                        {% if connection.username %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-500 dark:text-gray-400">Username:</span>
+                            <span class="text-gray-900 dark:text-white font-medium">{{ connection.username }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Connection Status -->
+                    <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center text-sm">
+                                <span class="status-indicator status-pending" x-bind:class="getConnectionStatus('{{ connection.pk }}')"></span>
+                                <span class="text-gray-600 dark:text-gray-400">Last tested: Never</span>
+                            </div>
+                            <button @click="testConnection('{{ connection.pk }}')"
+                                    class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium">
+                                Test
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Created Date -->
+                    <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        Created {{ connection.created_at|date:"M d, Y" }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <div class="mt-8 flex justify-center">
+                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}" 
+                           class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            Previous
+                        </a>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                                {{ num }}
+                            </span>
+                        {% else %}
+                            <a href="?page={{ num }}" 
+                               class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                {{ num }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}" 
+                           class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            Next
+                        </a>
+                    {% endif %}
+                </nav>
+            </div>
+            {% endif %}
+
+        {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M4 7v10c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4V7c0-2.21-1.79-4-4-4H8c-2.21 0-4 1.79-4 4z"/>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No database connections</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Get started by creating your first database connection.
+                </p>
+                <div class="mt-6">
+                    <a href="{% url 'connectors:database_connection_create' %}" 
+                       class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Add your first connection
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Test Connection Modal -->
+    <div x-show="showTestModal" x-transition class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4 text-center">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="showTestModal = false"></div>
+            
+            <div class="inline-block bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full sm:mx-0 sm:h-10 sm:w-10"
+                         :class="testResult.success ? 'bg-green-100 dark:bg-green-900' : 'bg-red-100 dark:bg-red-900'">
+                        <svg x-show="testResult.success" class="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <svg x-show="!testResult.success" class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                            Connection Test Result
+                        </h3>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500 dark:text-gray-400" x-text="testResult.message"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                    <button @click="showTestModal = false" 
+                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function databaseConnectionsApp() {
+    return {
+        showTestModal: false,
+        testResult: {
+            success: false,
+            message: ''
+        },
+        connectionStatuses: {},
+
+        async testConnection(connectionId) {
+            try {
+                const response = await fetch('{% url "connectors:database_connection_test" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: JSON.stringify({
+                        connection_id: connectionId
+                    })
+                });
+
+                const data = await response.json();
+                
+                this.testResult = {
+                    success: data.success,
+                    message: data.message
+                };
+                
+                // Update connection status
+                this.connectionStatuses[connectionId] = data.success ? 'success' : 'error';
+                
+                this.showTestModal = true;
+                
+            } catch (error) {
+                this.testResult = {
+                    success: false,
+                    message: 'Failed to test connection: ' + error.message
+                };
+                this.showTestModal = true;
+            }
+        },
+
+        getConnectionStatus(connectionId) {
+            const status = this.connectionStatuses[connectionId] || 'pending';
+            return `status-${status}`;
+        }
+    }
+}
+</script>
+{% endblock %}

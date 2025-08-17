@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}HydroML{% endblock %}</title>
     
-    <!-- Prevent flash of unstyled content (FOUC) in dark mode -->
+    <!-- Prevent flash of unstyled content                         <a href="{% url 'accounts:signup' %}" 
+                            class="flex items-center w-full px-3 py-2 text-sm font-medium text-white bg-gray-800 dark:bg-gray-700 hover:bg-gray-900 dark:hover:bg-gray-600 rounded-lg transition-colors"OUC) in dark mode -->
     <script>
       // Prevents flash of unstyled content (FOUC) in dark mode
       if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -32,14 +33,18 @@
     
     {% block extra_css %}{% endblock %}
     
+    <!-- Load app.js before Alpine.js -->
+    <script src="{% static 'js/app.js' %}"></script>
     <!-- Alpine.js for interactivity -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script src="{% static 'js/app.js' %}"></script>
+    
+
     
     {% block extra_head %}{% endblock %}
 </head>
-<body class="h-full bg-background-primary dark:bg-onedark-background font-sans antialiased" x-data="hydroMLApp">
+<body class="h-full bg-background-primary dark:bg-onedark-background font-sans antialiased" x-data="hydroMLApp" x-init="init()">
     
+
     <!-- Upload Data Slide-Over Panel -->
     <div x-show="isUploadPanelOpen" 
          x-transition:enter="transition-opacity ease-linear duration-300"
@@ -180,6 +185,146 @@
         </div>
     </div>
     
+    <!-- New Project Slide-Over Panel -->
+    <div x-show="isNewProjectPanelOpen" 
+         x-transition:enter="transition-opacity ease-linear duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition-opacity ease-linear duration-300"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @close-new-project-panel.window="isNewProjectPanelOpen = false"
+         class="fixed inset-0 z-50"
+         x-cloak>
+        
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-gray-600 bg-opacity-75" 
+             @click="isNewProjectPanelOpen = false"></div>
+        
+        <!-- Panel -->
+        <div class="fixed inset-y-0 right-0 flex max-w-full pl-10 sm:pl-16"
+             x-show="isNewProjectPanelOpen"
+             x-transition:enter="transform transition ease-in-out duration-500"
+             x-transition:enter-start="translate-x-full"
+             x-transition:enter-end="translate-x-0"
+             x-transition:leave="transform transition ease-in-out duration-500"
+             x-transition:leave-start="translate-x-0"
+             x-transition:leave-end="translate-x-full">
+            
+            <div class="w-screen max-w-2xl">
+                <div class="flex h-full flex-col bg-background-primary dark:bg-darcula-background-darker shadow-xl border-l border-border-default dark:border-darcula-border-light">
+                    
+                    <!-- Header -->
+                    <div class="flex min-h-0 flex-1 flex-col">
+                        <div class="bg-background-secondary dark:bg-darcula-background border-b border-border-default dark:border-darcula-border-light px-4 py-6 sm:px-6">
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">
+                                    Crear Nuevo Workspace
+                                </h2>
+                                <div class="ml-3 flex h-7 items-center">
+                                    <button type="button" 
+                                            @click="isNewProjectPanelOpen = false"
+                                            class="rounded-md bg-transparent text-foreground-muted dark:text-darcula-foreground-muted hover:text-foreground-default dark:hover:text-darcula-foreground focus:outline-none focus:ring-2 focus:ring-darcula-accent">
+                                        <span class="sr-only">Cerrar panel</span>
+                                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Content -->
+                        <div class="relative flex-1 px-4 py-6 sm:px-6 overflow-y-auto">
+                            <div id="new-project-form-container" class="space-y-6">
+                                <!-- Form will be loaded here dynamically -->
+                                <div class="flex items-center justify-center h-32">
+                                    <div class="text-center">
+                                        <svg class="mx-auto h-8 w-8 text-foreground-muted dark:text-darcula-foreground-muted animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <p class="mt-2 text-sm text-foreground-muted dark:text-darcula-foreground-muted">Cargando formulario...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- New Suite Slide-Over Panel -->
+    <div x-show="isNewSuitePanelOpen" 
+         x-transition:enter="transition-opacity ease-linear duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition-opacity ease-linear duration-300"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @close-new-suite-panel.window="isNewSuitePanelOpen = false"
+         class="fixed inset-0 z-50"
+         x-cloak>
+        
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-gray-600 bg-opacity-75" 
+             @click="isNewSuitePanelOpen = false"></div>
+        
+        <!-- Panel -->
+        <div class="fixed inset-y-0 right-0 flex max-w-full pl-10 sm:pl-16"
+             x-show="isNewSuitePanelOpen"
+             x-transition:enter="transform transition ease-in-out duration-500"
+             x-transition:enter-start="translate-x-full"
+             x-transition:enter-end="translate-x-0"
+             x-transition:leave="transform transition ease-in-out duration-500"
+             x-transition:leave-start="translate-x-0"
+             x-transition:leave-end="translate-x-full">
+            
+            <div class="w-screen max-w-2xl">
+                <div class="flex h-full flex-col bg-background-primary dark:bg-darcula-background-darker shadow-xl border-l border-border-default dark:border-darcula-border-light">
+                    
+                    <!-- Header -->
+                    <div class="flex min-h-0 flex-1 flex-col">
+                        <div class="bg-background-secondary dark:bg-darcula-background border-b border-border-default dark:border-darcula-border-light px-4 py-6 sm:px-6">
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">
+                                    Nueva Suite de Experimentos
+                                </h2>
+                                <div class="ml-3 flex h-7 items-center">
+                                    <button type="button" 
+                                            @click="isNewSuitePanelOpen = false"
+                                            class="rounded-md bg-transparent text-foreground-muted dark:text-darcula-foreground-muted hover:text-foreground-default dark:hover:text-darcula-foreground focus:outline-none focus:ring-2 focus:ring-darcula-accent">
+                                        <span class="sr-only">Cerrar panel</span>
+                                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Content -->
+                        <div class="relative flex-1 px-4 py-6 sm:px-6 overflow-y-auto">
+                            <div id="new-suite-form-container" class="space-y-6">
+                                <!-- Form will be loaded here dynamically -->
+                                <div class="flex items-center justify-center h-32">
+                                    <div class="text-center">
+                                        <svg class="mx-auto h-8 w-8 text-foreground-muted dark:text-darcula-foreground-muted animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <p class="mt-2 text-sm text-foreground-muted dark:text-darcula-foreground-muted">Cargando formulario...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Main Layout Container -->
     <div class="flex h-full">
         
@@ -201,8 +346,8 @@
                @mouseleave="collapseSidebar()"
                class="fixed inset-y-0 left-0 z-50 bg-background-primary dark:bg-darcula-background border-r border-border-default dark:border-darcula-border transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0"
                :class="{ 
-                   '-translate-x-full': !sidebarOpen && window.innerWidth < 1024, 
-                   'translate-x-0': sidebarOpen || window.innerWidth >= 1024,
+                   '-translate-x-full': !sidebarOpen && isMobile, 
+                   'translate-x-0': sidebarOpen || !isMobile,
                    'w-16': !sidebarExpanded && !sidebarPinned,
                    'w-64': sidebarExpanded || sidebarPinned
                }"
@@ -277,10 +422,10 @@
                             <p class="text-xs text-foreground-muted dark:text-darcula-foreground-muted truncate">{{ user.email|default:"Usuario" }}</p>
                         </div>
                     </div>
-                    <a href="{% url 'logout' %}" 
+                    <a href="{% url 'accounts:logout' %}" 
                        class="flex items-center w-full px-3 py-2 text-sm font-medium text-foreground-secondary dark:text-darcula-foreground-muted hover:text-danger-600 dark:hover:text-darcula-error hover:bg-danger-50 dark:hover:bg-darcula-error/10 rounded-lg transition-colors"
                        :class="{ 'justify-center': !sidebarExpanded && !sidebarPinned }"
-                       :title="!sidebarExpanded && !sidebarPinned ? 'Cerrar Sesión' : ''">
+                       :title="!sidebarExpanded && !sidebarPinned ? 'Cerrar Sesión' : ''">>
                         <svg class="w-5 h-5" :class="{ 'mr-3': sidebarExpanded || sidebarPinned }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                         </svg>
@@ -294,7 +439,7 @@
                     </a>
                 {% else %}
                     <div class="space-y-2">
-                        <a href="{% url 'login' %}" 
+                        <a href="{% url 'accounts:login' %}" 
                            class="flex items-center w-full px-3 py-2 text-sm font-medium text-foreground-default dark:text-darcula-foreground hover:bg-background-tertiary dark:hover:bg-darcula-background-lighter rounded-lg transition-colors"
                            :class="{ 'justify-center': !sidebarExpanded && !sidebarPinned }"
                            :title="!sidebarExpanded && !sidebarPinned ? 'Iniciar Sesión' : ''">
@@ -309,7 +454,7 @@
                                   x-transition:leave-start="opacity-100"
                                   x-transition:leave-end="opacity-0">Iniciar Sesión</span>
                         </a>
-                        <a href="{% url 'signup' %}" 
+                        <a href="{% url 'accounts:signup' %}" 
                            class="flex items-center w-full px-3 py-2 text-sm font-medium text-white bg-gray-800 dark:bg-gray-700 hover:bg-gray-900 dark:hover:bg-gray-600 rounded-lg transition-colors"
                            :class="{ 'justify-center': !sidebarExpanded && !sidebarPinned }"
                            :title="!sidebarExpanded && !sidebarPinned ? 'Registrarse' : ''">
@@ -332,8 +477,8 @@
         <!-- Main Content Wrapper -->
         <div class="flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out"
              :class="{ 
-                 'lg:ml-16': !sidebarExpanded && !sidebarPinned,
-                 'lg:ml-64': sidebarExpanded || sidebarPinned
+                 'lg:ml-64': !sidebarExpanded && !sidebarPinned,
+                 'lg:ml-16': sidebarExpanded || sidebarPinned
              }">
             
             <!-- Header -->
@@ -356,32 +501,7 @@
                             
                             <!-- Breadcrumbs -->
                             {% block breadcrumbs %}
-                                {% if breadcrumbs %}
-                                    <nav class="flex items-center space-x-2 text-sm" aria-label="Breadcrumb">
-                                        <ol class="flex items-center space-x-2">
-                                            {% for breadcrumb in breadcrumbs %}
-                                                <li class="flex items-center">
-                                                    {% if not forloop.first %}
-                                                        <svg class="w-4 h-4 mx-2 text-foreground-muted dark:text-darcula-foreground-muted" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                                                        </svg>
-                                                    {% endif %}
-                                                    
-                                                    {% if forloop.last %}
-                                                        <!-- Current page (no link) -->
-                                                        <span class="text-foreground-default dark:text-darcula-foreground font-medium">{{ breadcrumb.name }}</span>
-                                                    {% else %}
-                                                        <!-- Link to previous pages -->
-                                                        <a href="{{ breadcrumb.url }}" 
-                                                           class="text-foreground-muted dark:text-darcula-foreground-muted hover:text-foreground-default dark:hover:text-darcula-foreground transition-colors">
-                                                            {{ breadcrumb.name }}
-                                                        </a>
-                                                    {% endif %}
-                                                </li>
-                                            {% endfor %}
-                                        </ol>
-                                    </nav>
-                                {% endif %}
+                                {% include 'core/_breadcrumbs.html' %}
                             {% endblock %}
                         {% endblock %}
                     </div>
@@ -434,7 +554,8 @@
                                          x-transition:leave="transition ease-in duration-75"
                                          x-transition:leave-start="transform opacity-100 scale-100"
                                          x-transition:leave-end="transform opacity-0 scale-95"
-                                         class="absolute right-0 mt-2 w-80 bg-background-primary dark:bg-darcula-background-darker border border-border-default dark:border-darcula-border rounded-lg shadow-lg z-50 max-h-96 overflow-hidden">
+                                         class="absolute right-0 mt-2 w-80 bg-background-primary dark:bg-darcula-background-darker border border-border-default dark:border-darcula-border rounded-lg shadow-lg z-50 max-h-96 overflow-hidden"
+                                         x-cloak>
                                         
                                         <!-- Header -->
                                         <div class="px-4 py-3 border-b border-border-default dark:border-darcula-border">
@@ -538,7 +659,7 @@
                                             
                                             <div class="border-t border-border-muted dark:border-darcula-border"></div>
                                             
-                                            <a href="{% url 'logout' %}" 
+                                            <a href="{% url 'accounts:logout' %}" 
                                                class="flex items-center px-4 py-2 text-sm text-danger-600 dark:text-darcula-error hover:bg-danger-50 dark:hover:bg-darcula-error/10 transition-colors">
                                                 <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
@@ -565,7 +686,7 @@
 
             <!-- Main Content Area -->
             <main class="flex-1 overflow-y-auto bg-background-primary dark:bg-onedark-background text-foreground-default dark:text-onedark-foreground text-sm">
-                <div class="p-6 lg:p-8">
+                <div class="p-6 lg:p-8 bg-background-primary dark:bg-onedark-background min-h-full">
                     <!-- Django Messages -->
                     {% if messages %}
                         <div class="mb-6 space-y-3">
@@ -605,6 +726,9 @@
             </main>
         </div>
     </div>
+
+    <!-- Global Loading Overlay -->
+    {% include 'core/_loading_overlay.html' %}
 
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.1.js"></script>

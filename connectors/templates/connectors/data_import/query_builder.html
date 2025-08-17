@@ -1,0 +1,560 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - HydroML{% endblock %}
+
+{% block extra_css %}
+<style>
+    .query-editor {
+        font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        background: #f9fafb;
+        color: #111827;
+        resize: vertical;
+        min-height: 200px;
+    }
+    .dark .query-editor {
+        background: #1f2937;
+        border-color: #4b5563;
+        color: #f9fafb;
+    }
+    .query-editor:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    .table-item {
+        cursor: pointer;
+        padding: 8px 12px;
+        border-radius: 4px;
+        transition: background-color 0.15s ease;
+    }
+    .table-item:hover {
+        background-color: #f3f4f6;
+    }
+    .dark .table-item:hover {
+        background-color: #374151;
+    }
+    .column-item {
+        font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+        font-size: 12px;
+        padding: 4px 8px;
+        margin: 2px 0;
+        border-radius: 3px;
+        background: #f3f4f6;
+        color: #6b7280;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+    }
+    .column-item:hover {
+        background-color: #e5e7eb;
+        color: #374151;
+    }
+    .dark .column-item {
+        background: #374151;
+        color: #9ca3af;
+    }
+    .dark .column-item:hover {
+        background: #4b5563;
+        color: #d1d5db;
+    }
+    .preview-table {
+        font-size: 12px;
+        overflow-x: auto;
+    }
+    .preview-table table {
+        min-width: 100%;
+        border-collapse: collapse;
+    }
+    .preview-table th,
+    .preview-table td {
+        padding: 8px 12px;
+        border: 1px solid #e5e7eb;
+        text-align: left;
+        white-space: nowrap;
+    }
+    .dark .preview-table th,
+    .dark .preview-table td {
+        border-color: #4b5563;
+    }
+    .preview-table th {
+        background: #f9fafb;
+        font-weight: 600;
+        color: #374151;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+    .dark .preview-table th {
+        background: #1f2937;
+        color: #d1d5db;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8" x-data="queryBuilder()">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-6">
+            <div class="flex items-center space-x-4">
+                {% if project %}
+                    <a href="{% url 'connectors:import_select_connection_project' project.id %}" 
+                       class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </a>
+                {% else %}
+                    <a href="{% url 'connectors:import_select_connection' %}" 
+                       class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </a>
+                {% endif %}
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ page_title }}</h1>
+                    <p class="text-gray-600 dark:text-gray-400">
+                        Connection: <span class="font-medium">{{ connection.name }}</span>
+                        {% if project %} | Project: <span class="font-medium">{{ project.name }}</span>{% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Database Schema Sidebar -->
+            <div class="lg:col-span-1">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Database Schema</h3>
+                        <button @click="loadTables()" 
+                                :disabled="loadingTables"
+                                class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm">
+                            <svg x-show="!loadingTables" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            <svg x-show="loadingTables" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Tables List -->
+                    <div class="space-y-2 max-h-96 overflow-y-auto">
+                        <template x-for="table in tables" :key="table">
+                            <div class="table-item" @click="selectTable(table)">
+                                <div class="flex items-center space-x-2">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                                    </svg>
+                                    <span class="text-sm font-medium text-gray-900 dark:text-white" x-text="table"></span>
+                                </div>
+                                
+                                <!-- Columns (shown when table is selected) -->
+                                <div x-show="selectedTable === table" x-transition class="mt-2 ml-6">
+                                    <template x-for="column in tableColumns[table] || []" :key="column.name">
+                                        <div class="column-item" @click.stop="insertColumn(table, column.name)">
+                                            <span x-text="column.name"></span>
+                                            <span class="text-xs opacity-75" x-text="` (${column.type})`"></span>
+                                        </div>
+                                    </template>
+                                    <div x-show="loadingColumns[table]" class="text-xs text-gray-500 dark:text-gray-400 p-2">
+                                        Loading columns...
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                        
+                        <div x-show="tables.length === 0 && !loadingTables" class="text-center py-4">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Click refresh to load tables</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Query Builder Main Area -->
+            <div class="lg:col-span-3 space-y-6">
+                <!-- Query Editor -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">SQL Query</h3>
+                        <div class="flex space-x-2">
+                            <button @click="previewQuery()" 
+                                    :disabled="!query.trim() || isPreviewLoading"
+                                    class="inline-flex items-center px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded transition-colors disabled:opacity-50">
+                                <svg x-show="!isPreviewLoading" class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                                <svg x-show="isPreviewLoading" class="w-4 h-4 mr-1 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Preview
+                            </button>
+                            <button @click="clearQuery()" class="inline-flex items-center px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded transition-colors">
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <textarea x-model="query" 
+                              class="query-editor w-full p-4"
+                              placeholder="Enter your SQL query here...&#10;&#10;Example:&#10;SELECT * FROM your_table&#10;WHERE column_name > 100&#10;ORDER BY created_at DESC&#10;LIMIT 1000"
+                              rows="10"></textarea>
+                </div>
+
+                <!-- Preview Results -->
+                <div x-show="showPreview" x-transition class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Query Preview</h3>
+                        <div x-show="previewData" class="text-sm text-gray-500 dark:text-gray-400">
+                            Showing first <span x-text="previewData?.total_rows || 0"></span> rows
+                        </div>
+                    </div>
+                    
+                    <div x-show="previewError" class="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                        <p class="text-sm text-red-600 dark:text-red-400" x-text="previewError"></p>
+                    </div>
+                    
+                    <div x-show="previewData" class="preview-table max-h-96 overflow-auto border border-gray-200 dark:border-gray-600 rounded">
+                        <table class="w-full">
+                            <thead>
+                                <tr>
+                                    <template x-for="column in previewData?.columns || []" :key="column">
+                                        <th x-text="column"></th>
+                                    </template>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="(row, index) in previewData?.rows || []" :key="index">
+                                    <tr>
+                                        <template x-for="(cell, cellIndex) in row" :key="cellIndex">
+                                            <td x-text="cell"></td>
+                                        </template>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Import Settings -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Import Settings</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                DataSource Name *
+                            </label>
+                            <input type="text" 
+                                   x-model="datasourceName"
+                                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   placeholder="Enter a name for your data source">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Execution Mode
+                            </label>
+                            <select x-model="executeAsync" 
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="false">Synchronous (immediate)</option>
+                                <option value="true">Asynchronous (background)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Description (optional)
+                        </label>
+                        <textarea x-model="description"
+                                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  rows="3"
+                                  placeholder="Optional description for this data source"></textarea>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center justify-between">
+                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                        {% if not project %}
+                            <span class="text-orange-600 dark:text-orange-400">⚠️ No project selected. Please select a project first.</span>
+                        {% endif %}
+                    </div>
+                    
+                    <button @click="executeImport()" 
+                            :disabled="!canExecute || isExecuting"
+                            class="inline-flex items-center px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors disabled:cursor-not-allowed">
+                        <svg x-show="isExecuting" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span x-text="isExecuting ? 'Importing...' : 'Import Data'"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Success Modal -->
+    <div x-show="showSuccessModal" x-transition class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4 text-center">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="showSuccessModal = false"></div>
+            
+            <div class="inline-block bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900 sm:mx-0 sm:h-10 sm:w-10">
+                        <svg class="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                            Import Successful
+                        </h3>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500 dark:text-gray-400" x-text="successMessage"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                    <button @click="redirectToDataSource()" 
+                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        View DataSource
+                    </button>
+                    <button @click="showSuccessModal = false" 
+                            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function queryBuilder() {
+    return {
+        query: '',
+        datasourceName: '',
+        description: '',
+        executeAsync: 'false',
+        
+        // Schema data
+        tables: [],
+        selectedTable: null,
+        tableColumns: {},
+        loadingTables: false,
+        loadingColumns: {},
+        
+        // Preview
+        showPreview: false,
+        previewData: null,
+        previewError: null,
+        isPreviewLoading: false,
+        
+        // Import
+        isExecuting: false,
+        showSuccessModal: false,
+        successMessage: '',
+        redirectUrl: '',
+
+        get canExecute() {
+            return this.query.trim() && this.datasourceName.trim() && 
+                   {% if project %}true{% else %}false{% endif %} && !this.isExecuting;
+        },
+
+        async loadTables() {
+            this.loadingTables = true;
+            try {
+                const response = await fetch('{% url "connectors:api_get_tables" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: JSON.stringify({
+                        connection_id: '{{ connection.id }}'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    this.tables = data.tables;
+                } else {
+                    alert('Error loading tables: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error loading tables: ' + error.message);
+            } finally {
+                this.loadingTables = false;
+            }
+        },
+
+        async selectTable(tableName) {
+            if (this.selectedTable === tableName) {
+                this.selectedTable = null;
+                return;
+            }
+            
+            this.selectedTable = tableName;
+            
+            if (!this.tableColumns[tableName]) {
+                this.loadingColumns[tableName] = true;
+                
+                try {
+                    const response = await fetch('{% url "connectors:api_get_columns" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        },
+                        body: JSON.stringify({
+                            connection_id: '{{ connection.id }}',
+                            table_name: tableName
+                        })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.tableColumns[tableName] = data.columns;
+                    } else {
+                        alert('Error loading columns: ' + data.error);
+                    }
+                } catch (error) {
+                    alert('Error loading columns: ' + error.message);
+                } finally {
+                    this.loadingColumns[tableName] = false;
+                }
+            }
+        },
+
+        insertColumn(tableName, columnName) {
+            const insertion = `${tableName}.${columnName}`;
+            const textarea = document.querySelector('.query-editor');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            
+            this.query = this.query.substring(0, start) + insertion + this.query.substring(end);
+            
+            // Focus and set cursor position
+            this.$nextTick(() => {
+                textarea.focus();
+                textarea.setSelectionRange(start + insertion.length, start + insertion.length);
+            });
+        },
+
+        async previewQuery() {
+            if (!this.query.trim()) return;
+            
+            this.isPreviewLoading = true;
+            this.previewError = null;
+            this.previewData = null;
+            
+            try {
+                const response = await fetch('{% url "connectors:api_preview_query" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: JSON.stringify({
+                        connection_id: '{{ connection.id }}',
+                        query: this.query
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    this.previewData = data.data;
+                    this.showPreview = true;
+                } else {
+                    this.previewError = data.error;
+                    this.showPreview = true;
+                }
+            } catch (error) {
+                this.previewError = 'Error previewing query: ' + error.message;
+                this.showPreview = true;
+            } finally {
+                this.isPreviewLoading = false;
+            }
+        },
+
+        clearQuery() {
+            this.query = '';
+            this.showPreview = false;
+            this.previewData = null;
+            this.previewError = null;
+        },
+
+        async executeImport() {
+            if (!this.canExecute) return;
+            
+            this.isExecuting = true;
+            
+            try {
+                const response = await fetch('{% if project %}{% url "connectors:import_query_project" connection.id project.id %}{% else %}{% url "connectors:import_query" connection.id %}{% endif %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: JSON.stringify({
+                        query: this.query,
+                        datasource_name: this.datasourceName,
+                        description: this.description,
+                        async: this.executeAsync === 'true'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.task_id) {
+                        this.successMessage = 'Data import started in background. You will be notified when it completes.';
+                        this.redirectUrl = null;
+                    } else {
+                        this.successMessage = `DataSource "${data.datasource_name}" created successfully!`;
+                        this.redirectUrl = data.redirect_url;
+                    }
+                    this.showSuccessModal = true;
+                } else {
+                    alert('Error importing data: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error importing data: ' + error.message);
+            } finally {
+                this.isExecuting = false;
+            }
+        },
+
+        redirectToDataSource() {
+            if (this.redirectUrl) {
+                window.location.href = this.redirectUrl;
+            } else {
+                this.showSuccessModal = false;
+            }
+        },
+
+        init() {
+            // Auto-load tables on page load
+            this.loadTables();
+        }
+    }
+}
+</script>
+{% endblock %}

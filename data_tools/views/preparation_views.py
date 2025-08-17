@@ -2,6 +2,12 @@
 import json
 import io
 import pandas as pd
+import numpy as np
+import missingno as msno
+import matplotlib
+matplotlib.use('Agg')  # Use non-GUI backend
+import matplotlib.pyplot as plt
+import base64
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.files.base import ContentFile
 from django.contrib.auth.decorators import login_required
@@ -84,25 +90,44 @@ def data_preparer_page(request, pk):
             if removed_columns:
                 df.drop(columns=removed_columns, inplace=True, errors='ignore')
 
-            # 4. Guardar el nuevo dataframe en formato Parquet (eficiente)
+            # 4. Preparar el paso de la receta para guardar
+            recipe_step = {
+                'action_type': 'data_preparation',
+                'action_name': 'Data Type Conversion & Column Removal',
+                'timestamp': pd.Timestamp.now().isoformat(),
+                'details': {
+                    'type_conversions': {key.replace('type-', ''): new_type 
+                                       for key, new_type in request.POST.items() 
+                                       if key.startswith('type-') and new_type},
+                    'removed_columns': removed_columns
+                }
+            }
+
+            # 5. Guardar el nuevo dataframe en formato Parquet (eficiente)
             parquet_buffer = io.BytesIO()
             df.to_parquet(parquet_buffer, index=False)
 
             new_dataset_name = request.POST.get('new_dataset_name', f"{datasource.name} (Preparado)")
 
-            # 5. Crear el nuevo objeto DataSource en la base de datos
+            # 6. Crear el nuevo objeto DataSource en la base de datos
             new_datasource = DataSource(
                 project=datasource.project,
                 name=new_dataset_name,
                 description=f"Versión preparada de '{datasource.name}'.",
                 data_type=DataSourceType.PREPARED  # Marcamos el tipo de dato
             )
+            
+            # 7. Copiar recipe_steps del padre y agregar el nuevo paso
+            new_recipe_steps = list(datasource.recipe_steps or [])  # Copiar pasos existentes
+            new_recipe_steps.append(recipe_step)  # Agregar el nuevo paso
+            new_datasource.recipe_steps = new_recipe_steps
+            
             new_file = ContentFile(parquet_buffer.getvalue())
             # Guardamos con un nombre único para evitar colisiones
             new_datasource.file.save(f'prepared_{datasource.pk}_{pd.Timestamp.now().strftime("%Y%m%d%H%M%S")}.parquet',
                                      new_file)
 
-            # 6. Establecer el linaje: el original es el padre del nuevo
+            # 8. Establecer el linaje: el original es el padre del nuevo
             new_datasource.parents.add(datasource)
             new_datasource.save()
 
@@ -190,11 +215,16 @@ def data_preparer_page(request, pk):
             border=0,
             escape=False
         )
+        
+        # 5. Calculate nullity report for Missing Data Toolkit
+        nullity_report = calculate_nullity_report(df_full if 'df_full' in locals() else df_head)
+        
     except Exception as e:
         column_info = {}
         grid_data_json = '[]'
         column_defs_json = '[]'
         preview_html = f"<div class='alert alert-danger'>Error al leer el archivo: {e}</div>"
+        nullity_report = None
 
     context = {
         'datasource': datasource,
@@ -202,7 +232,9 @@ def data_preparer_page(request, pk):
         'preview_html': preview_html,
         'grid_data_json': grid_data_json,
         'column_defs_json': column_defs_json,
-        'breadcrumbs': breadcrumbs
+        'breadcrumbs': breadcrumbs,
+        'recipe_steps': datasource.recipe_steps,  # Pass recipe steps to template
+        'nullity_report': nullity_report,  # Pass nullity report for Missing Data Toolkit
     }
     return render(request, 'data_tools/data_preparer.html', context)
 
@@ -325,6 +357,18 @@ def handle_feature_engineering_transformation(request, datasource):
         transformation_name = transformation_names.get(transformation_type, transformation_type)
         new_dataset_name = f"{datasource.name} ({transformation_name})"
         
+        # Create recipe step for this transformation
+        recipe_step = {
+            'action_type': 'feature_engineering',
+            'action_name': transformation_name,
+            'timestamp': pd.Timestamp.now().isoformat(),
+            'details': {
+                'transformation_type': transformation_type,
+                'parameters': dict(request.POST),
+                'description': message
+            }
+        }
+
         # 5. Create new DataSource object
         new_datasource = DataSource(
             project=datasource.project,
@@ -332,6 +376,11 @@ def handle_feature_engineering_transformation(request, datasource):
             description=f"Applied {transformation_name} to '{datasource.name}'. {message}",
             data_type=DataSourceType.PREPARED
         )
+        
+        # Copy recipe_steps from parent and add new step
+        new_recipe_steps = list(datasource.recipe_steps or [])  # Copy existing steps
+        new_recipe_steps.append(recipe_step)  # Add the new step
+        new_datasource.recipe_steps = new_recipe_steps
         
         new_file = ContentFile(parquet_buffer.getvalue())
         timestamp = pd.Timestamp.now().strftime("%Y%m%d%H%M%S")
@@ -354,3 +403,163 @@ def handle_feature_engineering_transformation(request, datasource):
             'success': False,
             'error': str(e)
         })
+
+
+def calculate_nullity_report(df):
+    """
+    Calculate comprehensive nullity report for the Missing Data Toolkit.
+    
+    Returns:
+        dict: Nullity report with statistics and visualizations
+    """
+    try:
+        if df is None or df.empty:
+            return None
+        
+        # Basic missing data statistics
+        total_rows = len(df)
+        total_cells = df.size
+        missing_cells = df.isnull().sum().sum()
+        missing_percentage = (missing_cells / total_cells * 100) if total_cells > 0 else 0
+        
+        # Per-column missing data
+        column_nullity = {}
+        for col in df.columns:
+            missing_count = df[col].isnull().sum()
+            column_nullity[col] = {
+                'missing_count': int(missing_count),
+                'missing_percentage': float(missing_count / total_rows * 100) if total_rows > 0 else 0,
+                'complete_count': int(total_rows - missing_count),
+                'data_type': str(df[col].dtype)
+            }
+        
+        # Missing patterns (simplified)
+        missing_pattern_counts = {}
+        missing_df = df.isnull()
+        
+        # Get most common missing patterns (top 10)
+        pattern_counts = missing_df.value_counts().head(10)
+        for pattern, count in pattern_counts.items():
+            # Create pattern description
+            missing_cols = [col for col, is_missing in zip(df.columns, pattern) if is_missing]
+            pattern_key = f"Missing: {', '.join(missing_cols)}" if missing_cols else "Complete"
+            missing_pattern_counts[pattern_key] = int(count)
+        
+        # Complete rows count
+        complete_rows = df.dropna().shape[0]
+        
+        # Data quality summary
+        data_quality = {
+            'completeness_score': float((total_cells - missing_cells) / total_cells * 100) if total_cells > 0 else 0,
+            'columns_with_missing': int(sum(1 for col in df.columns if df[col].isnull().any())),
+            'columns_completely_missing': int(sum(1 for col in df.columns if df[col].isnull().all())),
+            'rows_with_missing': int(df.isnull().any(axis=1).sum()),
+            'rows_completely_missing': int(df.isnull().all(axis=1).sum())
+        }
+        
+        # Generate visualization data for charts
+        visualization_data = generate_nullity_visualizations(df)
+        
+        nullity_report = {
+            'summary': {
+                'total_rows': total_rows,
+                'total_columns': len(df.columns),
+                'total_cells': total_cells,
+                'missing_cells': int(missing_cells),
+                'missing_percentage': round(missing_percentage, 2),
+                'complete_rows': int(complete_rows),
+                'complete_rows_percentage': round((complete_rows / total_rows * 100) if total_rows > 0 else 0, 2)
+            },
+            'column_analysis': column_nullity,
+            'missing_patterns': missing_pattern_counts,
+            'data_quality': data_quality,
+            'visualizations': visualization_data,
+            'timestamp': pd.Timestamp.now().isoformat()
+        }
+        
+        return nullity_report
+        
+    except Exception as e:
+        # Return minimal report on error
+        return {
+            'summary': {
+                'total_rows': len(df) if df is not None else 0,
+                'total_columns': len(df.columns) if df is not None else 0,
+                'error': str(e)
+            },
+            'timestamp': pd.Timestamp.now().isoformat()
+        }
+
+
+def generate_nullity_visualizations(df):
+    """
+    Generate visualization data for nullity patterns.
+    
+    Returns:
+        dict: Visualization data for charts
+    """
+    try:
+        # Prepare data for missing data bar chart
+        missing_counts = df.isnull().sum().sort_values(ascending=False)
+        
+        # Top 20 columns with missing data
+        top_missing = missing_counts[missing_counts > 0].head(20)
+        
+        bar_chart_data = {
+            'labels': list(top_missing.index),
+            'values': [int(x) for x in top_missing.values],
+            'percentages': [round(x / len(df) * 100, 1) for x in top_missing.values]
+        }
+        
+        # Data completeness matrix (for heatmap-style visualization)
+        # Sample a subset for performance
+        sample_size = min(1000, len(df))
+        df_sample = df.sample(n=sample_size, random_state=42) if len(df) > sample_size else df
+        
+        # Create matrix data (rows are samples, columns are variables)
+        matrix_data = []
+        for idx, row in df_sample.iterrows():
+            row_data = []
+            for col in df.columns:
+                row_data.append(0 if pd.isnull(row[col]) else 1)  # 0 = missing, 1 = present
+            matrix_data.append(row_data)
+        
+        heatmap_data = {
+            'columns': list(df.columns),
+            'matrix': matrix_data,
+            'sample_size': sample_size,
+            'total_rows': len(df)
+        }
+        
+        # Missing data correlation (which variables tend to be missing together)
+        missing_corr = df.isnull().corr()
+        
+        # Convert correlation matrix to format suitable for frontend
+        correlation_data = []
+        for i, col1 in enumerate(missing_corr.columns):
+            for j, col2 in enumerate(missing_corr.columns):
+                if i <= j:  # Only upper triangle to avoid duplicates
+                    corr_value = missing_corr.iloc[i, j]
+                    if not pd.isna(corr_value) and corr_value != 1.0:  # Exclude self-correlation
+                        correlation_data.append({
+                            'variable1': col1,
+                            'variable2': col2,
+                            'correlation': round(float(corr_value), 3)
+                        })
+        
+        # Sort by correlation strength
+        correlation_data.sort(key=lambda x: abs(x['correlation']), reverse=True)
+        
+        return {
+            'bar_chart': bar_chart_data,
+            'heatmap': heatmap_data,
+            'correlations': correlation_data[:50]  # Top 50 correlations
+        }
+        
+    except Exception as e:
+        return {
+            'error': str(e),
+            'bar_chart': {'labels': [], 'values': [], 'percentages': []},
+            'heatmap': {'columns': [], 'matrix': [], 'sample_size': 0},
+            'correlations': []
+        }

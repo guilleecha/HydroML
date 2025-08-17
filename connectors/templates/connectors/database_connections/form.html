@@ -1,0 +1,390 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - HydroML{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e5e7eb;
+    }
+    .dark .form-section {
+        background: #1f2937;
+        border-color: #374151;
+    }
+    .field-group {
+        margin-bottom: 1.5rem;
+    }
+    .field-group:last-child {
+        margin-bottom: 0;
+    }
+    .form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 0.5rem;
+    }
+    .dark .form-label {
+        color: #d1d5db;
+    }
+    .form-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        background: white;
+        color: #111827;
+        font-size: 0.875rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    .form-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    .dark .form-input {
+        background: #374151;
+        border-color: #4b5563;
+        color: #f9fafb;
+    }
+    .dark .form-input:focus {
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+    }
+    .form-help {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+    .dark .form-help {
+        color: #9ca3af;
+    }
+    .form-error {
+        font-size: 0.75rem;
+        color: #ef4444;
+        margin-top: 0.25rem;
+    }
+    .conditional-field {
+        opacity: 0.5;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    .conditional-field.enabled {
+        opacity: 1;
+        pointer-events: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8" x-data="databaseConnectionForm()">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'connectors:database_connections' %}" 
+                   class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </a>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ page_title }}</h1>
+                    <p class="mt-2 text-gray-600 dark:text-gray-400">
+                        {% if form_action == 'Create' %}
+                            Add a new database connection for importing data
+                        {% else %}
+                            Update your database connection settings
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <div class="form-section p-6">
+            <form method="post" @submit="handleSubmit">
+                {% csrf_token %}
+                
+                <!-- Connection Name -->
+                <div class="field-group">
+                    <label for="{{ form.name.id_for_label }}" class="form-label">
+                        Connection Name *
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.help_text %}
+                        <p class="form-help">{{ form.name.help_text }}</p>
+                    {% endif %}
+                    {% if form.name.errors %}
+                        {% for error in form.name.errors %}
+                            <p class="form-error">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Database Type -->
+                <div class="field-group">
+                    <label for="{{ form.database_type.id_for_label }}" class="form-label">
+                        Database Type *
+                    </label>
+                    <select name="{{ form.database_type.name }}" 
+                            id="{{ form.database_type.id_for_label }}"
+                            class="form-input"
+                            x-model="databaseType"
+                            @change="updateConditionalFields()">
+                        <option value="">Select database type</option>
+                        {% for value, label in form.database_type.field.choices %}
+                            <option value="{{ value }}" {% if form.database_type.value == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    {% if form.database_type.help_text %}
+                        <p class="form-help">{{ form.database_type.help_text }}</p>
+                    {% endif %}
+                    {% if form.database_type.errors %}
+                        {% for error in form.database_type.errors %}
+                            <p class="form-error">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Host (conditional) -->
+                <div class="field-group conditional-field" :class="{ 'enabled': showConnectionFields }">
+                    <label for="{{ form.host.id_for_label }}" class="form-label">
+                        Host <span x-show="showConnectionFields" class="text-red-500">*</span>
+                    </label>
+                    {{ form.host }}
+                    {% if form.host.help_text %}
+                        <p class="form-help">{{ form.host.help_text }}</p>
+                    {% endif %}
+                    {% if form.host.errors %}
+                        {% for error in form.host.errors %}
+                            <p class="form-error">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Port (conditional) -->
+                <div class="field-group conditional-field" :class="{ 'enabled': showConnectionFields }">
+                    <label for="{{ form.port.id_for_label }}" class="form-label">
+                        Port <span x-show="showConnectionFields" class="text-red-500">*</span>
+                    </label>
+                    {{ form.port }}
+                    {% if form.port.help_text %}
+                        <p class="form-help">{{ form.port.help_text }}</p>
+                    {% endif %}
+                    {% if form.port.errors %}
+                        {% for error in form.port.errors %}
+                            <p class="form-error">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Database Name -->
+                <div class="field-group">
+                    <label for="{{ form.database_name.id_for_label }}" class="form-label">
+                        Database Name *
+                    </label>
+                    {{ form.database_name }}
+                    {% if form.database_name.help_text %}
+                        <p class="form-help">{{ form.database_name.help_text }}</p>
+                    {% endif %}
+                    {% if form.database_name.errors %}
+                        {% for error in form.database_name.errors %}
+                            <p class="form-error">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Username (conditional) -->
+                <div class="field-group conditional-field" :class="{ 'enabled': showConnectionFields }">
+                    <label for="{{ form.username.id_for_label }}" class="form-label">
+                        Username <span x-show="showConnectionFields" class="text-red-500">*</span>
+                    </label>
+                    {{ form.username }}
+                    {% if form.username.help_text %}
+                        <p class="form-help">{{ form.username.help_text }}</p>
+                    {% endif %}
+                    {% if form.username.errors %}
+                        {% for error in form.username.errors %}
+                            <p class="form-error">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Password -->
+                <div class="field-group">
+                    <label for="{{ form.password.id_for_label }}" class="form-label">
+                        Password {% if form_action == 'Create' %}<span class="text-red-500">*</span>{% endif %}
+                    </label>
+                    {{ form.password }}
+                    {% if form.password.help_text %}
+                        <p class="form-help">{{ form.password.help_text }}</p>
+                    {% endif %}
+                    {% if form.password.errors %}
+                        {% for error in form.password.errors %}
+                            <p class="form-error">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Form Errors -->
+                {% if form.non_field_errors %}
+                    <div class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                        {% for error in form.non_field_errors %}
+                            <p class="text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Form Actions -->
+                <div class="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-600">
+                    <a href="{% url 'connectors:database_connections' %}" 
+                       class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                        Cancel
+                    </a>
+                    
+                    <div class="flex items-center space-x-3">
+                        {% if form_action == 'Update' %}
+                            <button type="button" 
+                                    @click="testConnection()"
+                                    :disabled="isSubmitting"
+                                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors disabled:opacity-50">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Test Connection
+                            </button>
+                        {% endif %}
+                        
+                        <button type="submit" 
+                                :disabled="isSubmitting"
+                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-lg transition-colors disabled:cursor-not-allowed">
+                            <svg x-show="isSubmitting" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span x-text="isSubmitting ? 'Saving...' : '{{ form_action }}'"></span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Test Connection Modal -->
+    <div x-show="showTestModal" x-transition class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4 text-center">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="showTestModal = false"></div>
+            
+            <div class="inline-block bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full sm:mx-0 sm:h-10 sm:w-10"
+                         :class="testResult.success ? 'bg-green-100 dark:bg-green-900' : 'bg-red-100 dark:bg-red-900'">
+                        <svg x-show="testResult.success" class="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <svg x-show="!testResult.success" class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                            Connection Test Result
+                        </h3>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500 dark:text-gray-400" x-text="testResult.message"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                    <button @click="showTestModal = false" 
+                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function databaseConnectionForm() {
+    return {
+        databaseType: '{{ form.database_type.value|default:"" }}',
+        showConnectionFields: false,
+        isSubmitting: false,
+        showTestModal: false,
+        testResult: {
+            success: false,
+            message: ''
+        },
+
+        init() {
+            this.updateConditionalFields();
+        },
+
+        updateConditionalFields() {
+            this.showConnectionFields = ['postgresql', 'mysql'].includes(this.databaseType);
+        },
+
+        handleSubmit(event) {
+            this.isSubmitting = true;
+            // Let the form submit naturally
+        },
+
+        async testConnection() {
+            const form = event.target.closest('form');
+            const formData = new FormData(form);
+            
+            try {
+                // We need the connection ID for testing, which is only available for existing connections
+                const connectionId = '{% if object %}{{ object.pk }}{% endif %}';
+                if (!connectionId) {
+                    this.testResult = {
+                        success: false,
+                        message: 'Please save the connection first before testing.'
+                    };
+                    this.showTestModal = true;
+                    return;
+                }
+
+                const response = await fetch('{% url "connectors:database_connection_test" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                    },
+                    body: JSON.stringify({
+                        connection_id: connectionId
+                    })
+                });
+
+                const data = await response.json();
+                
+                this.testResult = {
+                    success: data.success,
+                    message: data.message
+                };
+                
+                this.showTestModal = true;
+                
+            } catch (error) {
+                this.testResult = {
+                    success: false,
+                    message: 'Failed to test connection: ' + error.message
+                };
+                this.showTestModal = true;
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

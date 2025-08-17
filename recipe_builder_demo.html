@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Builder Demo</title>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto p-8" x-data="demoRecipeBuilder()">
+        <h1 class="text-3xl font-bold mb-8 text-gray-800">Recipe Builder Demo</h1>
+        
+        <!-- Simulation Controls -->
+        <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Simulate Data Operations</h2>
+            <div class="space-y-4">
+                <button @click="simulateColumnRemoval()" 
+                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">
+                    Remove Columns (flow_rate, temperature)
+                </button>
+                <button @click="simulateTransformation('mean_median_imputer')" 
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
+                    Apply Mean Imputation
+                </button>
+                <button @click="simulateTransformation('onehot_encoder')" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                    Apply One-Hot Encoding
+                </button>
+                <button @click="simulateTransformation('equal_frequency_discretiser')" 
+                        class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg">
+                    Apply Discretization
+                </button>
+            </div>
+        </div>
+
+        <!-- Recipe Builder (Actual Implementation) -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                </svg>
+                Receta Actual
+            </h2>
+            
+            <!-- Recipe Steps List -->
+            <div class="space-y-3 mb-6" x-show="recipeSteps.length > 0">
+                <template x-for="(step, index) in recipeSteps" :key="step.id">
+                    <div class="flex items-start justify-between p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center space-x-3">
+                                <span class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white text-sm font-bold rounded-full flex items-center justify-center" x-text="index + 1"></span>
+                                <span class="text-sm font-medium text-gray-900" x-text="step.description"></span>
+                            </div>
+                            <div class="mt-2 text-xs text-gray-500" x-text="step.details"></div>
+                            <div class="mt-1 text-xs text-gray-400" x-text="formatTime(step.timestamp)"></div>
+                        </div>
+                        <button type="button" @click="removeStep(index)" 
+                                class="flex-shrink-0 ml-3 text-red-600 hover:text-red-800 p-1">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </template>
+            </div>
+            
+            <!-- Empty State -->
+            <div x-show="recipeSteps.length === 0" class="text-center py-12">
+                <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                </svg>
+                <p class="text-gray-500 italic">No hay pasos en la receta aún</p>
+                <p class="text-sm text-gray-400 mt-1">Usa los botones de arriba para simular operaciones</p>
+            </div>
+
+            <!-- Recipe Actions -->
+            <div class="flex space-x-3 mt-6" x-show="recipeSteps.length > 0">
+                <button type="button" @click="clearRecipe()" 
+                        class="flex-1 px-4 py-2 text-sm bg-red-100 text-red-700 hover:bg-red-200 border border-red-300 rounded-lg transition-colors">
+                    <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd"></path>
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 012 0v4a1 1 0 11-2 0V7zM12 7a1 1 0 10-2 0v4a1 1 0 102 0V7z" clip-rule="evenodd"></path>
+                    </svg>
+                    Limpiar Receta
+                </button>
+                <button type="button" @click="saveRecipe()" 
+                        class="flex-1 px-4 py-2 text-sm bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-300 rounded-lg transition-colors">
+                    <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h5a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h5v5.586l-1.293-1.293zM9 4a1 1 0 012 0v2H9V4z"></path>
+                    </svg>
+                    Guardar Receta
+                </button>
+            </div>
+
+            <!-- Recipe Summary -->
+            <div x-show="recipeSteps.length > 0" class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p class="text-sm text-blue-800">
+                    <strong>Resumen:</strong> <span x-text="recipeSteps.length"></span> paso(s) en la receta
+                </p>
+                <p class="text-xs text-blue-600 mt-1">
+                    Última actualización: <span x-text="formatTime(lastUpdate)"></span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function demoRecipeBuilder() {
+            return {
+                recipeSteps: [],
+                nextStepId: 1,
+                lastUpdate: new Date(),
+
+                simulateColumnRemoval() {
+                    const columns = ['flow_rate', 'temperature'];
+                    const description = `Eliminadas ${columns.length} columnas`;
+                    const details = `Columnas: ${columns.join(', ')}`;
+                    this.addStep('column_removal', description, details, { columns });
+                },
+
+                simulateTransformation(type) {
+                    const transformations = {
+                        'mean_median_imputer': {
+                            name: 'Imputación de valores nulos',
+                            details: 'Estrategia: mean'
+                        },
+                        'onehot_encoder': {
+                            name: 'Codificación One-Hot',
+                            details: 'Top categorías: 10'
+                        },
+                        'equal_frequency_discretiser': {
+                            name: 'Discretización por frecuencia',
+                            details: 'Número de bins: 5'
+                        }
+                    };
+
+                    const transformation = transformations[type];
+                    const description = `Aplicada: ${transformation.name}`;
+                    this.addStep('transformation', description, transformation.details, { type });
+                },
+
+                addStep(type, description, details = '', metadata = {}) {
+                    const step = {
+                        id: this.nextStepId++,
+                        type: type,
+                        description: description,
+                        details: details,
+                        timestamp: new Date(),
+                        metadata: metadata
+                    };
+                    
+                    this.recipeSteps.push(step);
+                    this.lastUpdate = new Date();
+                    console.log('Added recipe step:', step);
+                },
+
+                removeStep(index) {
+                    if (index >= 0 && index < this.recipeSteps.length) {
+                        const removedStep = this.recipeSteps.splice(index, 1)[0];
+                        this.lastUpdate = new Date();
+                        console.log('Removed recipe step:', removedStep);
+                    }
+                },
+
+                clearRecipe() {
+                    if (confirm('¿Estás seguro de que quieres limpiar toda la receta?')) {
+                        this.recipeSteps = [];
+                        this.lastUpdate = new Date();
+                        console.log('Recipe cleared');
+                    }
+                },
+
+                saveRecipe() {
+                    const recipeData = {
+                        steps: this.recipeSteps,
+                        timestamp: new Date()
+                    };
+                    
+                    console.log('Saving recipe:', recipeData);
+                    alert('Receta guardada exitosamente (simulado)');
+                },
+
+                formatTime(timestamp) {
+                    const date = new Date(timestamp);
+                    return date.toLocaleTimeString('es-ES', { 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+                }
+            }
+        }
+    </script>
+</body>
+</html>

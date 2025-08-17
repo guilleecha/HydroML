@@ -4,6 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, DetailView
 from django.urls import reverse, reverse_lazy
 from django.contrib import messages
+from django.http import JsonResponse
 from projects.models import Project
 from ..models import ExperimentSuite
 from ..forms.suite_forms import AblationSuiteForm, ExperimentSuiteForm
@@ -61,6 +62,41 @@ class ExperimentSuiteCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         """Redirect to project detail page after successful creation."""
         return reverse('projects:project_detail', kwargs={'pk': self.get_project().pk})
+
+
+@login_required
+def suite_create_partial(request, project_pk):
+    """
+    Partial view for creating a new ExperimentSuite via AJAX.
+    Returns the form HTML for slide-over panel.
+    """
+    project = get_object_or_404(Project, id=project_pk, owner=request.user)
+    
+    if request.method == 'POST':
+        form = ExperimentSuiteForm(project=project, data=request.POST)
+        if form.is_valid():
+            suite = form.save(commit=False)
+            suite.project = project
+            suite.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'Suite de experimentos "{suite.name}" creado exitosamente.',
+                'redirect_url': reverse('projects:project_detail', kwargs={'pk': project.pk})
+            })
+        else:
+            # Return form with errors
+            return render(request, 'experiments/suite_form_partial.html', {
+                'form': form,
+                'project': project
+            })
+    else:
+        form = ExperimentSuiteForm(project=project)
+        
+    return render(request, 'experiments/suite_form_partial.html', {
+        'form': form,
+        'project': project
+    })
 
 
 class ExperimentSuiteDetailView(LoginRequiredMixin, DetailView):

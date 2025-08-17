@@ -1,0 +1,175 @@
+<!-- Project Level Navigation (Level 2) - When inside a specific workspace -->
+<ul class="space-y-1">
+    <!-- Back to Workspaces -->
+    <li>
+        <a href="{% url 'projects:project_list' %}" 
+           class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors text-gray-500 dark:text-gray-400 hover:text-green-700 dark:hover:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+           :class="{ 'justify-center': !(sidebarExpanded || sidebarPinned) }"
+           :title="!(sidebarExpanded || sidebarPinned) ? 'Back to Workspaces' : ''">
+            <svg class="flex-shrink-0 w-5 h-5 transition-colors text-gray-400 dark:text-gray-500 group-hover:text-green-600 dark:group-hover:text-green-400" 
+                 :class="{ 'mr-3': sidebarExpanded || sidebarPinned }"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M15 19l-7-7 7-7"></path>
+            </svg>
+            <span x-show="sidebarExpanded || sidebarPinned"
+                  x-transition:enter="transition-opacity ease-in duration-200"
+                  x-transition:enter-start="opacity-0"
+                  x-transition:enter-end="opacity-100"
+                  x-transition:leave="transition-opacity ease-out duration-150"
+                  x-transition:leave-start="opacity-100"
+                  x-transition:leave-end="opacity-0">All Workspaces</span>
+        </a>
+    </li>
+
+    <!-- Current Project Header -->
+    {% if current_project %}
+    <li x-show="sidebarExpanded || sidebarPinned">
+        <div class="px-3 py-2 border-b border-gray-200 dark:border-gray-700 mb-3">
+            <div class="flex items-center">
+                <div class="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm mr-3">
+                    {{ current_project.name|first|upper }}
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ current_project.name }}</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ current_project.data_sources.count }} data sources</p>
+                </div>
+            </div>
+        </div>
+    </li>
+    {% endif %}
+
+    <!-- Project Overview -->
+    <li>
+        <a href="{% if current_project %}{% url 'projects:project_detail' current_project.pk %}{% else %}#{% endif %}" 
+           class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors
+                  {% if request.resolver_match.url_name == 'project_detail' %}
+                      bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-r-2 border-green-500
+                  {% else %}
+                      text-gray-600 dark:text-gray-400 hover:text-green-700 dark:hover:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-800/50
+                  {% endif %}"
+           :class="{ 'justify-center': !(sidebarExpanded || sidebarPinned) }"
+           :title="!(sidebarExpanded || sidebarPinned) ? 'Project Overview' : ''">
+            <svg class="flex-shrink-0 w-5 h-5 transition-colors
+                        {% if request.resolver_match.url_name == 'project_detail' %}
+                            text-green-600 dark:text-green-400
+                        {% else %}
+                            text-gray-500 dark:text-gray-400 group-hover:text-green-600 dark:group-hover:text-green-400
+                        {% endif %}" 
+                 :class="{ 'mr-3': sidebarExpanded || sidebarPinned }"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+            <span x-show="sidebarExpanded || sidebarPinned"
+                  x-transition:enter="transition-opacity ease-in duration-200"
+                  x-transition:enter-start="opacity-0"
+                  x-transition:enter-end="opacity-100"
+                  x-transition:leave="transition-opacity ease-out duration-150"
+                  x-transition:leave-start="opacity-100"
+                  x-transition:leave-end="opacity-0">Overview</span>
+        </a>
+    </li>
+
+    <!-- Data Sources -->
+    <li>
+        <a href="{% if current_project %}{% url 'connectors:database_connections' %}?project={{ current_project.pk }}{% else %}#{% endif %}" 
+           class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors
+                  {% if 'data_source' in request.resolver_match.url_name %}
+                      bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-r-2 border-green-500
+                  {% else %}
+                      text-gray-600 dark:text-gray-400 hover:text-green-700 dark:hover:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-800/50
+                  {% endif %}"
+           :class="{ 'justify-center': !(sidebarExpanded || sidebarPinned) }"
+           :title="!(sidebarExpanded || sidebarPinned) ? 'Data Sources' : ''">
+            <svg class="flex-shrink-0 w-5 h-5 transition-colors
+                        {% if 'data_source' in request.resolver_match.url_name %}
+                            text-green-600 dark:text-green-400
+                        {% else %}
+                            text-gray-500 dark:text-gray-400 group-hover:text-green-600 dark:group-hover:text-green-400
+                        {% endif %}" 
+                 :class="{ 'mr-3': sidebarExpanded || sidebarPinned }"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path>
+            </svg>
+            <span x-show="sidebarExpanded || sidebarPinned"
+                  x-transition:enter="transition-opacity ease-in duration-200"
+                  x-transition:enter-start="opacity-0"
+                  x-transition:enter-end="opacity-100"
+                  x-transition:leave="transition-opacity ease-out duration-150"
+                  x-transition:leave-start="opacity-100"
+                  x-transition:leave-end="opacity-0">Data Sources</span>
+        </a>
+    </li>
+
+    <!-- Experiments -->
+    <li>
+        <a href="{% if current_project %}{% url 'projects:project_detail' current_project.pk %}?tab=experiments{% else %}#{% endif %}" 
+           class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors
+                  {% if 'experiment' in request.resolver_match.url_name and 'public' not in request.resolver_match.url_name %}
+                      bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-r-2 border-green-500
+                  {% else %}
+                      text-gray-600 dark:text-gray-400 hover:text-green-700 dark:hover:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-800/50
+                  {% endif %}"
+           :class="{ 'justify-center': !(sidebarExpanded || sidebarPinned) }"
+           :title="!(sidebarExpanded || sidebarPinned) ? 'Experiments' : ''">
+            <svg class="flex-shrink-0 w-5 h-5 transition-colors
+                        {% if 'experiment' in request.resolver_match.url_name and 'public' not in request.resolver_match.url_name %}
+                            text-green-600 dark:text-green-400
+                        {% else %}
+                            text-gray-500 dark:text-gray-400 group-hover:text-green-600 dark:group-hover:text-green-400
+                        {% endif %}" 
+                 :class="{ 'mr-3': sidebarExpanded || sidebarPinned }"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+            </svg>
+            <span x-show="sidebarExpanded || sidebarPinned"
+                  x-transition:enter="transition-opacity ease-in duration-200"
+                  x-transition:enter-start="opacity-0"
+                  x-transition:enter-end="opacity-100"
+                  x-transition:leave="transition-opacity ease-out duration-150"
+                  x-transition:leave-start="opacity-100"
+                  x-transition:leave-end="opacity-0">Experiments</span>
+        </a>
+    </li>
+
+    <!-- Divider -->
+    <li x-show="sidebarExpanded || sidebarPinned">
+        <div class="border-t border-gray-200 dark:border-gray-700 my-4"></div>
+    </li>
+
+    <!-- Project Settings -->
+    <li>
+        <a href="{% if current_project %}{% url 'projects:project_detail' current_project.pk %}{% else %}#{% endif %}" 
+           class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors
+                  {% if request.resolver_match.url_name == 'project_detail' %}
+                      bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-r-2 border-green-500
+                  {% else %}
+                      text-gray-600 dark:text-gray-400 hover:text-green-700 dark:hover:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-800/50
+                  {% endif %}"
+           :class="{ 'justify-center': !(sidebarExpanded || sidebarPinned) }"
+           :title="!(sidebarExpanded || sidebarPinned) ? 'Project Settings' : ''">
+            <svg class="flex-shrink-0 w-5 h-5 transition-colors
+                        {% if request.resolver_match.url_name == 'project_detail' %}
+                            text-green-600 dark:text-green-400
+                        {% else %}
+                            text-gray-500 dark:text-gray-400 group-hover:text-green-600 dark:group-hover:text-green-400
+                        {% endif %}" 
+                 :class="{ 'mr-3': sidebarExpanded || sidebarPinned }"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            <span x-show="sidebarExpanded || sidebarPinned"
+                  x-transition:enter="transition-opacity ease-in duration-200"
+                  x-transition:enter-start="opacity-0"
+                  x-transition:enter-end="opacity-100"
+                  x-transition:leave="transition-opacity ease-out duration-150"
+                  x-transition:leave-start="opacity-100"
+                  x-transition:leave-end="opacity-0">Settings</span>
+        </a>
+    </li>
+</ul>

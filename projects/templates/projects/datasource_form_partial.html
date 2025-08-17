@@ -99,77 +99,139 @@
             </div>
         </div>
         
-        <!-- Project selection (if creating new) -->
-        {% if not object %}
-            <input type="hidden" name="project" value="{{ project.id }}" />
+        <!-- Project selection (conditional) -->
+        {% if show_project_selection %}
+            <div class="mb-6 p-4 bg-background-secondary dark:bg-darcula-background border border-border-default dark:border-darcula-border rounded-lg">
+                <div class="flex items-start space-x-3">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-brand-500 dark:text-darcula-accent mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-2m-2 0H7m14 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2z" />
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-medium text-foreground-default dark:text-darcula-foreground">
+                            Seleccionar Workspace
+                        </h4>
+                        <p class="mt-1 text-xs text-foreground-muted dark:text-darcula-foreground-muted">
+                            Tienes {{ user_projects_count }} workspace{{ user_projects_count|pluralize }}. Elige dónde subir los datos.
+                        </p>
+                        <div class="mt-3">
+                            {% for field in form %}
+                                {% if field.name == 'project' %}
+                                    <div class="form-field">
+                                        {{ field }}
+                                        {% if field.errors %}
+                                            <div class="mt-1 space-y-1">
+                                                {% for error in field.errors %}
+                                                    <p class="text-sm text-danger-600 dark:text-darcula-error">{{ error }}</p>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% elif project %}
+            <!-- Show current project context -->
+            <div class="mb-6 p-4 bg-success-50 dark:bg-darcula-string/10 border border-success-200 dark:border-darcula-string/30 rounded-lg">
+                <div class="flex items-center space-x-3">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-success-500 dark:text-darcula-string" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-2m-2 0H7m14 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2z" />
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-medium text-success-700 dark:text-darcula-string">
+                            Subiendo a: {{ project.name }}
+                        </h4>
+                        <p class="text-xs text-success-600 dark:text-darcula-string">
+                            Los datos se añadirán a este workspace automáticamente.
+                        </p>
+                    </div>
+                </div>
+            </div>
         {% endif %}
         
         <!-- Form fields -->
         <div class="space-y-6">
             {% for field in form %}
-                <div class="form-field">
-                    <label for="{{ field.id_for_label }}" 
-                           class="block text-sm font-medium text-foreground-default dark:text-darcula-foreground mb-2">
-                        {{ field.label }}
-                        {% if field.field.required %}
-                            <span class="text-danger-500 dark:text-darcula-error">*</span>
+                {% if field.name != 'project' %}
+                    <div class="form-field">
+                        <label for="{{ field.id_for_label }}" 
+                               class="block text-sm font-medium text-foreground-default dark:text-darcula-foreground mb-2">
+                            {{ field.label }}
+                            {% if field.field.required %}
+                                <span class="text-danger-500 dark:text-darcula-error">*</span>
+                            {% endif %}
+                        </label>
+                        
+                        {% if field.help_text %}
+                            <p class="text-xs text-foreground-muted dark:text-darcula-foreground-muted mb-2">
+                                {{ field.help_text }}
+                            </p>
                         {% endif %}
-                    </label>
-                    
-                    {% if field.help_text %}
-                        <p class="text-xs text-foreground-muted dark:text-darcula-foreground-muted mb-2">
-                            {{ field.help_text }}
-                        </p>
-                    {% endif %}
-                    
-                    <div class="relative">
-                        {% if field.field.widget.input_type == 'file' %}
-                            <div class="flex justify-center px-6 pt-5 pb-6 border-2 border-border-default dark:border-darcula-border border-dashed rounded-lg hover:border-brand-300 dark:hover:border-darcula-accent/50 transition-colors">
-                                <div class="space-y-1 text-center">
-                                    <svg class="mx-auto h-12 w-12 text-foreground-muted dark:text-darcula-foreground-muted" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                    </svg>
-                                    <div class="flex text-sm text-foreground-muted dark:text-darcula-foreground-muted">
-                                        <label for="{{ field.id_for_label }}" class="relative cursor-pointer bg-transparent rounded-md font-medium text-brand-600 dark:text-darcula-accent hover:text-brand-500 dark:hover:text-darcula-accent/80 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-brand-500 dark:focus-within:ring-darcula-accent">
-                                            <span>Subir un archivo</span>
-                                            {{ field }}
-                                        </label>
-                                        <p class="pl-1">o arrastra y suelta</p>
+                        
+                        <div class="relative">
+                            {% if field.field.widget.input_type == 'file' %}
+                                <div class="flex justify-center px-6 pt-5 pb-6 border-2 border-border-default dark:border-darcula-border border-dashed rounded-lg hover:border-brand-300 dark:hover:border-darcula-accent/50 transition-colors">
+                                    <div class="space-y-1 text-center">
+                                        <svg class="mx-auto h-12 w-12 text-foreground-muted dark:text-darcula-foreground-muted" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                        <div class="flex text-sm text-foreground-muted dark:text-darcula-foreground-muted">
+                                            <label for="{{ field.id_for_label }}" class="relative cursor-pointer bg-transparent rounded-md font-medium text-brand-600 dark:text-darcula-accent hover:text-brand-500 dark:hover:text-darcula-accent/80 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-brand-500 dark:focus-within:ring-darcula-accent">
+                                                <span>Subir un archivo</span>
+                                                {{ field }}
+                                            </label>
+                                            <p class="pl-1">o arrastra y suelta</p>
+                                        </div>
+                                        <p class="text-xs text-foreground-muted dark:text-darcula-foreground-muted">
+                                            CSV, Excel, JSON hasta 100MB
+                                        </p>
                                     </div>
-                                    <p class="text-xs text-foreground-muted dark:text-darcula-foreground-muted">
-                                        CSV, Excel, JSON hasta 100MB
-                                    </p>
                                 </div>
+                            {% elif field.field.widget.input_type == 'textarea' %}
+                                <textarea 
+                                    name="{{ field.name }}"
+                                    id="{{ field.id_for_label }}"
+                                    rows="3"
+                                    class="block w-full rounded-lg border border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background text-foreground-default dark:text-darcula-foreground placeholder-foreground-muted dark:placeholder-darcula-foreground-muted focus:border-brand-500 dark:focus:border-darcula-accent focus:ring-brand-500 dark:focus:ring-darcula-accent sm:text-sm"
+                                    placeholder="{{ field.field.widget.attrs.placeholder|default:'' }}"
+                                    {% if field.field.required %}required{% endif %}>{{ field.value|default:'' }}</textarea>
+                            {% else %}
+                                <input 
+                                    type="{{ field.field.widget.input_type|default:'text' }}"
+                                    name="{{ field.name }}"
+                                    id="{{ field.id_for_label }}"
+                                    value="{{ field.value|default:'' }}"
+                                    class="block w-full rounded-lg border border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background text-foreground-default dark:text-darcula-foreground placeholder-foreground-muted dark:placeholder-darcula-foreground-muted focus:border-brand-500 dark:focus:border-darcula-accent focus:ring-brand-500 dark:focus:ring-darcula-accent sm:text-sm"
+                                    placeholder="{{ field.field.widget.attrs.placeholder|default:'' }}"
+                                    {% if field.field.required %}required{% endif %} />
+                            {% endif %}
+                        </div>
+                        
+                        {% if field.errors %}
+                            <div class="mt-2 space-y-1">
+                                {% for error in field.errors %}
+                                    <p class="text-sm text-danger-600 dark:text-darcula-error">{{ error }}</p>
+                                {% endfor %}
                             </div>
-                        {% elif field.field.widget.input_type == 'textarea' %}
-                            <textarea 
-                                name="{{ field.name }}"
-                                id="{{ field.id_for_label }}"
-                                rows="3"
-                                class="block w-full rounded-lg border border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background text-foreground-default dark:text-darcula-foreground placeholder-foreground-muted dark:placeholder-darcula-foreground-muted focus:border-brand-500 dark:focus:border-darcula-accent focus:ring-brand-500 dark:focus:ring-darcula-accent sm:text-sm"
-                                placeholder="{{ field.field.widget.attrs.placeholder|default:'' }}"
-                                {% if field.field.required %}required{% endif %}>{{ field.value|default:'' }}</textarea>
-                        {% else %}
-                            <input 
-                                type="{{ field.field.widget.input_type|default:'text' }}"
-                                name="{{ field.name }}"
-                                id="{{ field.id_for_label }}"
-                                value="{{ field.value|default:'' }}"
-                                class="block w-full rounded-lg border border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background text-foreground-default dark:text-darcula-foreground placeholder-foreground-muted dark:placeholder-darcula-foreground-muted focus:border-brand-500 dark:focus:border-darcula-accent focus:ring-brand-500 dark:focus:ring-darcula-accent sm:text-sm"
-                                placeholder="{{ field.field.widget.attrs.placeholder|default:'' }}"
-                                {% if field.field.required %}required{% endif %} />
                         {% endif %}
                     </div>
-                    
-                    {% if field.errors %}
-                        <div class="mt-2 space-y-1">
-                            {% for error in field.errors %}
-                                <p class="text-sm text-danger-600 dark:text-darcula-error">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
+                {% endif %}
             {% endfor %}
+            
+            <!-- Hidden project field if not showing selection -->
+            {% if not show_project_selection and project %}
+                {% for field in form %}
+                    {% if field.name == 'project' %}
+                        {{ field }}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
         </div>
         
         <!-- Form actions -->

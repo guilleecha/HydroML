@@ -38,19 +38,28 @@ def dashboard_view(request):
     user = request.user
     
     # Obtener todos los proyectos del usuario para las consultas
-    user_projects = Project.objects.filter(owner=user)
+    user_projects = Project.objects.filter(owner=user).order_by('-created_at')
     
-    # Calcular estadísticas
+    # Calcular estadísticas globales
+    total_workspaces = user_projects.count()
     total_datasources = DataSource.objects.filter(project__owner=user).count()
     total_experiments = MLExperiment.objects.filter(project__owner=user).count()
-    total_suites = ExperimentSuite.objects.filter(project__owner=user).count()
+    total_models = MLExperiment.objects.filter(
+        project__owner=user, 
+        status='FINISHED'
+    ).count()
     
-    # Obtener los 10 experimentos más recientes
+    # Actividad reciente - últimos 5 experimentos
     recent_experiments = MLExperiment.objects.filter(
         project__owner=user
-    ).select_related('project').order_by('-created_at')[:10]
+    ).select_related('project').order_by('-created_at')[:5]
     
-    # Get featured public experiments (last 3)
+    # Proyectos más activos (con más experimentos recientes)
+    active_projects = user_projects.annotate(
+        experiment_count=Count('experiments')
+    ).order_by('-experiment_count', '-created_at')[:6]
+    
+    # Get featured public experiments (últimos 3)
     featured_public_experiments = MLExperiment.objects.filter(
         is_public=True
     ).select_related(
@@ -59,11 +68,12 @@ def dashboard_view(request):
     ).order_by('-created_at')[:3]
     
     context = {
+        'total_workspaces': total_workspaces,
         'total_datasources': total_datasources,
         'total_experiments': total_experiments,
-        'total_suites': total_suites,
+        'total_models': total_models,
         'recent_experiments': recent_experiments,
-        'user_projects_count': user_projects.count(),
+        'user_projects': active_projects,
         'featured_public_experiments': featured_public_experiments,
     }
     

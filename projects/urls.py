@@ -7,6 +7,11 @@ app_name = 'projects'
 urlpatterns = [
     path('', project_views.project_list, name='project_list'),
     path('create/', project_views.project_create, name='project_create'),
+    
+    # Partial form for AJAX loading
+    path('create-form-partial/', 
+         project_views.project_create_partial, 
+         name='project_create_partial'),
 
     # CAMBIO AQUÍ: de <int:pk> a <uuid:pk>
     path('<uuid:pk>/', project_views.project_detail, name='project_detail'),

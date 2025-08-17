@@ -22,22 +22,31 @@ class DataStudio {
     }
     
     initializeGrid() {
-        // Create column definitions - only first column gets checkbox selection
+        // Create column definitions with improved header components
         const columnDefs = window.columnDefsData.map((col, index) => {
             const colDef = {
                 headerName: col.headerName,
                 field: col.field,
-                ...col
+                ...col,
+                // Use custom header component for all columns
+                headerComponent: 'customHeaderComponent'
             };
             
-            // Only apply checkbox selection to the first column
+            // Enable column selection for all columns, row selection only for first column
             if (index === 0) {
-                colDef.headerCheckboxSelection = true;
-                colDef.headerCheckboxSelectionFilteredOnly = true;
+                colDef.headerCheckboxSelection = false; // Disable built-in checkbox
                 colDef.checkboxSelection = true;
-                // Prevent sorting when clicking on checkbox
-                colDef.suppressHeaderMenuButton = true;
-                colDef.sortable = true; // Keep sortable but handle click events
+                colDef.headerComponentParams = {
+                    enableColumnSelection: true, // Column selection checkbox
+                    enableRowSelection: true, // Row selection for first column
+                    enableSorting: true
+                };
+            } else {
+                colDef.headerComponentParams = {
+                    enableColumnSelection: true, // Column selection checkbox
+                    enableRowSelection: false,
+                    enableSorting: true
+                };
             }
             
             // Implement flex width for primary column (station_code or first data column)
@@ -80,31 +89,108 @@ class DataStudio {
             columnDefs: columnDefs,
             rowData: window.gridRowData,
             
-            // Default column definitions with sensible defaults and tooltips
+            // Enhanced default column definitions with AG Grid best practices
             defaultColDef: {
                 width: 150,
                 minWidth: 120,
                 resizable: true,
-                tooltipValueGetter: (params) => params.value
+                sortable: true,
+                filter: true,
+                floatingFilter: true, // Enhanced filtering UX from AG Grid docs
+                menuTabs: ['filterMenuTab', 'generalMenuTab', 'columnsMenuTab'],
+                
+                // Performance optimizations from AG Grid documentation
+                suppressSizeToFit: false,
+                suppressAutoSize: false,
+                
+                // Enhanced tooltip with better null handling
+                tooltipValueGetter: (params) => {
+                    if (params.value == null || params.value === undefined) {
+                        return 'No data';
+                    }
+                    return params.value.toString();
+                },
+                
+                // Improved keyboard navigation
+                suppressKeyboardEvent: (params) => {
+                    // Allow navigation but prevent editing conflicts
+                    return params.event.key === 'Enter' && params.editing;
+                }
             },
             
-            // Selection configuration
+            // Enhanced selection configuration
             rowSelection: 'multiple',
             suppressRowClickSelection: false,
+            rowMultiSelectWithClick: true, // Better multi-selection UX
             
-            // Header configuration for column selection
+            // Enhanced header configuration for improved custom headers
             headerHeight: 60,
             suppressMenuHide: true,
             
-            // Header component configuration
+            // Performance optimizations from AG Grid best practices
+            suppressColumnVirtualisation: false, // Enable column virtualization for better performance
+            rowBuffer: 10, // Rows to render outside the visible area
+            suppressAnimationFrame: false, // Enable animation frame for smoother rendering
+            
+            // Register our custom header component
             components: {
                 customHeaderComponent: this.createCustomHeaderComponent()
             },
             
-            // Grid behavior
+            // Enhanced side panels for column management with AG Grid best practices
+            sideBar: {
+                toolPanels: [
+                    {
+                        id: 'columns',
+                        labelDefault: 'Columns',
+                        labelKey: 'columns',
+                        iconKey: 'columns',
+                        toolPanel: 'agColumnsToolPanel',
+                        toolPanelParams: {
+                            suppressRowGroups: true,
+                            suppressValues: true,
+                            suppressPivots: true,
+                            suppressPivotMode: true,
+                            suppressColumnFilter: false,
+                            suppressColumnSelectAll: false,
+                            suppressColumnExpandAll: false,
+                            contractColumnSelection: true, // Better UX
+                            suppressSyncLayoutWithGrid: false // Keep sync with grid
+                        }
+                    },
+                    {
+                        id: 'filters',
+                        labelDefault: 'Filters',
+                        labelKey: 'filters',
+                        iconKey: 'filter',
+                        toolPanel: 'agFiltersToolPanel',
+                        toolPanelParams: {
+                            suppressExpandAll: false,
+                            suppressFilterSearch: false
+                        }
+                    }
+                ],
+                defaultToolPanel: '',
+                hiddenByDefault: true,
+                position: 'right',
+                width: 300 // Fixed width for better UX
+            },
+            
+            // Enhanced grid behavior with AG Grid optimizations
             animateRows: true,
             enableCellTextSelection: true,
-            suppressCellFocus: true,
+            suppressCellFocus: false, // Enable cell focus for better accessibility
+            enableRangeSelection: true, // Enable range selection for data analysis
+            enableFillHandle: false, // Disable fill handle to prevent accidental edits
+            
+            // Pagination for better performance with large datasets
+            pagination: true,
+            paginationPageSize: 100,
+            paginationAutoPageSize: false,
+            
+            // Enhanced scrolling performance
+            suppressHorizontalScroll: false,
+            suppressScrollOnNewData: true,
             
             // Theme - dynamically set based on dark mode
             theme: this.getCurrentTheme(),
@@ -115,7 +201,7 @@ class DataStudio {
             onColumnVisible: () => this.onColumnChanged(),
             onColumnPinned: () => this.onColumnChanged(),
             
-            // Grid ready callback
+            // Enhanced grid ready callback with AG Grid best practices
             onGridReady: (params) => {
                 this.gridApi = params.api;
                 this.columnApi = params.columnApi;
@@ -123,11 +209,24 @@ class DataStudio {
                 // Set up theme change listener
                 this.setupThemeChangeListener();
                 
-                // Intelligently resize columns to fit their content and headers
+                // Intelligent column sizing with AG Grid best practices
                 const allVisibleColumnIds = params.api.getColumns().map(column => column.getId());
+                
+                // Use autoSizeColumns for better content fitting
                 params.api.autoSizeColumns(allVisibleColumnIds, false);
                 
-                console.log('Data Studio Grid initialized with', window.gridRowData.length, 'rows');
+                // Ensure grid fits the container width after auto-sizing
+                setTimeout(() => {
+                    params.api.sizeColumnsToFit();
+                }, 100);
+                
+                // Performance: Pre-load visible rows for smoother scrolling
+                if (window.gridRowData && window.gridRowData.length > 100) {
+                    params.api.setRowData(window.gridRowData);
+                }
+                
+                console.log('Data Studio Grid initialized with', window.gridRowData.length, 'rows and', allVisibleColumnIds.length, 'columns');
+                console.log('Performance features: Column virtualization, row buffering, pagination enabled');
             }
         };
         
@@ -418,27 +517,71 @@ class DataStudio {
     initializeColumnAnalysis() {
         this.populateNumericColumns();
         this.setupChartEventListeners();
+        
+        // Initialize chart type and button text
+        const chartTypeSelect = document.getElementById('chart_type_select');
+        if (chartTypeSelect) {
+            this.updateGenerateButtonText(chartTypeSelect.value);
+        }
     }
     
     populateNumericColumns() {
         const columnSelect = document.getElementById('analysis_column_select');
-        if (!columnSelect || !window.columnDefsData) return;
+        const xColumnSelect = document.getElementById('x_axis_column_select');
+        const yColumnSelect = document.getElementById('y_axis_column_select');
         
-        // Clear existing options except the first one
-        while (columnSelect.children.length > 1) {
-            columnSelect.removeChild(columnSelect.lastChild);
-        }
-        
+        if (!window.columnDefsData) return;
+
         // Get numeric columns from grid data
         const numericColumns = this.getNumericColumns();
         
-        // Add numeric columns to select
-        numericColumns.forEach(columnName => {
-            const option = document.createElement('option');
-            option.value = columnName;
-            option.textContent = columnName;
-            columnSelect.appendChild(option);
-        });
+        // Populate single column select (for histogram and boxplot)
+        if (columnSelect) {
+            // Clear existing options except the first one
+            while (columnSelect.children.length > 1) {
+                columnSelect.removeChild(columnSelect.lastChild);
+            }
+            
+            // Add numeric columns to select
+            numericColumns.forEach(columnName => {
+                const option = document.createElement('option');
+                option.value = columnName;
+                option.textContent = columnName;
+                columnSelect.appendChild(option);
+            });
+        }
+
+        // Populate X axis column select (for scatter plots)
+        if (xColumnSelect) {
+            // Clear existing options except the first one
+            while (xColumnSelect.children.length > 1) {
+                xColumnSelect.removeChild(xColumnSelect.lastChild);
+            }
+            
+            // Add numeric columns to select
+            numericColumns.forEach(columnName => {
+                const option = document.createElement('option');
+                option.value = columnName;
+                option.textContent = columnName;
+                xColumnSelect.appendChild(option);
+            });
+        }
+
+        // Populate Y axis column select (for scatter plots)
+        if (yColumnSelect) {
+            // Clear existing options except the first one
+            while (yColumnSelect.children.length > 1) {
+                yColumnSelect.removeChild(yColumnSelect.lastChild);
+            }
+            
+            // Add numeric columns to select
+            numericColumns.forEach(columnName => {
+                const option = document.createElement('option');
+                option.value = columnName;
+                option.textContent = columnName;
+                yColumnSelect.appendChild(option);
+            });
+        }
         
         console.log('Populated numeric columns:', numericColumns);
     }
@@ -497,11 +640,35 @@ class DataStudio {
     }
     
     setupChartEventListeners() {
-        // Column selection change
+        // Chart type selection change
+        const chartTypeSelect = document.getElementById('chart_type_select');
+        if (chartTypeSelect) {
+            chartTypeSelect.addEventListener('change', () => {
+                this.onChartTypeChange();
+            });
+        }
+
+        // Single column selection change (for histogram and boxplot)
         const columnSelect = document.getElementById('analysis_column_select');
         if (columnSelect) {
             columnSelect.addEventListener('change', () => {
                 this.onColumnSelectionChange();
+            });
+        }
+
+        // X and Y axis column selections (for scatter plots)
+        const xColumnSelect = document.getElementById('x_axis_column_select');
+        const yColumnSelect = document.getElementById('y_axis_column_select');
+        
+        if (xColumnSelect) {
+            xColumnSelect.addEventListener('change', () => {
+                this.onScatterColumnSelectionChange();
+            });
+        }
+        
+        if (yColumnSelect) {
+            yColumnSelect.addEventListener('change', () => {
+                this.onScatterColumnSelectionChange();
             });
         }
         
@@ -513,7 +680,54 @@ class DataStudio {
             });
         }
     }
-    
+
+    onChartTypeChange() {
+        const chartTypeSelect = document.getElementById('chart_type_select');
+        const singleColumnSection = document.getElementById('single_column_section');
+        const dualColumnSection = document.getElementById('dual_column_section');
+        
+        if (!chartTypeSelect || !singleColumnSection || !dualColumnSection) return;
+        
+        const chartType = chartTypeSelect.value;
+        
+        if (chartType === 'scatter') {
+            // Show dual column selection for scatter plots
+            singleColumnSection.classList.add('hidden');
+            dualColumnSection.classList.remove('hidden');
+            this.onScatterColumnSelectionChange();
+        } else {
+            // Show single column selection for histogram and boxplot
+            singleColumnSection.classList.remove('hidden');
+            dualColumnSection.classList.add('hidden');
+            this.onColumnSelectionChange();
+        }
+        
+        // Hide chart when changing type
+        this.hideChart();
+        
+        // Update button text based on chart type
+        this.updateGenerateButtonText(chartType);
+    }
+
+    updateGenerateButtonText(chartType) {
+        const generateBtn = document.getElementById('generate_chart_btn');
+        if (!generateBtn) return;
+        
+        const chartTypeNames = {
+            'histogram': 'Histograma',
+            'boxplot': 'Diagrama de Caja',
+            'scatter': 'Diagrama de Dispersión'
+        };
+        
+        const chartTypeName = chartTypeNames[chartType] || 'Gráfico';
+        generateBtn.innerHTML = `
+            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4"></path>
+            </svg>
+            Generar ${chartTypeName}
+        `;
+    }
+
     onColumnSelectionChange() {
         const columnSelect = document.getElementById('analysis_column_select');
         const generateBtn = document.getElementById('generate_chart_btn');
@@ -525,26 +739,77 @@ class DataStudio {
         // Hide chart container when selection changes
         this.hideChart();
     }
-    
-    async generateChart() {
-        const columnSelect = document.getElementById('analysis_column_select');
-        const chartTypeSelect = document.getElementById('chart_type_select');
+
+    onScatterColumnSelectionChange() {
+        const xColumnSelect = document.getElementById('x_axis_column_select');
+        const yColumnSelect = document.getElementById('y_axis_column_select');
+        const generateBtn = document.getElementById('generate_chart_btn');
         
-        if (!columnSelect.value) {
-            alert('Por favor seleccione una columna');
-            return;
+        if (xColumnSelect && yColumnSelect && generateBtn) {
+            generateBtn.disabled = !xColumnSelect.value || !yColumnSelect.value;
         }
         
-        const columnName = columnSelect.value;
+        // Hide chart container when selection changes
+        this.hideChart();
+    }
+    
+    async generateChart() {
+        const chartTypeSelect = document.getElementById('chart_type_select');
         const chartType = chartTypeSelect.value;
         
-        console.log('Generating chart for column:', columnName, 'type:', chartType);
+        let apiUrl;
+        let validationMessage;
+        
+        if (chartType === 'scatter') {
+            // Handle scatter plot with two columns
+            const xColumnSelect = document.getElementById('x_axis_column_select');
+            const yColumnSelect = document.getElementById('y_axis_column_select');
+            
+            if (!xColumnSelect.value) {
+                this.showValidationError('Por favor seleccione una columna para el eje X');
+                return;
+            }
+            
+            if (!yColumnSelect.value) {
+                this.showValidationError('Por favor seleccione una columna para el eje Y');
+                return;
+            }
+            
+            if (xColumnSelect.value === yColumnSelect.value) {
+                this.showValidationError('Por favor seleccione columnas diferentes para los ejes X e Y');
+                return;
+            }
+            
+            const xColumn = xColumnSelect.value;
+            const yColumn = yColumnSelect.value;
+            
+            console.log('Generating scatter plot for columns:', xColumn, 'vs', yColumn);
+            
+            apiUrl = `/data_tools/api/generate-chart/?datasource_id=${window.datasourceId}&x_column=${encodeURIComponent(xColumn)}&y_column=${encodeURIComponent(yColumn)}&chart_type=${chartType}`;
+            validationMessage = `scatter plot: ${xColumn} vs ${yColumn}`;
+            
+        } else {
+            // Handle single column charts (histogram, boxplot)
+            const columnSelect = document.getElementById('analysis_column_select');
+            
+            if (!columnSelect.value) {
+                this.showValidationError('Por favor seleccione una columna');
+                return;
+            }
+            
+            const columnName = columnSelect.value;
+            
+            console.log('Generating chart for column:', columnName, 'type:', chartType);
+            
+            apiUrl = `/data_tools/api/generate-chart/?datasource_id=${window.datasourceId}&column_name=${encodeURIComponent(columnName)}&chart_type=${chartType}`;
+            validationMessage = `${chartType} for ${columnName}`;
+        }
         
         // Show loading
         this.showChartLoading();
         
         try {
-            const response = await fetch(`/data_tools/api/generate-chart/?datasource_id=${window.datasourceId}&column_name=${encodeURIComponent(columnName)}&chart_type=${chartType}`);
+            const response = await fetch(apiUrl);
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -554,6 +819,7 @@ class DataStudio {
             
             if (data.success) {
                 this.showChart(data.chart_html);
+                this.showChartSuccess(data, chartType);
                 console.log('Chart generated successfully for', data.data_points, 'data points');
             } else {
                 throw new Error(data.error || 'Error desconocido al generar el gráfico');
@@ -565,6 +831,62 @@ class DataStudio {
         } finally {
             this.hideChartLoading();
         }
+    }
+
+    showValidationError(message) {
+        // Show temporary error message
+        const generateBtn = document.getElementById('generate_chart_btn');
+        if (generateBtn) {
+            const originalText = generateBtn.innerHTML;
+            generateBtn.innerHTML = `
+                <svg class="w-4 h-4 inline mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                ${message}
+            `;
+            generateBtn.classList.add('bg-red-600', 'hover:bg-red-700');
+            generateBtn.classList.remove('bg-brand-600', 'hover:bg-brand-700');
+            
+            // Reset after 3 seconds
+            setTimeout(() => {
+                generateBtn.innerHTML = originalText;
+                generateBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
+                generateBtn.classList.add('bg-brand-600', 'hover:bg-brand-700');
+            }, 3000);
+        }
+    }
+
+    showChartSuccess(data, chartType) {
+        // Show success feedback based on chart type
+        let message = '';
+        if (chartType === 'scatter') {
+            message = `Diagrama de dispersión generado: ${data.x_column} vs ${data.y_column} (${data.data_points} puntos)`;
+        } else {
+            message = `${chartType === 'histogram' ? 'Histograma' : 'Diagrama de caja'} generado para ${data.column_name} (${data.data_points} valores)`;
+        }
+        
+        // Temporarily update button with success message
+        const generateBtn = document.getElementById('generate_chart_btn');
+        if (generateBtn) {
+            const originalText = generateBtn.innerHTML;
+            generateBtn.innerHTML = `
+                <svg class="w-4 h-4 inline mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                ¡Gráfico generado!
+            `;
+            generateBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+            generateBtn.classList.remove('bg-brand-600', 'hover:bg-brand-700');
+            
+            // Reset after 2 seconds
+            setTimeout(() => {
+                generateBtn.innerHTML = originalText;
+                generateBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                generateBtn.classList.add('bg-brand-600', 'hover:bg-brand-700');
+            }, 2000);
+        }
+        
+        console.log('Chart success:', message);
     }
     
     showChartLoading() {
@@ -633,6 +955,19 @@ class DataStudio {
         }
     }
     
+    // Column management functionality
+    toggleColumnPanel() {
+        if (this.gridApi) {
+            const isOpen = this.gridApi.isSideBarVisible();
+            if (isOpen) {
+                this.gridApi.setSideBarVisible(false);
+            } else {
+                this.gridApi.setSideBarVisible(true);
+                this.gridApi.openToolPanel('columns');
+            }
+        }
+    }
+    
     getCurrentTheme() {
         // Check if dark mode is active
         const isDarkMode = document.documentElement.classList.contains('dark');
@@ -663,79 +998,185 @@ class DataStudio {
     }
     
     createCustomHeaderComponent() {
-        // Custom header component to separate checkbox and sorting functionality
+        // Enhanced custom header component following AG Grid best practices
         function CustomHeaderComponent() {}
         
         CustomHeaderComponent.prototype.init = function(params) {
             this.params = params;
             this.eGui = document.createElement('div');
             this.eGui.className = 'custom-header-container';
-            this.eGui.style.cssText = 'display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 8px 4px;';
+            
+            // Enhanced horizontal flexbox layout with proper accessibility and improved spacing
+            this.eGui.style.cssText = 'display: flex; align-items: center; justify-content: flex-start; height: 100%; padding: 6px 8px; gap: 12px; min-width: 0;';
+            this.eGui.setAttribute('role', 'columnheader');
+            this.eGui.setAttribute('aria-label', `Column ${params.displayName}`);
+            
+            // Add checkbox for column selection (for all columns) or row selection (first column only)
+            if (params.enableColumnSelection || params.enableRowSelection) {
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'column-select-checkbox';
+                checkbox.style.cssText = 'cursor: pointer; margin: 0; flex-shrink: 0; accent-color: var(--ag-accent-color); order: -1;';
+                
+                if (params.enableColumnSelection) {
+                    checkbox.setAttribute('aria-label', `Select column ${params.displayName}`);
+                    // Enhanced checkbox interaction for column selection
+                    checkbox.addEventListener('change', (e) => {
+                        e.stopPropagation();
+                        // Prevent sorting when clicking checkbox
+                        if (e.target.checked) {
+                            if (window.dataStudio) {
+                                window.dataStudio.selectColumn(params.column.getColId());
+                            }
+                        } else {
+                            if (window.dataStudio) {
+                                window.dataStudio.deselectColumn(params.column.getColId());
+                            }
+                        }
+                        
+                        // Visual feedback for selection state
+                        this.eGui.classList.toggle('column-selected', e.target.checked);
+                    });
+                } else {
+                    checkbox.setAttribute('aria-label', `Select row ${params.displayName}`);
+                    // Row selection logic can be implemented here if needed
+                }
+                
+                this.eGui.appendChild(checkbox);
+                this.checkbox = checkbox; // Store reference for cleanup
+            }
+            
+            // Enhanced header text container with better overflow handling
+            const headerTextContainer = document.createElement('div');
+            headerTextContainer.style.cssText = 'flex: 1; display: flex; align-items: center; justify-content: center; min-width: 0; overflow: hidden;';
             
             if (params.enableSorting) {
-                // Sortable header text
+                // Enhanced sortable header text with improved accessibility
+                const headerText = document.createElement('div');
+                headerText.textContent = params.displayName;
+                headerText.className = 'header-text sortable';
+                headerText.style.cssText = `
+                    cursor: pointer; 
+                    user-select: none; 
+                    font-weight: 600; 
+                    text-align: center; 
+                    white-space: nowrap; 
+                    overflow: hidden; 
+                    text-overflow: ellipsis;
+                    transition: color 0.2s ease, text-shadow 0.2s ease;
+                    flex: 1;
+                `;
+                headerText.setAttribute('tabindex', '0'); // Make focusable
+                headerText.setAttribute('role', 'button');
+                headerText.setAttribute('aria-label', `Sort by ${params.displayName}`);
+                
+                // Enhanced sort indicator with better visual feedback
+                const sortIndicator = document.createElement('span');
+                sortIndicator.className = 'sort-indicator';
+                sortIndicator.style.cssText = 'margin-left: 4px; font-size: 12px; opacity: 0.7; transition: all 0.2s ease;';
+                sortIndicator.setAttribute('aria-hidden', 'true');
+                
+                headerText.appendChild(sortIndicator);
+                headerTextContainer.appendChild(headerText);
+                
+                // Enhanced sorting interaction with keyboard support
+                const handleSort = (e) => {
+                    e.stopPropagation();
+                    params.progressSort();
+                };
+                
+                headerText.addEventListener('click', handleSort);
+                headerText.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleSort(e);
+                    }
+                });
+                
+                // Enhanced hover effects for better UX
+                headerText.addEventListener('mouseenter', () => {
+                    headerText.style.color = 'var(--ag-accent-color)';
+                    headerText.style.textShadow = '0 0 4px var(--ag-accent-color-alpha, rgba(97, 175, 239, 0.3))';
+                    sortIndicator.style.opacity = '1';
+                });
+                
+                headerText.addEventListener('mouseleave', () => {
+                    headerText.style.color = '';
+                    headerText.style.textShadow = '';
+                    sortIndicator.style.opacity = '0.7';
+                });
+                
+                // Enhanced sort indicator update with animations
+                this.updateSortIndicator = () => {
+                    const sort = params.column.getSort();
+                    sortIndicator.style.transition = 'all 0.3s ease';
+                    
+                    if (sort === 'asc') {
+                        sortIndicator.textContent = '↑';
+                        sortIndicator.style.color = 'var(--ag-accent-color)';
+                        sortIndicator.style.transform = 'scale(1.2)';
+                        headerText.setAttribute('aria-label', `Sorted ascending by ${params.displayName}. Click to sort descending.`);
+                    } else if (sort === 'desc') {
+                        sortIndicator.textContent = '↓';
+                        sortIndicator.style.color = 'var(--ag-accent-color)';
+                        sortIndicator.style.transform = 'scale(1.2)';
+                        headerText.setAttribute('aria-label', `Sorted descending by ${params.displayName}. Click to remove sort.`);
+                    } else {
+                        sortIndicator.textContent = '';
+                        sortIndicator.style.color = 'var(--ag-foreground-color, #666)';
+                        sortIndicator.style.transform = 'scale(1)';
+                        headerText.setAttribute('aria-label', `Sort by ${params.displayName}`);
+                    }
+                };
+                
+                // Listen for sort changes
+                params.column.addEventListener('sortChanged', this.updateSortIndicator);
+                this.updateSortIndicator();
+                
+                // Store references for cleanup
+                this.headerText = headerText;
+                this.sortIndicator = sortIndicator;
+            } else {
+                // Enhanced non-sortable header
                 const headerText = document.createElement('div');
                 headerText.textContent = params.displayName;
                 headerText.className = 'header-text';
-                headerText.style.cssText = 'cursor: pointer; user-select: none; font-weight: 600; text-align: center; margin-bottom: 4px;';
+                headerText.style.cssText = `
+                    font-weight: 600; 
+                    text-align: center; 
+                    white-space: nowrap; 
+                    overflow: hidden; 
+                    text-overflow: ellipsis;
+                    color: var(--ag-foreground-color);
+                `;
+                headerText.setAttribute('title', params.displayName); // Tooltip for truncated text
+                headerTextContainer.appendChild(headerText);
                 
-                // Add sort indicator
-                const sortIndicator = document.createElement('span');
-                sortIndicator.className = 'sort-indicator';
-                sortIndicator.style.cssText = 'margin-left: 4px; font-size: 10px;';
-                
-                headerText.appendChild(sortIndicator);
-                this.eGui.appendChild(headerText);
-                
-                // Handle sorting click on text only
-                headerText.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    params.progressSort();
-                });
-                
-                // Update sort indicator
-                this.updateSortIndicator = () => {
-                    const sort = params.column.getSort();
-                    sortIndicator.textContent = sort === 'asc' ? '↑' : sort === 'desc' ? '↓' : '';
-                };
-                
-                params.column.addEventListener('sortChanged', this.updateSortIndicator);
-                this.updateSortIndicator();
-            } else {
-                // Non-sortable header
-                const headerText = document.createElement('div');
-                headerText.textContent = params.displayName;
-                headerText.style.cssText = 'font-weight: 600; text-align: center; margin-bottom: 4px;';
-                this.eGui.appendChild(headerText);
+                this.headerText = headerText;
             }
             
-            // Add checkbox for selection column
-            if (params.enableRowSelection) {
-                const checkboxContainer = document.createElement('div');
-                checkboxContainer.style.cssText = 'margin-top: 4px;';
-                
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.style.cssText = 'cursor: pointer;';
-                
-                // Handle checkbox click separately from sorting
-                checkbox.addEventListener('change', (e) => {
-                    e.stopPropagation();
-                    params.api.selectAll(e.target.checked);
-                });
-                
-                checkboxContainer.appendChild(checkbox);
-                this.eGui.appendChild(checkboxContainer);
-            }
+            this.eGui.appendChild(headerTextContainer);
         };
         
         CustomHeaderComponent.prototype.getGui = function() {
             return this.eGui;
         };
         
+        // Enhanced cleanup with proper event listener removal
         CustomHeaderComponent.prototype.destroy = function() {
             if (this.params && this.params.column && this.updateSortIndicator) {
                 this.params.column.removeEventListener('sortChanged', this.updateSortIndicator);
+            }
+            
+            // Clean up DOM references
+            if (this.checkbox) {
+                this.checkbox = null;
+            }
+            if (this.headerText) {
+                this.headerText = null;
+            }
+            if (this.sortIndicator) {
+                this.sortIndicator = null;
             }
         };
         
@@ -748,3 +1189,10 @@ const dataStudio = new DataStudio();
 
 // Make it globally available for inline event handlers
 window.dataStudio = dataStudio;
+
+// Global functions for Alpine.js
+window.toggleColumnPanel = function() {
+    if (window.dataStudio) {
+        window.dataStudio.toggleColumnPanel();
+    }
+};

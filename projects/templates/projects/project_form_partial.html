@@ -1,0 +1,209 @@
+{% load tailwind_filters %}
+
+<div class="space-y-6">
+    <div class="border-b border-border-default dark:border-darcula-border pb-4">
+        <h3 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">
+            {% if object %}
+                Editar Workspace: {{ object.name }}
+            {% else %}
+                Crear Nuevo Workspace
+            {% endif %}
+        </h3>
+        <p class="mt-1 text-sm text-foreground-muted dark:text-darcula-foreground-muted">
+            {% if object %}
+                Actualiza la información de tu workspace.
+            {% else %}
+                Crea un nuevo workspace para organizar tus fuentes de datos y experimentos.
+            {% endif %}
+        </p>
+    </div>
+    
+    <form method="post" 
+          x-data="{ 
+              submitting: false,
+              showSuccess: false,
+              showError: false,
+              errorMessage: '',
+              handleSubmit(event) {
+                  this.submitting = true;
+                  this.showError = false;
+                  this.showSuccess = false;
+                  
+                  // Handle form submission via AJAX
+                  event.preventDefault();
+                  const formData = new FormData(event.target);
+                  
+                  fetch(event.target.action || window.location.pathname, {
+                      method: 'POST',
+                      body: formData,
+                      headers: {
+                          'X-Requested-With': 'XMLHttpRequest'
+                      }
+                  })
+                  .then(response => response.json())
+                  .then(data => {
+                      this.submitting = false;
+                      if (data.success) {
+                          this.showSuccess = true;
+                          // Close panel after a short delay and refresh page
+                          setTimeout(() => {
+                              window.location.reload();
+                          }, 1000);
+                      } else {
+                          this.showError = true;
+                          this.errorMessage = data.errors ? 'Por favor corrige los errores en el formulario' : 'Error al crear el workspace';
+                          console.error('Form errors:', data.errors);
+                      }
+                  })
+                  .catch(error => {
+                      this.submitting = false;
+                      this.showError = true;
+                      this.errorMessage = 'Error de conexión. Inténtalo de nuevo.';
+                      console.error('Error:', error);
+                  });
+              }
+          }"
+          @submit="handleSubmit">
+        {% csrf_token %}
+        
+        <!-- Success/Error Messages -->
+        <div x-show="showSuccess" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform scale-95"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             class="mb-4 p-4 bg-success-50 dark:bg-darcula-string/10 border border-success-200 dark:border-darcula-string/30 rounded-lg">
+            <div class="flex">
+                <svg class="h-5 w-5 text-success-400 dark:text-darcula-string" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="ml-3">
+                    <p class="text-sm text-success-700 dark:text-darcula-string">
+                        ¡Workspace creado exitosamente! Redirigiendo...
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div x-show="showError" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform scale-95"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             class="mb-4 p-4 bg-danger-50 dark:bg-darcula-error/10 border border-danger-200 dark:border-darcula-error/30 rounded-lg">
+            <div class="flex">
+                <svg class="h-5 w-5 text-danger-400 dark:text-darcula-error" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="ml-3">
+                    <p class="text-sm text-danger-700 dark:text-darcula-error" x-text="errorMessage"></p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Form fields -->
+        <div class="space-y-6">
+            {% for field in form %}
+                <div class="form-field">
+                    <label for="{{ field.id_for_label }}" 
+                           class="block text-sm font-medium text-foreground-default dark:text-darcula-foreground mb-2">
+                        {{ field.label }}
+                        {% if field.field.required %}
+                            <span class="text-danger-500 dark:text-darcula-error">*</span>
+                        {% endif %}
+                    </label>
+                    
+                    {% if field.help_text %}
+                        <p class="text-xs text-foreground-muted dark:text-darcula-foreground-muted mb-2">
+                            {{ field.help_text }}
+                        </p>
+                    {% endif %}
+                    
+                    <div class="relative">
+                        {% if field.name == 'is_public' %}
+                            <!-- Toggle switch for is_public field -->
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <label for="{{ field.id_for_label }}" class="text-sm font-medium text-foreground-default dark:text-darcula-foreground">
+                                        {{ field.label }}
+                                    </label>
+                                    {% if field.help_text %}
+                                        <p class="text-xs text-foreground-muted dark:text-darcula-foreground-muted mt-1">
+                                            {{ field.help_text }}
+                                        </p>
+                                    {% endif %}
+                                </div>
+                                <div class="ml-4">
+                                    <button type="button" 
+                                            x-data="{ enabled: {{ field.value|yesno:'true,false' }} }"
+                                            @click="enabled = !enabled"
+                                            :class="{ 'bg-darcula-accent': enabled, 'bg-gray-200 dark:bg-darcula-border': !enabled }"
+                                            class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-darcula-accent focus:ring-offset-2 dark:focus:ring-offset-darcula-background">
+                                        <span class="sr-only">{{ field.label }}</span>
+                                        <span :class="{ 'translate-x-5': enabled, 'translate-x-0': !enabled }" 
+                                              class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                                    </button>
+                                    <input type="hidden" 
+                                           name="{{ field.name }}" 
+                                           x-model="enabled" 
+                                           value="{{ field.value|yesno:'true,false' }}">
+                                </div>
+                            </div>
+                        {% elif field.field.widget.input_type == 'textarea' %}
+                            <textarea 
+                                name="{{ field.name }}"
+                                id="{{ field.id_for_label }}"
+                                rows="3"
+                                class="block w-full rounded-lg border border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background text-foreground-default dark:text-darcula-foreground placeholder-foreground-muted dark:placeholder-darcula-foreground-muted focus:border-brand-500 dark:focus:border-darcula-accent focus:ring-brand-500 dark:focus:ring-darcula-accent sm:text-sm"
+                                placeholder="{{ field.field.widget.attrs.placeholder|default:'' }}"
+                                {% if field.field.required %}required{% endif %}>{{ field.value|default:'' }}</textarea>
+                        {% else %}
+                            <input 
+                                type="{{ field.field.widget.input_type|default:'text' }}"
+                                name="{{ field.name }}"
+                                id="{{ field.id_for_label }}"
+                                value="{{ field.value|default:'' }}"
+                                class="block w-full rounded-lg border border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background text-foreground-default dark:text-darcula-foreground placeholder-foreground-muted dark:placeholder-darcula-foreground-muted focus:border-brand-500 dark:focus:border-darcula-accent focus:ring-brand-500 dark:focus:ring-darcula-accent sm:text-sm"
+                                placeholder="{{ field.field.widget.attrs.placeholder|default:'' }}"
+                                {% if field.field.required %}required{% endif %} />
+                        {% endif %}
+                    </div>
+                    
+                    {% if field.errors %}
+                        <div class="mt-2 space-y-1">
+                            {% for error in field.errors %}
+                                <p class="text-sm text-danger-600 dark:text-darcula-error">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Form actions -->
+        <div class="flex justify-end space-x-3 pt-6 border-t border-border-default dark:border-darcula-border">
+            <button type="button" 
+                    @click="$dispatch('close-new-project-panel')"
+                    class="px-4 py-2 text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted bg-background-secondary dark:bg-darcula-background border border-border-default dark:border-darcula-border rounded-lg hover:bg-background-tertiary dark:hover:bg-darcula-background-lighter focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 dark:focus:ring-darcula-accent transition-colors">
+                Cancelar
+            </button>
+            <button type="submit" 
+                    :disabled="submitting"
+                    :class="{ 'opacity-50 cursor-not-allowed': submitting }"
+                    class="px-4 py-2 text-sm font-medium text-white bg-brand-600 dark:bg-darcula-accent border border-transparent rounded-lg hover:bg-brand-700 dark:hover:bg-darcula-accent/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 dark:focus:ring-darcula-accent transition-colors">
+                <span x-show="!submitting">
+                    {% if object %}
+                        Actualizar Workspace
+                    {% else %}
+                        Crear Workspace
+                    {% endif %}
+                </span>
+                <span x-show="submitting" class="flex items-center">
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Procesando...
+                </span>
+            </button>
+        </div>
+    </form>
+</div>

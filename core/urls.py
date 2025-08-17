@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import views, api
 
 
 app_name = 'core'
@@ -21,6 +21,9 @@ urlpatterns = [
     # API endpoints
     path('api/presets/', views.preset_api_list, name='preset_api_list'),
     path('api/presets/<int:preset_id>/', views.preset_api_detail, name='preset_api_detail'),
+    
+    # API endpoints for breadcrumb navigation
+    path('api/projects/other/', api.get_other_projects, name='api_other_projects'),
     
     # API endpoints for notifications (commented out until Notification model is implemented)
     # path('api/notifications/', views.NotificationAPIView.as_view(), name='notifications_api'),

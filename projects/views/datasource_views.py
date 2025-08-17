@@ -5,35 +5,74 @@ from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
+import json
+import os
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.offline import plot
 
 from ..models import Project, DataSource
 from ..forms.datasource_forms import DataSourceUpdateForm, DataSourceUploadForm
 from data_tools.tasks import convert_file_to_parquet_task
+from core.utils.breadcrumbs import create_breadcrumb
 
 
 @login_required
 def datasource_upload_form_partial(request):
     """
     Returns the upload form as a partial template for AJAX loading.
+    Enhanced to support conditional project selection.
     """
-    # Get project_id from query parameter or use the first project
+    # Get parameters
     project_id = request.GET.get('project_id')
-    if project_id:
-        project = get_object_or_404(Project, id=project_id, owner=request.user)
-    else:
-        project = request.user.projects.first()
+    force_selection = request.GET.get('force_selection', 'false').lower() == 'true'
     
-    if not project:
+    project = None
+    show_project_selection = False
+    
+    if project_id and not force_selection:
+        try:
+            project = get_object_or_404(Project, id=project_id, owner=request.user)
+        except:
+            project = None
+    
+    # Determine if we should show project selection
+    user_projects = Project.objects.filter(owner=request.user)
+    user_projects_count = user_projects.count()
+    
+    if user_projects_count == 0:
         return JsonResponse({
             'success': False,
             'error': 'No se encontró ningún proyecto. Crea un proyecto primero.'
         })
+    elif user_projects_count == 1 and not project and not force_selection:
+        # Only one project available, use it automatically
+        project = user_projects.first()
+        show_project_selection = False
+    elif not project or force_selection:
+        # Multiple projects but no context, or forced selection - show selection
+        show_project_selection = True
+        project = project or user_projects.first()  # Default selection
+    # If project is specified and not forced, don't show selection
     
     if request.method == 'POST':
-        form = DataSourceUploadForm(request.POST, request.FILES)
+        form = DataSourceUploadForm(
+            request.POST, 
+            request.FILES, 
+            user=request.user, 
+            project=project,
+            show_project_selection=show_project_selection
+        )
         if form.is_valid():
             datasource = form.save(commit=False)
-            datasource.project = project
+            
+            # Get project from form if selection was shown, otherwise use the context project
+            if show_project_selection and form.cleaned_data.get('project'):
+                datasource.project = form.cleaned_data['project']
+            else:
+                datasource.project = project
+                
             datasource.save()
             
             # Trigger the Parquet conversion task in the background
@@ -43,7 +82,7 @@ def datasource_upload_form_partial(request):
             return JsonResponse({
                 'success': True,
                 'message': 'Fuente de datos creada exitosamente',
-                'redirect_url': f'/projects/{project.id}/'
+                'redirect_url': f'/projects/{datasource.project.id}/'
             })
         else:
             # Return form with errors
@@ -52,11 +91,17 @@ def datasource_upload_form_partial(request):
                 'errors': form.errors
             })
     else:
-        form = DataSourceUploadForm()
+        form = DataSourceUploadForm(
+            user=request.user, 
+            project=project,
+            show_project_selection=show_project_selection
+        )
 
     context = {
         'form': form,
         'project': project,
+        'show_project_selection': show_project_selection,
+        'user_projects_count': user_projects_count,
     }
     return render(request, 'projects/datasource_form_partial.html', context)
 
@@ -126,10 +171,11 @@ class DataSourceDeleteView(LoginRequiredMixin, DeleteView):
 @login_required
 def datasource_upload_summary(request, datasource_id):
     """
-    Page shown immediately after upload; it polls the datasource status and
-    displays a quality report once processing finishes.
+    Comprehensive Data Quality and Lineage Report page.
+    Shows data lineage, quality analysis, and interactive visualizations.
     """
     datasource = get_object_or_404(DataSource, id=datasource_id, project__owner=request.user)
+    
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         # return JSON status for polling
         return JsonResponse({
@@ -137,4 +183,174 @@ def datasource_upload_summary(request, datasource_id):
             'quality_report': datasource.quality_report,
         })
 
-    return render(request, 'projects/datasource_upload_summary.html', {'datasource': datasource})
+    # Build breadcrumbs
+    breadcrumbs = [
+        create_breadcrumb('Workspace', '/'),
+        create_breadcrumb(datasource.project.name, f'/projects/{datasource.project.id}/'),
+        create_breadcrumb(datasource.name, None),
+        create_breadcrumb('Reporte de Calidad')
+    ]
+
+    # Load quality report data
+    quality_report_data = None
+    if datasource.quality_report:
+        try:
+            if isinstance(datasource.quality_report, str):
+                quality_report_data = json.loads(datasource.quality_report)
+            else:
+                quality_report_data = datasource.quality_report
+        except (json.JSONDecodeError, TypeError):
+            quality_report_data = None
+
+    # Generate data lineage information
+    lineage_info = _get_datasource_lineage(datasource)
+
+    # Generate preview charts if data is ready
+    preview_charts = None
+    if datasource.status == DataSource.Status.READY and datasource.file:
+        preview_charts = _generate_preview_charts(datasource)
+
+    context = {
+        'datasource': datasource,
+        'breadcrumbs': breadcrumbs,
+        'quality_report_data': quality_report_data,
+        'lineage_info': lineage_info,
+        'preview_charts': preview_charts,
+    }
+
+    return render(request, 'projects/datasource_upload_summary.html', context)
+
+
+def _get_datasource_lineage(datasource):
+    """Generate lineage/traceability information for a datasource."""
+    lineage = {
+        'type': 'unknown',
+        'description': 'Origen desconocido',
+        'sources': []
+    }
+
+    if not datasource.is_derived and datasource.file:
+        # Original uploaded file
+        lineage['type'] = 'uploaded'
+        lineage['description'] = f'Archivo subido: "{datasource.filename}"'
+    elif datasource.parents.exists():
+        # Derived from other datasources
+        parent_count = datasource.parents.count()
+        if parent_count == 1:
+            parent = datasource.parents.first()
+            lineage['type'] = 'transformed'
+            lineage['description'] = f'Transformación de: "{parent.name}"'
+            lineage['sources'] = [{'name': parent.name, 'id': parent.id}]
+        else:
+            # Multiple parents = fusion
+            lineage['type'] = 'fusion'
+            parent_names = [p.name for p in datasource.parents.all()]
+            lineage['description'] = f'Fusión de {parent_count} fuentes: {", ".join(parent_names)}'
+            lineage['sources'] = [{'name': p.name, 'id': p.id} for p in datasource.parents.all()]
+
+    return lineage
+
+
+def _generate_preview_charts(datasource):
+    """Generate Plotly preview charts for the datasource."""
+    try:
+        file_path = datasource.file.path
+        if not os.path.exists(file_path):
+            return None
+
+        # Read the data
+        if file_path.endswith('.parquet'):
+            df = pd.read_parquet(file_path)
+        elif file_path.endswith('.csv'):
+            df = pd.read_csv(file_path)
+        elif file_path.endswith(('.xlsx', '.xls')):
+            df = pd.read_excel(file_path)
+        else:
+            # Try Parquet as fallback
+            try:
+                df = pd.read_parquet(file_path)
+            except:
+                return None
+
+        charts = []
+        
+        # Limit to first 1000 rows for performance
+        df_sample = df.head(1000)
+        
+        # Get numerical columns for histograms
+        numerical_cols = df_sample.select_dtypes(include=['int64', 'float64']).columns.tolist()
+        
+        # Generate up to 3 charts
+        chart_count = 0
+        max_charts = 3
+        
+        # Chart 1: Histogram of first numerical column
+        if numerical_cols and chart_count < max_charts:
+            col = numerical_cols[0]
+            fig = px.histogram(
+                df_sample, 
+                x=col,
+                title=f'Distribución de {col}',
+                nbins=30
+            )
+            fig.update_layout(
+                height=400,
+                showlegend=False,
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)',
+            )
+            charts.append({
+                'title': f'Histograma: {col}',
+                'html': plot(fig, output_type='div', include_plotlyjs=False)
+            })
+            chart_count += 1
+        
+        # Chart 2: Box plot of second numerical column (if exists)
+        if len(numerical_cols) > 1 and chart_count < max_charts:
+            col = numerical_cols[1]
+            fig = px.box(
+                df_sample,
+                y=col,
+                title=f'Diagrama de Caja: {col}'
+            )
+            fig.update_layout(
+                height=400,
+                showlegend=False,
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)',
+            )
+            charts.append({
+                'title': f'Diagrama de Caja: {col}',
+                'html': plot(fig, output_type='div', include_plotlyjs=False)
+            })
+            chart_count += 1
+        
+        # Chart 3: Missing values heatmap
+        if chart_count < max_charts:
+            missing_data = df.isnull().sum()
+            if missing_data.sum() > 0:
+                # Create missing values bar chart
+                fig = px.bar(
+                    x=missing_data.index,
+                    y=missing_data.values,
+                    title='Valores Faltantes por Columna'
+                )
+                fig.update_layout(
+                    height=400,
+                    showlegend=False,
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    xaxis_title='Columnas',
+                    yaxis_title='Cantidad de Valores Faltantes'
+                )
+                charts.append({
+                    'title': 'Valores Faltantes',
+                    'html': plot(fig, output_type='div', include_plotlyjs=False)
+                })
+                chart_count += 1
+
+        return charts if charts else None
+
+    except Exception as e:
+        print(f"Error generating preview charts: {e}")
+        return None

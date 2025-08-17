@@ -5,7 +5,7 @@
 <div class="mx-auto px-4 py-6">
     <div class="bg-background-primary dark:bg-darcula-background-darker border border-border-default dark:border-darcula-border rounded-xl shadow-card overflow-hidden">
         <div class="border-b border-border-default dark:border-darcula-border bg-background-secondary dark:bg-darcula-background-lighter px-6 py-4">
-            <h2 class="text-xl font-bold text-foreground-default dark:text-darcula-foreground">Crear Nuevo Proyecto</h2>
+            <h2 class="text-xl font-bold text-foreground-default dark:text-darcula-foreground">Crear Nuevo Workspace</h2>
         </div>
         <div class="p-6">
             <form method="post">
@@ -13,7 +13,7 @@
                 {{ form|crispy }}
                 <div class="flex justify-end mt-6 space-x-2">
                     <a href="{% url 'projects:project_list' %}" class="px-4 py-2 border border-border-default dark:border-darcula-border text-sm font-medium rounded-md text-foreground-default dark:text-darcula-foreground bg-background-primary dark:bg-darcula-background hover:bg-background-tertiary dark:hover:bg-darcula-background-lighter">Cancelar</a>
-                    <button type="submit" class="px-4 py-2 bg-brand-600 dark:bg-darcula-accent text-white dark:text-darcula-background font-bold rounded-lg hover:bg-brand-700 dark:hover:bg-darcula-keyword">Guardar Proyecto</button>
+                    <button type="submit" class="px-4 py-2 bg-brand-600 dark:bg-darcula-accent text-white dark:text-darcula-background font-bold rounded-lg hover:bg-brand-700 dark:hover:bg-darcula-keyword">Guardar Workspace</button>
                 </div>
             </form>
         </div>

@@ -1,0 +1,115 @@
+<!-- Loading Animation Demo Component -->
+<!-- This demonstrates how to integrate the loading animation into existing forms -->
+
+<div x-data="{ 
+    isLocalLoading: false,
+    
+    // Demo function to show loading animation
+    simulateOperation(message = 'Processing') {
+        // Start global loading
+        Alpine.store('app').startLoading(message);
+        
+        // Simulate a long-running operation
+        setTimeout(() => {
+            Alpine.store('app').stopLoading();
+            alert('Operation completed!');
+        }, 3000);
+    },
+    
+    // Example: Form submission with loading
+    submitForm() {
+        Alpine.store('app').startLoading('Submitting Data');
+        
+        // Simulate form submission
+        setTimeout(() => {
+            Alpine.store('app').stopLoading();
+            alert('Form submitted successfully!');
+        }, 2000);
+    }
+}" class="p-6 bg-background-secondary dark:bg-darcula-background-lighter rounded-lg">
+    
+    <h3 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground mb-4">
+        Loading Animation Demo
+    </h3>
+    
+    <!-- Demo Buttons -->
+    <div class="space-y-3">
+        <!-- Basic Loading Demo -->
+        <button 
+            @click="simulateOperation()"
+            class="w-full px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors">
+            Test Basic Loading (3s)
+        </button>
+        
+        <!-- Custom Message Demo -->
+        <button 
+            @click="simulateOperation('Training Neural Network')"
+            class="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+            Test with Custom Message (3s)
+        </button>
+        
+        <!-- Form Submission Demo -->
+        <button 
+            @click="submitForm()"
+            class="w-full px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors">
+            Simulate Form Submission (2s)
+        </button>
+        
+        <!-- Inline Loading Indicator Demo -->
+        <div class="border border-border-default dark:border-darcula-border rounded-lg p-4">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-sm font-medium text-foreground-default dark:text-darcula-foreground">
+                    Inline Loading Example
+                </span>
+                <button 
+                    @click="isLocalLoading = !isLocalLoading"
+                    class="px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors">
+                    Toggle
+                </button>
+            </div>
+            
+            <!-- Inline animation -->
+            <div x-show="isLocalLoading" x-transition class="flex items-center justify-center py-4">
+                <div class="text-brand-500 dark:text-darcula-accent scale-50">
+                    {% include 'core/_loading_animation.html' %}
+                </div>
+                <span class="ml-3 text-sm text-foreground-muted dark:text-darcula-foreground-muted">
+                    Loading content...
+                </span>
+            </div>
+            
+            <div x-show="!isLocalLoading" x-transition class="text-sm text-foreground-muted dark:text-darcula-foreground-muted text-center py-4">
+                Content loaded successfully!
+            </div>
+        </div>
+    </div>
+    
+    <!-- Usage Code Examples -->
+    <div class="mt-6 space-y-4">
+        <h4 class="text-md font-medium text-foreground-default dark:text-darcula-foreground">
+            Usage Examples:
+        </h4>
+        
+        <!-- JavaScript Example -->
+        <div class="bg-background-primary dark:bg-darcula-background rounded border border-border-default dark:border-darcula-border p-3">
+            <h5 class="text-sm font-medium text-foreground-secondary dark:text-darcula-foreground mb-2">
+                JavaScript (Alpine.js Store):
+            </h5>
+            <pre class="text-xs text-foreground-muted dark:text-darcula-foreground-muted font-mono overflow-x-auto"><code>// Start loading
+Alpine.store('app').startLoading('Processing...');
+
+// Stop loading
+Alpine.store('app').stopLoading();</code></pre>
+        </div>
+        
+        <!-- Template Example -->
+        <div class="bg-background-primary dark:bg-darcula-background rounded border border-border-default dark:border-darcula-border p-3">
+            <h5 class="text-sm font-medium text-foreground-secondary dark:text-darcula-foreground mb-2">
+                Template (Inline Usage):
+            </h5>
+            <pre class="text-xs text-foreground-muted dark:text-darcula-foreground-muted font-mono overflow-x-auto"><code>&lt;div class="text-brand-500"&gt;
+    {% include 'core/_loading_animation.html' %}
+&lt;/div&gt;</code></pre>
+        </div>
+    </div>
+</div>

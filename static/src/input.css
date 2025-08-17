@@ -4,6 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Prevent flash of unstyled content (FOUC) during Alpine.js initialization */
+[x-cloak] { 
+  display: none !important; 
+}
+
 /* ===== AÑADE ESTE BLOQUE AL FINAL ===== */
 @layer components {
   /*

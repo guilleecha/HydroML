@@ -35,10 +35,111 @@ def ml_experiment_detail(request, pk):
     # Create breadcrumbs for navigation
     breadcrumbs = create_experiment_breadcrumbs(experiment)
 
+    # Fetch MLflow data if mlflow_run_id exists
+    mlflow_artifacts = []
+    mlflow_params = {}
+    mlflow_metrics = {}
+    mlflow_error = None
+    
+    if experiment.mlflow_run_id:
+        try:
+            import mlflow
+            from mlflow.tracking import MlflowClient
+            
+            # Set tracking URI and create client
+            mlflow.set_tracking_uri("http://mlflow:5000")
+            client = MlflowClient()
+            
+            # Get the run details
+            run = client.get_run(experiment.mlflow_run_id)
+            
+            # Extract parameters
+            mlflow_params = run.data.params
+            
+            # Extract metrics
+            mlflow_metrics = run.data.metrics
+            
+            # Get artifacts list
+            artifacts = mlflow.artifacts.list_artifacts(run_id=experiment.mlflow_run_id)
+            mlflow_artifacts = [
+                {
+                    'path': artifact.path,
+                    'is_dir': artifact.is_dir,
+                    'size': getattr(artifact, 'file_size', None),
+                    'download_url': f"http://localhost:5000/get-artifact?path={artifact.path}&run_uuid={experiment.mlflow_run_id}"
+                }
+                for artifact in artifacts
+            ]
+            
+        except Exception as e:
+            # Log the error but don't break the page
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Could not fetch MLflow data for experiment {experiment.id}: {e}")
+            mlflow_error = str(e)
+
+    # Gather lineage and traceability data
+    lineage_datasources = []
+    
+    if experiment.input_datasource:
+        # Build lineage chain for the primary data source
+        def build_datasource_lineage(datasource, depth=0, max_depth=10):
+            """Recursively build lineage chain avoiding infinite loops"""
+            if depth > max_depth:
+                return []
+            
+            lineage_chain = []
+            
+            # Add current datasource with appropriate styling based on type
+            if datasource.data_type == 'ORIGINAL':
+                color = 'blue'
+                icon = '''<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>'''
+                title = 'Datos Originales'
+            elif datasource.data_type == 'PREPARED':
+                color = 'yellow'
+                icon = '''<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>'''
+                title = 'Datos Preparados'
+            elif datasource.data_type == 'FUSED':
+                color = 'purple'
+                icon = '''<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>'''
+                title = 'Datos Fusionados'
+            else:
+                color = 'gray'
+                icon = '''<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>'''
+                title = 'Fuente de Datos'
+            
+            lineage_item = {
+                'datasource': datasource,
+                'color': color,
+                'icon': icon,
+                'title': title,
+                'type_display': datasource.get_data_type_display(),
+                'depth': depth
+            }
+            lineage_chain.append(lineage_item)
+            
+            # Recursively add parent datasources
+            for parent in datasource.parents.all():
+                parent_chain = build_datasource_lineage(parent, depth + 1, max_depth)
+                lineage_chain.extend(parent_chain)
+            
+            return lineage_chain
+        
+        # Build the complete lineage chain
+        lineage_datasources = build_datasource_lineage(experiment.input_datasource)
+        
+        # Sort by depth (parents first, then children)
+        lineage_datasources.sort(key=lambda x: x['depth'], reverse=True)
+
     context = {
         'experiment': experiment,
         'scatter_data_json': scatter_data_json,
         'breadcrumbs': breadcrumbs,
+        'mlflow_artifacts': mlflow_artifacts,
+        'mlflow_params': mlflow_params,
+        'mlflow_metrics': mlflow_metrics,
+        'mlflow_error': mlflow_error,
+        'lineage_datasources': lineage_datasources,
     }
 
     return render(request, 'experiments/ml_experiment_detail.html', context)
