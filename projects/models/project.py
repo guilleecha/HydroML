@@ -83,6 +83,14 @@ class Project(models.Model):
         auto_now_add=True,
         help_text="Timestamp when the project was created"
     )
+    
+    # Many-to-many relationship with DataSources
+    datasources = models.ManyToManyField(
+        'projects.DataSource',
+        related_name='projects',
+        blank=True,
+        help_text="DataSources associated with this project"
+    )
 
     class Meta:
         verbose_name = "Project"

@@ -1,7 +1,6 @@
 import uuid
 import os
 from django.db import models
-from .project import Project  # <-- AJUSTE 1: Importación corregida
 
 class DataSourceType(models.TextChoices):
     """Define los tipos de fuentes de datos según su etapa en el pipeline."""
@@ -11,11 +10,25 @@ class DataSourceType(models.TextChoices):
 
 class DataSource(models.Model):
     """
-    Representa un archivo de datos (CSV) dentro de un Proyecto.
+    Representa un archivo de datos (CSV) que puede ser utilizado por múltiples proyectos.
     Este es el "activo" fundamental sobre el que se trabaja.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="datasources")
+    # Temporary: Keep project field for migration
+    project = models.ForeignKey(
+        'projects.Project', 
+        on_delete=models.CASCADE, 
+        related_name='datasources_temp',
+        help_text="Temporary project relationship during migration"
+    )
+    owner = models.ForeignKey(
+        'auth.User',
+        on_delete=models.CASCADE,
+        related_name="owned_datasources",
+        help_text="User who owns this DataSource",
+        null=True,
+        blank=True
+    )
     name = models.CharField(max_length=255, verbose_name="Nombre de la Fuente de Datos")
     description = models.TextField(blank=True, null=True, verbose_name="Descripción")
     file = models.FileField(

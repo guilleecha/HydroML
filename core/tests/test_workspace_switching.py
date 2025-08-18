@@ -17,7 +17,7 @@ from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from projects.models import Project
-from data_tools.models import DataSource
+from projects.models import DataSource
 
 # Setup Django environment
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hydroML.settings')

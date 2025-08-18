@@ -7,6 +7,14 @@ Contains organized API endpoints grouped by functionality.
 from .datasource_api_views import DataSourceColumnsAPIView, FusionColumnsAPIView, get_datasource_columns
 from .sql_api_views import SQLExecutionAPIView, QueryHistoryAPIView
 from .visualization_api_views import ChartGenerationAPIView
+from .session_api_views import (
+    initialize_session, get_session_status, undo_operation, redo_operation,
+    clear_session, save_as_new_datasource
+)
+from .transformation_api_views import (
+    apply_missing_data_imputation, apply_feature_encoding, apply_feature_scaling,
+    apply_outlier_treatment, apply_feature_engineering, apply_column_operations
+)
 
 # For backward compatibility with the old api_views.py imports
 get_columns_api = DataSourceColumnsAPIView.as_view()
@@ -29,5 +37,21 @@ __all__ = [
     'generate_chart_api',
     'execute_sql_api',
     'get_query_history_api',
-    'get_datasource_columns'
+    'get_datasource_columns',
+    
+    # Session management API views
+    'initialize_session',
+    'get_session_status',
+    'undo_operation',
+    'redo_operation',
+    'clear_session',
+    'save_as_new_datasource',
+    
+    # Transformation API views
+    'apply_missing_data_imputation',
+    'apply_feature_encoding',
+    'apply_feature_scaling',
+    'apply_outlier_treatment',
+    'apply_feature_engineering',
+    'apply_column_operations'
 ]

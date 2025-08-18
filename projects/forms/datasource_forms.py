@@ -21,44 +21,61 @@ class DataSourceUpdateForm(forms.ModelForm):
 class DataSourceUploadForm(forms.ModelForm):
     """
     Form for uploading a new DataSource (name, description, file).
-    Includes optional project selection when needed.
+    Includes optional project selection when needed for many-to-many relationship.
     """
-    project = forms.ModelChoiceField(
+    projects = forms.ModelMultipleChoiceField(
         queryset=Project.objects.none(),
         required=False,
-        empty_label="Seleccionar proyecto...",
-        widget=forms.Select(attrs={
-            'class': 'block w-full rounded-lg border border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background text-foreground-default dark:text-darcula-foreground placeholder-foreground-muted dark:placeholder-darcula-foreground-muted focus:border-brand-500 dark:focus:border-darcula-accent focus:ring-brand-500 dark:focus:ring-darcula-accent sm:text-sm'
-        })
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'space-y-2'
+        }),
+        help_text="Select one or more projects to associate with this DataSource"
     )
     
     class Meta:
         model = DataSource
-        fields = ['project', 'name', 'description', 'file']
+        fields = ['name', 'description', 'file']
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
-        project = kwargs.pop('project', None)
+        project = kwargs.pop('project', None)  # Current project context
         show_project_selection = kwargs.pop('show_project_selection', False)
         super().__init__(*args, **kwargs)
         
-        # Configure project field
+        # Configure projects field
         if user:
-            self.fields['project'].queryset = Project.objects.filter(owner=user).order_by('name')
+            self.fields['projects'].queryset = Project.objects.filter(owner=user).order_by('name')
             
         if project and not show_project_selection:
-            # Hide project field and set initial value
-            self.fields['project'].widget = forms.HiddenInput()
-            self.fields['project'].initial = project
-            self.fields['project'].required = False
+            # Pre-select current project and make it required
+            self.fields['projects'].initial = [project]
+            self.fields['projects'].required = True
+            self.fields['projects'].help_text = f"This DataSource will be associated with '{project.name}'. You can select additional projects."
         elif show_project_selection:
-            # Show project dropdown
-            self.fields['project'].required = True
+            # Show project selection
+            self.fields['projects'].required = True
             if project:
-                self.fields['project'].initial = project
+                self.fields['projects'].initial = [project]
         else:
-            # Remove project field entirely if no user context
-            del self.fields['project']
+            # Remove projects field if no user context
+            del self.fields['projects']
             
         self.helper = FormHelper()
         self.helper.add_input(Submit('submit', 'Upload DataSource', css_class='btn btn-primary'))
+        
+    def save(self, commit=True):
+        """
+        Save the DataSource and handle many-to-many project relationships.
+        """
+        datasource = super().save(commit=False)
+        
+        # Set the owner (this will be set by the view)
+        if commit:
+            datasource.save()
+            # Handle many-to-many relationships
+            if 'projects' in self.cleaned_data:
+                projects = self.cleaned_data['projects']
+                for project in projects:
+                    project.datasources.add(datasource)
+            
+        return datasource

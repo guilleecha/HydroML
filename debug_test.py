@@ -13,7 +13,7 @@ sys.path.append('/app')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hydroML.settings')
 django.setup()
 
-from data_tools.models import DataSource
+from projects.models import DataSource
 from projects.models import Project
 
 print("=== DEBUG TEST ===")

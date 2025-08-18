@@ -123,13 +123,23 @@ def datasource_upload_form_partial(request):
         if form.is_valid():
             datasource = form.save(commit=False)
             
-            # Get project from form if selection was shown, otherwise use the context project
-            if show_project_selection and form.cleaned_data.get('project'):
-                datasource.project = form.cleaned_data['project']
-            else:
-                datasource.project = project
-                
+            # Set the owner to the current user
+            datasource.owner = request.user
             datasource.save()
+            
+            # Handle project associations
+            selected_projects = form.cleaned_data.get('projects', [])
+            if not selected_projects and project:
+                # If no projects selected but we have a context project, use it
+                selected_projects = [project]
+                
+            # Associate the datasource with selected projects
+            for proj in selected_projects:
+                proj.datasources.add(datasource)
+            
+            # Determine redirect URL - use the first project or the context project
+            redirect_project = project if project else (selected_projects[0] if selected_projects else None)
+            redirect_url = f'/projects/{redirect_project.id}/' if redirect_project else '/projects/'
             
             # Trigger the Parquet conversion task in the background
             convert_file_to_parquet_task.delay(datasource.id)
@@ -138,7 +148,7 @@ def datasource_upload_form_partial(request):
             return JsonResponse({
                 'success': True,
                 'message': 'Fuente de datos creada exitosamente',
-                'redirect_url': f'/projects/{datasource.project.id}/'
+                'redirect_url': redirect_url
             })
         else:
             # Return form with errors
@@ -203,11 +213,16 @@ class DataSourceUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_queryset(self):
         # Security: ensure users can only edit their own datasources
-        return super().get_queryset().filter(project__owner=self.request.user)
+        return super().get_queryset().filter(owner=self.request.user)
 
     def get_success_url(self):
-        # After editing, return to the project detail page
-        return reverse_lazy('projects:project_detail', kwargs={'pk': self.object.project.pk})
+        # After editing, return to the first project this datasource is associated with
+        projects = self.object.projects.all()
+        if projects.exists():
+            return reverse_lazy('projects:project_detail', kwargs={'pk': projects.first().pk})
+        else:
+            # If no projects associated, go back to project list
+            return reverse_lazy('projects:project_list')
 
 
 class DataSourceDeleteView(LoginRequiredMixin, DeleteView):
@@ -218,12 +233,17 @@ class DataSourceDeleteView(LoginRequiredMixin, DeleteView):
     template_name = 'projects/datasource_confirm_delete.html'
 
     def get_queryset(self):
-        # Esta medida de seguridad ya estaba correcta.
-        return super().get_queryset().filter(project__owner=self.request.user)
+        # Security: ensure users can only delete their own datasources
+        return super().get_queryset().filter(owner=self.request.user)
 
     def get_success_url(self):
-        # Después de eliminar, volvemos a la página del proyecto.
-        return reverse_lazy('projects:project_detail', kwargs={'pk': self.object.project.pk})
+        # After deleting, return to the first project this datasource was associated with
+        projects = self.object.projects.all()
+        if projects.exists():
+            return reverse_lazy('projects:project_detail', kwargs={'pk': projects.first().pk})
+        else:
+            # If no projects associated, go back to project list
+            return reverse_lazy('projects:project_list')
 
 
 @login_required
@@ -232,7 +252,7 @@ def datasource_upload_summary(request, datasource_id):
     Comprehensive Data Quality and Lineage Report page.
     Shows data lineage, quality analysis, and interactive visualizations.
     """
-    datasource = get_object_or_404(DataSource, id=datasource_id, project__owner=request.user)
+    datasource = get_object_or_404(DataSource, id=datasource_id, owner=request.user)
     
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         # return JSON status for polling
@@ -241,10 +261,18 @@ def datasource_upload_summary(request, datasource_id):
             'quality_report': datasource.quality_report,
         })
 
-    # Build breadcrumbs
+    # Build breadcrumbs - for datasources with multiple projects, show the first one
+    projects = datasource.projects.all()
+    project_breadcrumb = None
+    if projects.exists():
+        first_project = projects.first()
+        project_breadcrumb = create_breadcrumb(first_project.name, f'/projects/{first_project.id}/')
+    else:
+        project_breadcrumb = create_breadcrumb('Projects', '/projects/')
+    
     breadcrumbs = [
         create_breadcrumb('Workspace', '/'),
-        create_breadcrumb(datasource.project.name, f'/projects/{datasource.project.id}/'),
+        project_breadcrumb,
         create_breadcrumb(datasource.name, None),
         create_breadcrumb('Reporte de Calidad')
     ]
