@@ -169,3 +169,38 @@ def project_create_partial(request):
         'form': form,
     }
     return render(request, 'projects/project_form_partial.html', context)
+
+
+@login_required
+def project_toggle_favorite(request, pk):
+    """
+    Toggle favorite status of a project via AJAX.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    project = get_object_or_404(Project, pk=pk, owner=request.user)
+    project.is_favorite = not project.is_favorite
+    project.save()
+    
+    return JsonResponse({
+        'success': True,
+        'is_favorite': project.is_favorite
+    })
+
+
+@login_required
+def project_delete(request, pk):
+    """
+    Delete a project via AJAX.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    project = get_object_or_404(Project, pk=pk, owner=request.user)
+    project.delete()
+    
+    return JsonResponse({
+        'success': True,
+        'message': 'Proyecto eliminado exitosamente'
+    })

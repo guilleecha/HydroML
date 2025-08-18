@@ -18,6 +18,11 @@ urlpatterns = [
          preparation_views.data_preparer_page,
          name='data_studio_page'),
 
+    # --- Data Studio Pagination API ---
+    path('api/studio/<uuid:pk>/data/',
+         preparation_views.data_studio_pagination_api,
+         name='data_studio_pagination_api'),
+
     path('api/get_data/<uuid:pk>/',
          visualization_views.get_datasource_json,
          name='get_datasource_json'),

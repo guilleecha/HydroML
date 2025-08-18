@@ -43,10 +43,12 @@ def ml_experiment_detail(request, pk):
     
     if experiment.mlflow_run_id:
         try:
-            import mlflow
+            # Optimized imports - only import what we need
             from mlflow.tracking import MlflowClient
+            import mlflow.artifacts
             
             # Set tracking URI and create client
+            import mlflow
             mlflow.set_tracking_uri("http://mlflow:5000")
             client = MlflowClient()
             

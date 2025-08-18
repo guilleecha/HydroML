@@ -25,7 +25,7 @@ services:
       - DEFAULT_ARTIFACT_ROOT=/mlflow/artifacts
     command: >
       bash -c "
-        pip install mlflow==2.20.0 &&
+        pip install mlflow==2.22.1 &&
         mkdir -p /mlflow/artifacts &&
         mlflow server 
           --backend-store-uri sqlite:///mlflow/mlflow.db 

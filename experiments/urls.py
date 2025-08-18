@@ -1,10 +1,17 @@
 # experiments/urls.py
 from django.urls import path
+from django.shortcuts import redirect
 from .views import experiment_management_views, experiment_results_views, api_views, suite_views
 
 app_name = 'experiments'
 
+def experiments_root_redirect(request):
+    """Redirect from /experiments/ to /experiments/public/"""
+    return redirect('experiments:public_experiment_list')
+
 urlpatterns = [
+    # --- Root redirect to public experiments ---
+    path('', experiments_root_redirect, name='experiments_root'),
     # --- Public Experiments List ---
     path('public/', experiment_management_views.public_experiment_list_view, name='public_experiment_list'),
     # --- Vistas de Gestión ---

@@ -1,6 +1,10 @@
 # experiments/views/__init__.py
 
-from .experiment_management_views import *
-from .experiment_results_views import *
-from .suite_views import *
-from .api_views import *
+from .experiment_management_views import (
+    MLExperimentUpdateView,
+    MLExperimentDeleteView,
+)
+from .suite_views import (
+    ExperimentSuiteCreateView,
+    ExperimentSuiteDetailView,
+)

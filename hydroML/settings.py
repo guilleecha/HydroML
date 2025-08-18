@@ -11,11 +11,50 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
+import warnings
 from pathlib import Path
 import dj_database_url # Añade esta importación al principio del archivo
 from dotenv import load_dotenv  # Importamos dotenv para cargar variables de entorno
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
+
+# Configure warning filters to suppress known deprecation warnings from third-party libraries
+warnings.filterwarnings(
+    'ignore',
+    category=DeprecationWarning,
+    message=r'.*PydanticDeprecatedSince20.*',
+    module=r'pydantic.*'
+)
+warnings.filterwarnings(
+    'ignore', 
+    category=DeprecationWarning,
+    message=r'.*np\.inexact.*',
+    module=r'numpy.*'
+)
+warnings.filterwarnings(
+    'ignore',
+    category=DeprecationWarning, 
+    message=r'.*np\.integer.*',
+    module=r'numpy.*'
+)
+warnings.filterwarnings(
+    'ignore',
+    category=DeprecationWarning,
+    message=r'.*np\.generic.*', 
+    module=r'numpy.*'
+)
+warnings.filterwarnings(
+    'ignore',
+    category=DeprecationWarning,
+    message=r'.*@validator.*field_validator.*',
+    module=r'.*'
+)
+warnings.filterwarnings(
+    'ignore',
+    category=DeprecationWarning,
+    message=r'.*SHAP.*',
+    module=r'shap.*'
+)
 
 
 # Cargar variables de entorno desde un archivo .env

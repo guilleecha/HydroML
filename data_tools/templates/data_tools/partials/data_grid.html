@@ -1,0 +1,38 @@
+<!-- Left Panel - Data Grid (75%) -->
+<div class="left-panel flex-1" style="flex: 0 0 75%;">
+    <div class="h-full flex flex-col">
+        <!-- Grid Header -->
+        <div class="bg-background-primary border-b border-border-default px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold text-foreground-default">Interactive Data Preview</h2>
+                    <p class="text-sm text-foreground-muted">Select columns using checkboxes to perform operations</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button 
+                        type="button" 
+                        onclick="toggleColumnPanel()"
+                        class="bg-gray-600 dark:bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
+                        id="toggleColumnBtn">
+                        <i class="fas fa-columns mr-2"></i>
+                        Show Columns
+                    </button>
+                    <div class="text-sm text-foreground-muted">
+                        <span id="datasetInfo">
+                            <!-- Dataset info will be populated by JavaScript -->
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Grid Container -->
+        <div class="flex-1 p-6">
+            <div id="dataGrid" 
+                 class="h-full w-full"
+                 :class="darkMode ? 'ag-theme-quartz-dark' : 'ag-theme-quartz'">
+                <!-- AG Grid will be initialized here -->
+            </div>
+        </div>
+    </div>
+</div>

@@ -4,332 +4,429 @@
 
 {% block page_title %}Data Studio - {{ datasource.name }}{% endblock %}
 
+{% block sidebar %}
+<!-- Data Studio Contextual Sidebar -->
+<ul class="space-y-1">
+    <!-- Back to Project -->
+    <li>
+        <a href="{% url 'projects:project_detail' current_project.pk %}" 
+           class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors text-gray-500 dark:text-gray-400 hover:text-green-700 dark:hover:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+           :class="{ 'justify-center': !(sidebarExpanded || sidebarPinned) }"
+           :title="!(sidebarExpanded || sidebarPinned) ? 'Back to Project' : ''">
+            <svg class="flex-shrink-0 w-5 h-5 transition-colors text-gray-400 dark:text-gray-500 group-hover:text-green-600 dark:group-hover:text-green-400" 
+                 :class="{ 'mr-3': sidebarExpanded || sidebarPinned }"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M15 19l-7-7 7-7"></path>
+            </svg>
+            <span x-show="sidebarExpanded || sidebarPinned"
+                  x-transition:enter="transition-opacity ease-in duration-200"
+                  x-transition:enter-start="opacity-0"
+                  x-transition:enter-end="opacity-100"
+                  x-transition:leave="transition-opacity ease-out duration-150"
+                  x-transition:leave-start="opacity-100"
+                  x-transition:leave-end="opacity-0">Back to Project</span>
+        </a>
+    </li>
+
+    <!-- Separator -->
+    <li class="border-t border-gray-200 dark:border-gray-700 my-2"></li>
+
+    <!-- Data Overview -->
+    <li x-show="sidebarExpanded || sidebarPinned">
+        <div class="px-3 py-2">
+            <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Data Tools</p>
+        </div>
+    </li>
+
+    <!-- Data Cleaning -->
+    <li x-data="{ expanded: false }">
+        <button @click="expanded = !expanded" 
+                class="group flex items-center w-full px-3 py-2 text-sm font-medium rounded-lg transition-colors text-gray-600 dark:text-gray-400 hover:text-red-700 dark:hover:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                :class="{ 'justify-center': !(sidebarExpanded || sidebarPinned) }"
+                :title="!(sidebarExpanded || sidebarPinned) ? 'Missing Data' : ''">
+            <svg class="flex-shrink-0 w-5 h-5 transition-colors text-gray-500" 
+                 :class="{ 'mr-3': sidebarExpanded || sidebarPinned }"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+            <span x-show="sidebarExpanded || sidebarPinned" class="flex-1 text-left">Missing Data</span>
+            <svg x-show="sidebarExpanded || sidebarPinned" :class="{ 'rotate-90': expanded }" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+        </button>
+        <ul x-show="expanded && (sidebarExpanded || sidebarPinned)" 
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 transform -translate-y-2"
+            x-transition:enter-end="opacity-100 transform translate-y-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 transform translate-y-0"
+            x-transition:leave-end="opacity-0 transform -translate-y-2"
+            class="ml-8 mt-1 space-y-1">
+            <li>
+                <button @click="openOperationForm('handle-missing')" class="flex items-center w-full px-2 py-1 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
+                    <span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2"></span>
+                    Fill Missing Values
+                </button>
+            </li>
+            <li>
+                <button @click="openOperationForm('remove-nulls')" class="flex items-center w-full px-2 py-1 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
+                    <span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2"></span>
+                    Remove Nulls
+                </button>
+            </li>
+        </ul>
+    </li>
+
+    <!-- Column Management -->
+    <li x-data="{ expanded: false }">
+        <button @click="expanded = !expanded" 
+                class="group flex items-center w-full px-3 py-2 text-sm font-medium rounded-lg transition-colors text-gray-600 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                :class="{ 'justify-center': !(sidebarExpanded || sidebarPinned) }"
+                :title="!(sidebarExpanded || sidebarPinned) ? 'Column Management' : ''">
+            <svg class="flex-shrink-0 w-5 h-5 transition-colors text-gray-500" 
+                 :class="{ 'mr-3': sidebarExpanded || sidebarPinned }"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+            <span x-show="sidebarExpanded || sidebarPinned" class="flex-1 text-left">Columns</span>
+            <svg x-show="sidebarExpanded || sidebarPinned" :class="{ 'rotate-90': expanded }" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+        </button>
+        <ul x-show="expanded && (sidebarExpanded || sidebarPinned)" 
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 transform -translate-y-2"
+            x-transition:enter-end="opacity-100 transform translate-y-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 transform translate-y-0"
+            x-transition:leave-end="opacity-0 transform -translate-y-2"
+            class="ml-8 mt-1 space-y-1">
+            <li>
+                <button @click="openOperationForm('remove-columns')" class="flex items-center w-full px-2 py-1 text-xs text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded">
+                    <span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2"></span>
+                    Remove Columns
+                </button>
+            </li>
+            <li>
+                <button @click="openOperationForm('rename-columns')" class="flex items-center w-full px-2 py-1 text-xs text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded">
+                    <span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2"></span>
+                    Rename Columns
+                </button>
+            </li>
+            <li>
+                <button @click="openOperationForm('add-column')" class="flex items-center w-full px-2 py-1 text-xs text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded">
+                    <span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2"></span>
+                    Add Column
+                </button>
+            </li>
+        </ul>
+    </li>
+
+    <!-- Data Types -->
+    <li x-data="{ expanded: false }">
+        <button @click="expanded = !expanded" 
+                class="group flex items-center w-full px-3 py-2 text-sm font-medium rounded-lg transition-colors text-gray-600 dark:text-gray-400 hover:text-green-700 dark:hover:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                :class="{ 'justify-center': !(sidebarExpanded || sidebarPinned) }"
+                :title="!(sidebarExpanded || sidebarPinned) ? 'Data Types' : ''">
+            <svg class="flex-shrink-0 w-5 h-5 transition-colors text-gray-500" 
+                 :class="{ 'mr-3': sidebarExpanded || sidebarPinned }"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            <span x-show="sidebarExpanded || sidebarPinned" class="flex-1 text-left">Data Types</span>
+            <svg x-show="sidebarExpanded || sidebarPinned" :class="{ 'rotate-90': expanded }" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+        </button>
+        <ul x-show="expanded && (sidebarExpanded || sidebarPinned)" 
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 transform -translate-y-2"
+            x-transition:enter-end="opacity-100 transform translate-y-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 transform translate-y-0"
+            x-transition:leave-end="opacity-0 transform -translate-y-2"
+            class="ml-8 mt-1 space-y-1">
+            <li>
+                <button @click="openOperationForm('convert-numeric')" class="flex items-center w-full px-2 py-1 text-xs text-gray-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded">
+                    <span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2"></span>
+                    To Numeric
+                </button>
+            </li>
+            <li>
+                <button @click="openOperationForm('convert-categorical')" class="flex items-center w-full px-2 py-1 text-xs text-gray-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded">
+                    <span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2"></span>
+                    To Categorical
+                </button>
+            </li>
+            <li>
+                <button @click="openOperationForm('convert-datetime')" class="flex items-center w-full px-2 py-1 text-xs text-gray-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded">
+                    <span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2"></span>
+                    To DateTime
+                </button>
+            </li>
+        </ul>
+    </li>
+</ul>
+{% endblock %}
+
 {% block extra_css %}
-<!-- CodeMirror CSS -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/material-darker.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/default.min.css">
+<link rel="stylesheet" href="https://unpkg.com/ag-grid-community/styles/ag-grid.css">
+<link rel="stylesheet" href="https://unpkg.com/ag-grid-community/styles/ag-theme-quartz.css">
 
 <style>
-    .data-studio-layout {
-        height: calc(100vh - 120px);
-        overflow: hidden;
-    }
-    .left-panel {
-        overflow: hidden;
-        border-right: 1px solid var(--border-color, #e5e7eb);
-    }
-    .right-panel {
-        overflow-y: auto;
-        max-height: 100%;
-    }
-    
     /* Enhanced AG Grid theming with AG Grid best practices */
     .ag-theme-quartz .ag-header-cell,
     .ag-theme-quartz-dark .ag-header-cell {
-        padding: 6px 8px !important;
-        min-height: 60px;
-        border-bottom: 2px solid var(--ag-border-color);
+        background: var(--ag-background-color);
+        border-bottom: 1px solid var(--ag-border-color);
+        padding: 8px 12px;
     }
-    
+
     .ag-theme-quartz .ag-header-cell-text,
     .ag-theme-quartz-dark .ag-header-cell-text {
-        margin-bottom: 0;
         font-weight: 600;
+        font-size: 14px;
+        color: var(--ag-header-foreground-color);
     }
-    
-    /* Enhanced floating filters */
+
     .ag-theme-quartz .ag-floating-filter-input,
     .ag-theme-quartz-dark .ag-floating-filter-input {
+        background: var(--ag-background-color);
         border: 1px solid var(--ag-border-color);
-        border-radius: 4px;
-        padding: 4px 8px;
-        transition: border-color 0.2s ease;
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-size: 13px;
     }
-    
+
     .ag-theme-quartz .ag-floating-filter-input:focus,
     .ag-theme-quartz-dark .ag-floating-filter-input:focus {
-        border-color: var(--ag-accent-color);
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
         outline: none;
-        box-shadow: 0 0 0 2px var(--ag-accent-color-alpha);
     }
-    
-    /* Enhanced pagination styling */
+
     .ag-theme-quartz .ag-paging-panel,
     .ag-theme-quartz-dark .ag-paging-panel {
+        background: var(--ag-background-color);
         border-top: 1px solid var(--ag-border-color);
-        background-color: var(--ag-header-background-color);
-        padding: 8px 16px;
+        padding: 10px 16px;
     }
-    
+
     .ag-theme-quartz .ag-paging-button,
     .ag-theme-quartz-dark .ag-paging-button {
+        background: transparent;
         border: 1px solid var(--ag-border-color);
         border-radius: 4px;
-        transition: all 0.2s ease;
+        margin: 0 2px;
     }
-    
+
     .ag-theme-quartz .ag-paging-button:hover,
     .ag-theme-quartz-dark .ag-paging-button:hover {
-        background-color: var(--ag-selected-row-background-color);
-        border-color: var(--ag-accent-color);
+        background: var(--ag-row-hover-color);
+        border-color: #3b82f6;
     }
-    
-    .custom-header-container {
+
+    /* Data Studio Layout */
+    .data-studio-container {
+        display: flex;
+        height: calc(100vh - 180px);
+        background: rgb(var(--color-background-primary));
+    }
+
+    /* Left Panel - Operations */
+    .left-operations-panel {
+        width: 320px;
+        background: rgb(var(--color-background-secondary));
+        border-right: 1px solid rgb(var(--color-border-default));
+        transition: width 0.3s ease;
+        overflow-y: auto;
+        flex-shrink: 0;
+    }
+
+    .left-operations-panel.collapsed {
+        width: 60px;
+    }
+
+    /* Main Content Area */
+    .main-content-area {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: rgb(var(--color-background-primary));
+    }
+
+    /* Operation Categories */
+    .operation-category {
+        border-bottom: 1px solid rgb(var(--color-border-default));
+    }
+
+    .category-header {
+        padding: 16px 20px;
+        background: rgb(var(--color-background-secondary));
+        border-bottom: 1px solid rgb(var(--color-border-default));
+        cursor: pointer;
+        transition: all 0.2s ease;
         display: flex;
         align-items: center;
-        justify-content: flex-start;
-        height: 100%;
-        padding: 6px 8px;
-        gap: 12px;
+        justify-content: space-between;
     }
-    
-    .custom-header-container .column-select-checkbox {
-        margin: 0;
-        flex-shrink: 0;
-        cursor: pointer;
-        order: -1; /* Ensure checkbox always comes first */
+
+    .category-header:hover {
+        background: rgb(var(--color-background-tertiary));
     }
-    
-    .custom-header-container .header-text {
-        font-weight: 600;
-        text-align: center;
-        white-space: nowrap;
+
+    .category-content {
+        background: rgb(var(--color-background-primary));
+        max-height: 0;
         overflow: hidden;
-        text-overflow: ellipsis;
-        flex: 1;
-        min-width: 0;
+        transition: max-height 0.3s ease;
     }
-    
-    .custom-header-container .header-text.sortable {
+
+    .category-content.expanded {
+        max-height: 800px;
+    }
+
+    /* Operation Items */
+    .operation-item {
+        padding: 12px 20px;
+        border-bottom: 1px solid rgb(var(--color-border-light));
         cursor: pointer;
-        user-select: none;
-        transition: color 0.2s ease;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
-    
-    .custom-header-container .header-text.sortable:hover {
-        color: #3b82f6;
+
+    .operation-item:hover {
+        background: rgb(var(--color-background-tertiary));
+        padding-left: 24px;
     }
-    
-    .custom-header-container .sort-indicator {
-        margin-left: 4px;
-        font-size: 10px;
-        color: #666;
-        transition: color 0.2s ease;
+
+    .operation-item:last-child {
+        border-bottom: none;
     }
-    
-    /* Enhanced One Dark theme with AG Grid Quartz optimizations */
+
+    /* Add Button */
+    .add-operation-btn {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: rgb(var(--color-brand-600));
+        color: white;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        opacity: 0;
+    }
+
+    .operation-item:hover .add-operation-btn {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+
+    .add-operation-btn:hover {
+        background: rgb(var(--color-brand-700));
+        transform: scale(1.2);
+    }
+
+    /* Form Panels */
+    .operation-form-panel {
+        position: fixed;
+        right: -400px;
+        top: 0;
+        width: 400px;
+        height: 100vh;
+        background: rgb(var(--color-background-secondary));
+        border-left: 1px solid rgb(var(--color-border-default));
+        box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+        transition: right 0.3s ease;
+        z-index: 1000;
+        overflow-y: auto;
+    }
+
+    .operation-form-panel.open {
+        right: 0;
+    }
+
+    /* Dark theme optimizations */
     .dark .ag-theme-quartz-dark {
-        /* Core colors optimized for Quartz theme */
-        --ag-background-color: #282c34;
-        --ag-foreground-color: #abb2bf;
-        --ag-border-color: #3e4451;
-        --ag-header-background-color: #2c313c;
-        --ag-odd-row-background-color: #2c313c;
-        --ag-accent-color: #61afef;
-        --ag-accent-color-alpha: rgba(97, 175, 239, 0.1);
-        --ag-selected-row-background-color: #3e4451;
-        --ag-cell-horizontal-border: #3e4451;
-        --ag-secondary-border-color: #3e4451;
-        --ag-row-hover-color: rgba(97, 175, 239, 0.05);
-        
-        /* Enhanced side panel styling for dark mode */
-        --ag-side-panel-background-color: #2c313c;
-        --ag-tool-panel-background-color: #2c313c;
-        --ag-panel-background-color: #282c34;
-        --ag-control-panel-background-color: #21252b;
-        
-        /* Enhanced input and control styling */
-        --ag-input-background-color: #3e4451;
-        --ag-input-border-color: #3e4451;
-        --ag-input-focus-border-color: #61afef;
-        --ag-checkbox-background-color: #3e4451;
-        --ag-checkbox-border-color: #528bff;
-        --ag-checkbox-checked-color: #61afef;
-        
-        /* Enhanced pagination colors */
-        --ag-paging-panel-background-color: #2c313c;
-        --ag-paging-button-background-color: #3e4451;
-        --ag-paging-button-disabled-background-color: #21252b;
-        
-        /* Enhanced floating filter colors */
-        --ag-floating-filter-background-color: #3e4451;
-        
-        /* Scrollbar styling optimized for Quartz */
-        --ag-scroll-spacer-border: #3e4451;
-        --ag-scrollbar-background-color: #2c313c;
-        --ag-scrollbar-thumb-color: #5c6370;
+        --ag-background-color: rgb(var(--color-background-primary));
+        --ag-foreground-color: rgb(var(--color-foreground-default));
+        --ag-border-color: rgb(var(--color-border-default));
+        --ag-header-background-color: rgb(var(--color-background-secondary));
+        --ag-header-foreground-color: rgb(var(--color-foreground-default));
+        --ag-row-hover-color: rgb(var(--color-background-tertiary));
+        --ag-selected-row-background-color: rgb(var(--color-brand-100));
     }
-    
-    /* Enhanced side panel styling */
-    .dark .ag-theme-quartz-dark .ag-side-buttons,
-    .dark .ag-theme-quartz-dark .ag-tool-panel-wrapper {
-        background-color: var(--ag-side-panel-background-color) !important;
-        border-color: var(--ag-border-color) !important;
+
+    /* Collapse/Expand Button */
+    .panel-toggle {
+        position: absolute;
+        top: 20px;
+        right: -15px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: rgb(var(--color-brand-600));
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        z-index: 10;
     }
-    
-    .dark .ag-theme-quartz-dark .ag-column-tool-panel .ag-column-tool-panel-column,
-    .dark .ag-theme-quartz-dark .ag-column-tool-panel .ag-column-tool-panel-column-group {
-        color: var(--ag-foreground-color) !important;
+
+    .panel-toggle:hover {
+        background: rgb(var(--color-brand-700));
+        transform: scale(1.1);
     }
-    
-    .dark .ag-theme-quartz-dark .ag-column-tool-panel .ag-column-tool-panel-column:hover,
-    .dark .ag-theme-quartz-dark .ag-column-tool-panel .ag-column-tool-panel-column-group:hover {
-        background-color: var(--ag-selected-row-background-color) !important;
+
+    /* Minimalist Sliders */
+    .custom-slider {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 6px;
+        border-radius: 3px;
+        background: rgb(var(--color-background-tertiary));
+        outline: none;
+        transition: background 0.2s ease;
     }
-    
-    /* Dark mode header text improvements */
-    .dark .custom-header-container .header-text {
-        color: #abb2bf;
+
+    .custom-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: rgb(var(--color-brand-600));
+        cursor: pointer;
+        transition: all 0.2s ease;
     }
-    
-    .dark .custom-header-container .header-text.sortable:hover {
-        color: #61afef;
+
+    .custom-slider::-webkit-slider-thumb:hover {
+        background: rgb(var(--color-brand-700));
+        transform: scale(1.2);
     }
-    
-    .dark .custom-header-container .sort-indicator {
-        color: #5c6370;
-    }
-    
-    .dark .custom-header-container .sort-indicator.active {
-        color: #61afef;
-    }
-    
-    /* Enhanced dark mode for right panel sections */
-    .dark .bg-background-primary {
-        background-color: #282c34 !important;
-    }
-    
-    .dark .bg-background-secondary {
-        background-color: #2c313c !important;
-    }
-    
-    /* CodeMirror SQL Editor Styling */
-    .CodeMirror {
-        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-        font-size: 14px;
-        line-height: 1.4;
-        border: 1px solid var(--border-color, #e5e7eb);
-        border-radius: 6px;
-        height: auto;
-        min-height: 200px;
-    }
-    
-    .dark .CodeMirror {
-        background-color: #282c34;
-        color: #abb2bf;
-        border-color: #3e4451;
-    }
-    
-    .dark .CodeMirror .CodeMirror-cursor {
-        border-left: 1px solid #61afef;
-    }
-    
-    .dark .CodeMirror .CodeMirror-selected {
-        background: #3e4451;
-    }
-    
-    .dark .CodeMirror .CodeMirror-line::selection,
-    .dark .CodeMirror .CodeMirror-line > span::selection,
-    .dark .CodeMirror .CodeMirror-line > span > span::selection {
-        background: #3e4451;
-    }
-    
-    .dark .CodeMirror .CodeMirror-gutters {
-        background-color: #2c313c;
-        border-right: 1px solid #3e4451;
-    }
-    
-    .dark .CodeMirror .CodeMirror-linenumber {
-        color: #5c6370;
-    }
-    
-    .CodeMirror-focused .CodeMirror-cursor {
-        border-left: 1px solid #61afef;
-    }
-    
-    /* Light theme for CodeMirror */
-    .CodeMirror {
-        background-color: #ffffff;
-        color: #333333;
-    }
-    
-    .CodeMirror .CodeMirror-gutters {
-        background-color: #f8f9fa;
-        border-right: 1px solid #e5e7eb;
-    }
-    
-    .CodeMirror .CodeMirror-linenumber {
-        color: #6b7280;
-    }
-    
-    .dark .border-border-default {
-        border-color: #3e4451 !important;
-    }
-    
-    /* Text color hierarchy for dark mode */
-    .dark .text-foreground-default {
-        color: #abb2bf !important; /* Primary titles - bright */
-    }
-    
-    .dark h1, .dark h2, .dark h3, .dark h4 {
-        color: #abb2bf !important; /* Primary titles */
-    }
-    
-    .dark .text-brand-600 {
-        color: #61afef !important; /* Secondary titles/labels - blue accent */
-    }
-    
-    .dark .text-foreground-muted {
-        color: #5c6370 !important; /* Body text/descriptions - muted gray */
-    }
-    
-    .dark .text-foreground-muted.italic {
-        color: #4b5263 !important; /* Placeholders/muted text - dimmer gray */
-    }
-    
-    /* Enhanced Recipe Builder dark mode */
-    .dark .space-y-2 > div {
-        background-color: #2c313c !important;
-        border-color: #3e4451 !important;
-    }
-    
-    /* Chart container dark mode */
-    .dark #chart_container .border-border-default {
-        border-color: #3e4451 !important;
-        background-color: #2c313c !important;
+
+    .custom-slider::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: rgb(var(--color-brand-600));
+        cursor: pointer;
+        border: none;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="flex-1">
-    <!-- Header Section with Breadcrumbs -->
-    <div class="border-b border-border-default dark:border-onedark-border bg-background-primary dark:bg-onedark-background px-8 py-6">
-        <!-- Breadcrumbs -->
-        {% if breadcrumbs %}
-        <nav class="flex mb-4" aria-label="Breadcrumb">
-            <ol class="flex items-center space-x-2">
-                {% for crumb in breadcrumbs %}
-                    {% if not forloop.last %}
-                        <li>
-                            <a href="{{ crumb.url }}" class="text-foreground-muted hover:text-foreground-primary transition-colors">
-                                {{ crumb.name }}
-                            </a>
-                        </li>
-                        <li class="text-foreground-muted">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                        </li>
-                    {% else %}
-                        <li class="text-foreground-primary font-medium">{{ crumb.name }}</li>
-                    {% endif %}
-                {% endfor %}
-            </ol>
-        </nav>
-        {% endif %}
-        
+<div x-data="dataStudioApp()" x-init="init()">
+    <!-- Header Section -->
+    <div class="bg-background-primary px-6 py-6 border-b border-border-default">        
         <!-- Header Title -->
         <div class="flex items-center justify-between">
             <div class="flex items-center">
@@ -346,1379 +443,610 @@
         </div>
     </div>
 
-    <!-- Main Two-Panel Layout -->
-    <div class="data-studio-layout flex">
-        <!-- Left Panel - Data Grid (75%) -->
-        <div class="left-panel flex-1" style="flex: 0 0 75%;">
-            <div class="h-full flex flex-col">
-                <!-- Grid Header -->
-                <div class="bg-background-primary border-b border-border-default px-6 py-4">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h2 class="text-lg font-semibold text-foreground-default">Interactive Data Preview</h2>
-                            <p class="text-sm text-foreground-muted">Select columns using checkboxes to perform operations</p>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <!-- Column Management Toggle -->
-                            <button
-                                @click="toggleColumnPanel()"
-                                class="bg-gray-600 dark:bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
-                                title="Show/Hide Column Management Panel"
-                            >
-                                <i class="fas fa-columns mr-2"></i>
-                                Columns
-                            </button>
-                            
-                            <div class="text-sm text-foreground-muted">
-                                <span id="selected-count">0</span> columns selected
-                            </div>
-                        </div>
+    <!-- Modern KPI Dashboard -->
+    {% if automated_analysis %}
+    <div class="px-6 py-6 bg-background-secondary border-b border-border-subtle">
+        <!-- Dataset Overview KPIs -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+            <!-- Total Rows -->
+            <div class="bg-background-primary rounded-lg p-4 border border-border-default hover:border-border-accent transition-colors">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-foreground-muted">Total Rows</p>
+                        <p class="text-2xl font-bold text-foreground-default">{{ automated_analysis.basic_info.total_rows|floatformat:0 }}</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                        </svg>
                     </div>
                 </div>
-                
-                <!-- AG Grid Container -->
-                <div class="flex-1 p-6">
-                    <div id="data-preview-grid" 
-                         class="h-full w-full"
-                         :class="darkMode ? 'ag-theme-quartz-dark' : 'ag-theme-quartz'"></div>
+            </div>
+
+            <!-- Total Columns -->
+            <div class="bg-background-primary rounded-lg p-4 border border-border-default hover:border-border-accent transition-colors">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-foreground-muted">Columns</p>
+                        <p class="text-2xl font-bold text-foreground-default">{{ automated_analysis.basic_info.total_columns }}</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Missing Values -->
+            <div class="bg-background-primary rounded-lg p-4 border border-border-default hover:border-border-accent transition-colors">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-foreground-muted">Missing Values</p>
+                        <p class="text-2xl font-bold text-foreground-default">{{ automated_analysis.missing_data.total_missing_values|floatformat:0 }}</p>
+                        <p class="text-xs text-foreground-muted">{{ automated_analysis.missing_data.missing_percentage|floatformat:1 }}%</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Types -->
+            <div class="bg-background-primary rounded-lg p-4 border border-border-default hover:border-border-accent transition-colors">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-foreground-muted">Data Types</p>
+                        <div class="space-y-1">
+                            <p class="text-sm text-foreground-default">Numeric: {{ automated_analysis.basic_info.numeric_columns }}</p>
+                            <p class="text-sm text-foreground-default">Text: {{ automated_analysis.basic_info.categorical_columns }}</p>
+                        </div>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Memory Usage -->
+            <div class="bg-background-primary rounded-lg p-4 border border-border-default hover:border-border-accent transition-colors">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-foreground-muted">Memory Usage</p>
+                        <p class="text-2xl font-bold text-foreground-default">{{ automated_analysis.basic_info.memory_usage_mb|floatformat:1 }}</p>
+                        <p class="text-xs text-foreground-muted">MB</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Duplicate Rows -->
+            <div class="bg-background-primary rounded-lg p-4 border border-border-default hover:border-border-accent transition-colors">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-foreground-muted">Duplicates</p>
+                        <p class="text-2xl font-bold text-foreground-default">{{ automated_analysis.basic_info.duplicate_rows|default:0 }}</p>
+                        <p class="text-xs text-foreground-muted">rows</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
+    {% endif %}
 
-        <!-- Right Panel - Action Tools (25%) -->
-        <div class="right-panel bg-background-secondary" style="flex: 0 0 25%; min-width: 350px;" 
-             x-data="recipeBuilder()" x-init="init()">
-            <form method="post" id="data-studio-form" class="h-full flex flex-col">
-                {% csrf_token %}
-                
-                <!-- Action Panel Header -->
-                <div class="bg-background-primary border-b border-border-default px-6 py-4">
-                    <h3 class="text-lg font-semibold text-foreground-default">Recipe Builder</h3>
-                    <p class="text-sm text-foreground-muted">Create and track your data preparation steps</p>
+    <!-- Data Grid Section -->
+    <div class="px-6 py-6">
+        <div class="bg-background-primary rounded-lg border border-border-default">
+            <div class="p-4 border-b border-border-default">
+                <h3 class="text-lg font-semibold text-foreground-default">Data Preview</h3>
+                <p class="text-sm text-foreground-muted">{{ grid_data|length }} rows displayed</p>
+            </div>
+            <div class="p-4">
+                <div id="data-preview-grid" 
+                     class="h-full w-full ag-theme-quartz" 
+                     style="height: 600px;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Operation Form Panels (Right Side) -->
+                <svg x-show="!panelCollapsed" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                <svg x-show="panelCollapsed" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </button>
+
+            <div x-show="!panelCollapsed" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                <!-- Panel Header -->
+                <div class="p-4 border-b border-border-default">
+                    <h3 class="text-lg font-semibold text-foreground-default">Operaciones de Datos</h3>
+                    <p class="text-sm text-foreground-muted">Selecciona una operación para comenzar</p>
                 </div>
 
-                <!-- Recipe Actual Section -->
-                <div class="bg-background-primary border-b border-border-default px-6 py-4">
-                    <h4 class="text-base font-semibold text-foreground-default flex items-center mb-3">
-                        <svg class="w-5 h-5 mr-2 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
-                        </svg>
-                        Receta Actual
-                    </h4>
-                    
-                    <!-- Recipe Steps List -->
-                    <div class="space-y-2 max-h-40 overflow-y-auto" x-show="recipeSteps.length > 0">
-                        <template x-for="(step, index) in recipeSteps" :key="step.id || index">
-                            <div class="flex items-start justify-between p-3 bg-background-secondary border border-border-default rounded-lg">
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center space-x-2">
-                                        <span class="flex-shrink-0 w-6 h-6 bg-brand-600 text-white text-xs font-bold rounded-full flex items-center justify-center" x-text="index + 1"></span>
-                                        <span class="text-sm font-medium text-foreground-default" x-text="getStepDescription(step)"></span>
-                                    </div>
-                                    <div class="mt-1 text-xs text-foreground-muted" x-text="getStepDetails(step)"></div>
-                                    <div class="mt-1 text-xs text-foreground-muted" x-text="formatTime(step.timestamp)"></div>
-                                </div>
-                                <button type="button" @click="removeStep(index)" 
-                                        class="flex-shrink-0 ml-2 text-danger-600 hover:text-danger-800 p-1">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                        </template>
-                    </div>
-                    
-                    <!-- Empty State -->
-                    <div x-show="recipeSteps.length === 0" class="text-center py-8">
-                        <svg class="w-12 h-12 text-foreground-muted mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-                        </svg>
-                        <p class="text-sm text-foreground-muted italic">No hay pasos en la receta aún</p>
-                        <p class="text-xs text-foreground-muted mt-1">Aplica transformaciones para comenzar</p>
-                    </div>
-
-                    <!-- Recipe Actions -->
-                    <div class="flex space-x-2 mt-4" x-show="recipeSteps.length > 0">
-                        <button type="button" @click="clearRecipe()" 
-                                class="flex-1 px-3 py-2 text-xs bg-danger-100 text-danger-700 hover:bg-danger-200 border border-danger-300 rounded-lg transition-colors">
-                            <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd"></path>
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 012 0v4a1 1 0 11-2 0V7zM12 7a1 1 0 10-2 0v4a1 1 0 102 0V7z" clip-rule="evenodd"></path>
+                <!-- Category 1: Datos Faltantes -->
+                <div class="operation-category">
+                    <div class="category-header" @click="toggleCategory('missing-data')">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                             </svg>
-                            Limpiar Receta
-                        </button>
-                        <button type="button" @click="saveRecipe()" 
-                                class="flex-1 px-3 py-2 text-xs bg-brand-100 text-brand-700 hover:bg-brand-200 border border-brand-300 rounded-lg transition-colors">
-                            <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h5a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h5v5.586l-1.293-1.293zM9 4a1 1 0 012 0v2H9V4z"></path>
-                            </svg>
-                            Ver Receta
-                        </button>
+                            <span class="font-medium text-foreground-default">Datos Faltantes</span>
+                        </div>
+                        <svg class="w-4 h-4 text-foreground-muted transition-transform duration-200" :class="{ 'rotate-180': expandedCategories.includes('missing-data') }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
                     </div>
-                </div>
-                
-                <!-- Action Sections -->
-                <div class="flex-1 p-6 space-y-6 overflow-y-auto">
-                    
-                    <!-- Section 1: Missing Data Toolkit -->
-                    <div class="bg-background-primary border border-border-default rounded-lg shadow-sm">
-                        <div class="px-4 py-3 border-b border-border-default">
-                            <h4 class="text-base font-semibold text-foreground-default flex items-center">
-                                <svg class="w-5 h-5 mr-2 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    <div class="category-content" :class="{ 'expanded': expandedCategories.includes('missing-data') }">
+                        <div class="operation-item" @click="openOperationForm('mean-imputation')">
+                            <div>
+                                <div class="font-medium text-foreground-default">Imputación por Media</div>
+                                <div class="text-sm text-foreground-muted">Reemplaza valores nulos con la media</div>
+                            </div>
+                            <button class="add-operation-btn">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                 </svg>
-                                Kit de Datos Faltantes
-                            </h4>
+                            </button>
                         </div>
-                        <div class="p-4" x-data="missingDataToolkit()">
-                            <!-- Tabs -->
-                            <div class="flex border-b border-border-default mb-4">
-                                <button 
-                                    @click="activeTab = 'constructor'"
-                                    :class="activeTab === 'constructor' ? 'border-brand-500 text-brand-600' : 'border-transparent text-foreground-muted hover:text-foreground-default'"
-                                    class="px-3 py-2 text-sm font-medium border-b-2 transition-colors">
-                                    Constructor Interactivo
-                                </button>
-                                <button 
-                                    @click="activeTab = 'analysis'"
-                                    :class="activeTab === 'analysis' ? 'border-brand-500 text-brand-600' : 'border-transparent text-foreground-muted hover:text-foreground-default'"
-                                    class="px-3 py-2 text-sm font-medium border-b-2 transition-colors ml-4">
-                                    Análisis Profundo
-                                </button>
-                                <button 
-                                    @click="activeTab = 'sql-editor'"
-                                    :class="activeTab === 'sql-editor' ? 'border-brand-500 text-brand-600' : 'border-transparent text-foreground-muted hover:text-foreground-default'"
-                                    class="px-3 py-2 text-sm font-medium border-b-2 transition-colors ml-4">
-                                    Editor SQL
-                                </button>
+                        <div class="operation-item" @click="openOperationForm('median-imputation')">
+                            <div>
+                                <div class="font-medium text-foreground-default">Imputación por Mediana</div>
+                                <div class="text-sm text-foreground-muted">Reemplaza valores nulos con la mediana</div>
                             </div>
-
-                            <!-- Constructor Interactivo Tab -->
-                            <div x-show="activeTab === 'constructor'" class="space-y-4">
-                                {% if nullity_report %}
-                                <!-- Nullity Summary -->
-                                <div class="bg-background-secondary border border-border-default rounded-lg p-4">
-                                    <h5 class="text-sm font-semibold text-foreground-default mb-3 flex items-center">
-                                        <svg class="w-4 h-4 mr-2 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4"></path>
-                                        </svg>
-                                        Resumen de Nulidad
-                                    </h5>
-                                    <div class="grid grid-cols-2 gap-3 text-xs">
-                                        <div class="bg-background-primary rounded p-2">
-                                            <div class="text-foreground-muted">Filas Completas</div>
-                                            <div class="font-semibold text-foreground-default">{{ nullity_report.summary.complete_rows|default:0 }} / {{ nullity_report.summary.total_rows|default:0 }}</div>
-                                            <div class="text-brand-600">{{ nullity_report.summary.complete_rows_percentage|default:0 }}%</div>
-                                        </div>
-                                        <div class="bg-background-primary rounded p-2">
-                                            <div class="text-foreground-muted">Datos Faltantes</div>
-                                            <div class="font-semibold text-foreground-default">{{ nullity_report.summary.missing_cells|default:0 }} / {{ nullity_report.summary.total_cells|default:0 }}</div>
-                                            <div class="text-danger-600">{{ nullity_report.summary.missing_percentage|default:0 }}%</div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Top Missing Columns -->
-                                    {% if nullity_report.column_analysis %}
-                                    <div class="mt-3 pt-3 border-t border-border-default">
-                                        <div class="text-xs text-foreground-muted mb-2">Columnas con más datos faltantes:</div>
-                                        <div class="space-y-1">
-                                            {% for col_name, col_data in nullity_report.column_analysis.items %}
-                                                {% if col_data.missing_percentage > 0 %}
-                                                <div class="flex justify-between items-center text-xs">
-                                                    <span class="text-foreground-default truncate">{{ col_name }}</span>
-                                                    <span class="text-danger-600 font-medium">{{ col_data.missing_percentage|floatformat:1 }}%</span>
-                                                </div>
-                                                {% endif %}
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                    {% endif %}
-                                </div>
-                                {% else %}
-                                <div class="bg-warning-50 border border-warning-200 rounded-lg p-4">
-                                    <div class="flex items-center">
-                                        <svg class="w-5 h-5 text-warning-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                                        </svg>
-                                        <span class="text-sm text-warning-800">Reporte de nulidad no disponible</span>
-                                    </div>
-                                </div>
-                                {% endif %}
-
-                                <!-- Quick Actions -->
-                                <div class="space-y-3">
-                                    <div class="text-sm font-medium text-foreground-default">Acciones Rápidas</div>
-                                    
-                                    <button 
-                                        @click="showMissingDataVisualization()"
-                                        class="w-full px-3 py-2 text-sm bg-background-secondary hover:bg-brand-50 border border-border-default hover:border-brand-300 rounded-lg transition-colors text-left">
-                                        <div class="flex items-center">
-                                            <svg class="w-4 h-4 mr-2 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4"></path>
-                                            </svg>
-                                            <div>
-                                                <div class="font-medium text-foreground-default">Visualizar Patrón de Faltantes</div>
-                                                <div class="text-xs text-foreground-muted">Matriz de datos faltantes y gráficos</div>
-                                            </div>
-                                        </div>
-                                    </button>
-                                    
-                                    <button 
-                                        @click="dropIncompleteRows()"
-                                        class="w-full px-3 py-2 text-sm bg-background-secondary hover:bg-danger-50 border border-border-default hover:border-danger-300 rounded-lg transition-colors text-left">
-                                        <div class="flex items-center">
-                                            <svg class="w-4 h-4 mr-2 text-danger-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                            </svg>
-                                            <div>
-                                                <div class="font-medium text-foreground-default">Eliminar Filas Incompletas</div>
-                                                <div class="text-xs text-foreground-muted">Remover todas las filas con datos faltantes</div>
-                                            </div>
-                                        </div>
-                                    </button>
-
-                                    <button 
-                                        @click="showImputationOptions()"
-                                        class="w-full px-3 py-2 text-sm bg-background-secondary hover:bg-success-50 border border-border-default hover:border-success-300 rounded-lg transition-colors text-left">
-                                        <div class="flex items-center">
-                                            <svg class="w-4 h-4 mr-2 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 011-1h1a2 2 0 100-4H7a1 1 0 01-1-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"></path>
-                                            </svg>
-                                            <div>
-                                                <div class="font-medium text-foreground-default">Imputar Valores Faltantes</div>
-                                                <div class="text-xs text-foreground-muted">Rellenar con media, mediana o moda</div>
-                                            </div>
-                                        </div>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Análisis Profundo Tab -->
-                            <div x-show="activeTab === 'analysis'" class="space-y-4">
-                                <div class="text-sm text-foreground-muted mb-4">
-                                    Ejecuta un análisis comprensivo de los datos faltantes usando machine learning para identificar patrones y relaciones.
-                                </div>
-
-                                <!-- Target Variable Selection -->
-                                <div class="space-y-3">
-                                    <div>
-                                        <label class="block text-sm font-medium text-foreground-default mb-2">
-                                            Variable Objetivo (Target)
-                                        </label>
-                                        <select x-model="targetVariable" 
-                                                class="w-full px-3 py-2 text-sm bg-background-primary border border-border-default rounded-lg focus:ring-2 focus:ring-brand-500">
-                                            <option value="">Seleccionar variable objetivo...</option>
-                                            {% for col_name in column_info.keys %}
-                                            <option value="{{ col_name }}">{{ col_name }}</option>
-                                            {% endfor %}
-                                        </select>
-                                        <div class="text-xs text-foreground-muted mt-1">
-                                            Variable para calcular importancia de características
-                                        </div>
-                                    </div>
-
-                                    <!-- Required Variables -->
-                                    <div>
-                                        <label class="block text-sm font-medium text-foreground-default mb-2">
-                                            Variables Requeridas
-                                        </label>
-                                        <div class="max-h-32 overflow-y-auto border border-border-default rounded-lg p-2 bg-background-primary">
-                                            {% for col_name in column_info.keys %}
-                                            <label class="flex items-center space-x-2 py-1 text-sm">
-                                                <input type="checkbox" 
-                                                       :checked="requiredVariables.includes('{{ col_name }}')"
-                                                       @change="toggleRequiredVariable('{{ col_name }}')"
-                                                       class="text-brand-600 rounded">
-                                                <span class="text-foreground-default">{{ col_name }}</span>
-                                                {% with column_info|get_item:col_name as col_data %}
-                                                <span class="text-xs text-foreground-muted">({{ col_data.pandas_dtype|default:"Unknown" }})</span>
-                                                {% endwith %}
-                                            </label>
-                                            {% endfor %}
-                                        </div>
-                                        <div class="text-xs text-foreground-muted mt-1">
-                                            Selecciona variables para análisis de combinaciones
-                                        </div>
-                                    </div>
-
-                                    <!-- Analysis Control -->
-                                    <div class="pt-3 border-t border-border-default">
-                                        <button 
-                                            @click="runDeepAnalysis()"
-                                            :disabled="!targetVariable || requiredVariables.length === 0 || analysisRunning"
-                                            class="w-full px-4 py-3 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors"
-                                            :class="analysisRunning ? 'cursor-not-allowed' : 'cursor-pointer'">
-                                            <div x-show="!analysisRunning" class="flex items-center justify-center">
-                                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                                                </svg>
-                                                Ejecutar Análisis Profundo
-                                            </div>
-                                            <div x-show="analysisRunning" class="flex items-center justify-center">
-                                                <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                                                Analizando...
-                                            </div>
-                                        </button>
-                                        
-                                        <!-- Analysis Status -->
-                                        <div x-show="analysisStatus" class="mt-3 p-3 rounded-lg text-sm" 
-                                             :class="analysisSuccess ? 'bg-success-50 text-success-800 border border-success-200' : 'bg-danger-50 text-danger-800 border border-danger-200'">
-                                            <div class="flex items-center">
-                                                <svg x-show="analysisSuccess" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                                </svg>
-                                                <svg x-show="!analysisSuccess" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                                </svg>
-                                                <span x-text="analysisMessage"></span>
-                                            </div>
-                                            
-                                            <div x-show="analysisSuccess && analysisTaskId" class="mt-2">
-                                                <a :href="'/data-tools/missing-data-results/' + analysisTaskId + '/'" 
-                                                   class="inline-flex items-center text-brand-600 hover:text-brand-800 font-medium">
-                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4"></path>
-                                                    </svg>
-                                                    Ver Resultados Detallados
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Editor SQL Tab -->
-                            <div x-show="activeTab === 'sql-editor'" class="space-y-4">
-                                <div class="text-sm text-foreground-muted mb-4">
-                                    Ejecuta consultas SQL directamente sobre los datos del DataSource usando pandas SQL. Use "df" como nombre de la tabla.
-                                </div>
-
-                                <!-- SQL Query Editor -->
-                                <div class="space-y-3">
-                                    <div>
-                                        <label class="block text-sm font-medium text-foreground-default mb-2">
-                                            Consulta SQL
-                                        </label>
-                                        <textarea 
-                                            x-model="sqlQuery"
-                                            id="sql-editor"
-                                            rows="8"
-                                            placeholder="SELECT * FROM df LIMIT 10;"
-                                            class="w-full px-3 py-2 text-sm bg-background-primary border border-border-default rounded-lg focus:ring-2 focus:ring-brand-500 font-mono"
-                                            style="resize: vertical;"></textarea>
-                                        <div class="text-xs text-foreground-muted mt-1">
-                                            Ejemplo: <code class="bg-background-secondary px-1 rounded">SELECT columna1, COUNT(*) FROM df GROUP BY columna1</code>
-                                        </div>
-                                    </div>
-
-                                    <!-- SQL Actions -->
-                                    <div class="flex gap-3">
-                                        <button 
-                                            @click="executeSqlQuery()"
-                                            :disabled="!sqlQuery.trim() || sqlExecuting"
-                                            class="flex-1 px-4 py-3 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors"
-                                            :class="sqlExecuting ? 'cursor-not-allowed' : 'cursor-pointer'">
-                                            <div x-show="!sqlExecuting" class="flex items-center justify-center">
-                                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                                                </svg>
-                                                Ejecutar Consulta
-                                            </div>
-                                            <div x-show="sqlExecuting" class="flex items-center justify-center">
-                                                <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                                                Ejecutando...
-                                            </div>
-                                        </button>
-                                        <button 
-                                            @click="previewSqlResults()"
-                                            :disabled="!sqlQuery.trim() || sqlExecuting"
-                                            class="px-4 py-3 bg-background-secondary hover:bg-background-tertiary border border-border-default text-foreground-default font-medium rounded-lg transition-colors">
-                                            Previsualizar
-                                        </button>
-                                    </div>
-
-                                    <!-- SQL Status -->
-                                    <div x-show="sqlStatus" class="p-3 rounded-lg text-sm" 
-                                         :class="sqlSuccess ? 'bg-success-50 text-success-800 border border-success-200' : 'bg-danger-50 text-danger-800 border border-danger-200'">
-                                        <div class="flex items-start">
-                                            <svg x-show="sqlSuccess" class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                            </svg>
-                                            <svg x-show="!sqlSuccess" class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                            </svg>
-                                            <div>
-                                                <div x-text="sqlMessage"></div>
-                                                <div x-show="sqlSuccess && sqlResults" class="text-xs mt-1 text-success-600">
-                                                    <span x-text="sqlResultsCount"></span> filas retornadas
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Quick SQL Templates -->
-                                    <div class="border-t border-border-default pt-3">
-                                        <div class="text-xs font-medium text-foreground-default mb-2">Plantillas Rápidas:</div>
-                                        <div class="flex flex-wrap gap-2">
-                                            <button @click="sqlQuery = 'SELECT * FROM df LIMIT 10;'" 
-                                                    class="px-2 py-1 text-xs bg-background-secondary hover:bg-background-tertiary border border-border-default rounded">
-                                                Ver 10 filas
-                                            </button>
-                                            <button @click="sqlQuery = 'SELECT COUNT(*) as total_rows FROM df;'" 
-                                                    class="px-2 py-1 text-xs bg-background-secondary hover:bg-background-tertiary border border-border-default rounded">
-                                                Contar filas
-                                            </button>
-                                            <button @click="sqlQuery = 'SELECT * FROM df WHERE columna IS NOT NULL;'" 
-                                                    class="px-2 py-1 text-xs bg-background-secondary hover:bg-background-tertiary border border-border-default rounded">
-                                                Sin nulos
-                                            </button>
-                                            <button @click="sqlQuery = 'SELECT columna, COUNT(*) as count FROM df GROUP BY columna ORDER BY count DESC;'" 
-                                                    class="px-2 py-1 text-xs bg-background-secondary hover:bg-background-tertiary border border-border-default rounded">
-                                                Agrupar y contar
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <!-- Query History Section -->
-                                    <div class="border-t border-border-default pt-3">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <div class="text-xs font-medium text-foreground-default">Historial de Consultas:</div>
-                                            <button 
-                                                @click="loadQueryHistory()"
-                                                :disabled="historyLoading"
-                                                class="px-2 py-1 text-xs bg-background-secondary hover:bg-background-tertiary border border-border-default rounded transition-colors">
-                                                <svg x-show="!historyLoading" class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                                                </svg>
-                                                <div x-show="historyLoading" class="animate-spin rounded-full h-3 w-3 border-b border-gray-600 inline mr-1"></div>
-                                                Actualizar
-                                            </button>
-                                        </div>
-                                        
-                                        <!-- History Items -->
-                                        <div x-show="queryHistory.length > 0" class="space-y-2 max-h-32 overflow-y-auto">
-                                            <template x-for="(query, index) in queryHistory" :key="query.id">
-                                                <div class="group p-2 bg-background-secondary hover:bg-background-tertiary border border-border-default rounded cursor-pointer"
-                                                     @click="loadHistoryQuery(query)">
-                                                    <div class="flex items-start justify-between">
-                                                        <div class="flex-1 min-w-0">
-                                                            <div class="text-xs font-mono text-foreground-default truncate" 
-                                                                 x-text="query.query_preview"
-                                                                 :title="query.sql_query"></div>
-                                                            <div class="flex items-center mt-1 space-x-2">
-                                                                <span class="text-xs text-foreground-muted" x-text="formatHistoryTime(query.timestamp)"></span>
-                                                                <span x-show="query.was_successful" class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-success-100 text-success-800">
-                                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                                                                    </svg>
-                                                                    <span x-text="query.rows_returned || 0"></span> filas
-                                                                </span>
-                                                                <span x-show="!query.was_successful" class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-danger-100 text-danger-800">
-                                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                                                                    </svg>
-                                                                    Error
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                        <button 
-                                                            @click.stop="loadHistoryQuery(query)"
-                                                            class="opacity-0 group-hover:opacity-100 ml-2 p-1 text-brand-600 hover:text-brand-800 transition-opacity">
-                                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                                                            </svg>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </template>
-                                        </div>
-                                        
-                                        <!-- Empty History State -->
-                                        <div x-show="queryHistory.length === 0 && !historyLoading" 
-                                             class="text-center py-4 text-xs text-foreground-muted">
-                                            <svg class="w-6 h-6 mx-auto mb-2 text-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                            </svg>
-                                            <p>No hay consultas en el historial</p>
-                                            <p class="mt-1">Ejecuta una consulta SQL para comenzar</p>
-                                        </div>
-                                        
-                                        <!-- History Loading State -->
-                                        <div x-show="historyLoading" class="text-center py-4">
-                                            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-600 mx-auto"></div>
-                                            <p class="text-xs text-foreground-muted mt-2">Cargando historial...</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Section 2: Column Management -->
-                    <div class="bg-background-primary border border-border-default rounded-lg shadow-sm">
-                        <div class="px-4 py-3 border-b border-border-default">
-                            <h4 class="text-base font-semibold text-foreground-default flex items-center">
-                                <svg class="w-5 h-5 mr-2 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            <button class="add-operation-btn">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                 </svg>
-                                Gestión de Columnas
-                            </h4>
+                            </button>
                         </div>
-                        <div class="p-4">
-                            <p class="text-sm text-foreground-muted mb-4">
-                                Selecciona columnas en la tabla y elimínalas del dataset.
-                            </p>
-                            
-                            <!-- Hidden input for removed columns -->
-                            <input type="hidden" id="removed_columns_input" name="removed_columns" value="[]">
-                            
-                            <!-- Selected columns display -->
-                            <div class="mb-4">
-                                <div class="text-sm text-foreground-muted mb-2">Columnas seleccionadas:</div>
-                                <div id="selected-columns-list" class="min-h-[40px] bg-background-secondary border border-border-default rounded-lg p-3 text-sm">
-                                    <span class="text-foreground-muted italic">Ninguna columna seleccionada</span>
-                                </div>
+                        <div class="operation-item" @click="openOperationForm('mode-imputation')">
+                            <div>
+                                <div class="font-medium text-foreground-default">Imputación por Moda</div>
+                                <div class="text-sm text-foreground-muted">Reemplaza valores nulos con la moda</div>
                             </div>
-                            
-                            <!-- Remove button -->
-                            <button type="button" id="remove-selected-columns-btn" 
-                                    @click="removeSelectedColumns()"
-                                    class="w-full px-4 py-2 bg-danger-600 hover:bg-danger-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                    disabled>
-                                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            <button class="add-operation-btn">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                 </svg>
-                                Eliminar Columnas Seleccionadas
+                            </button>
+                        </div>
+                        <div class="operation-item" @click="openOperationForm('remove-nulls')">
+                            <div>
+                                <div class="font-medium text-foreground-default">Eliminar Filas con Nulos</div>
+                                <div class="text-sm text-foreground-muted">Remueve filas que contengan valores nulos</div>
+                            </div>
+                            <button class="add-operation-btn">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
                             </button>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Section 3: Feature Engineering -->
-                    <div class="bg-background-primary border border-border-default rounded-lg shadow-sm">
-                        <div class="px-4 py-3 border-b border-border-default">
-                            <h4 class="text-base font-semibold text-foreground-default flex items-center">
-                                <svg class="w-5 h-5 mr-2 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 011-1h1a2 2 0 100-4H7a1 1 0 01-1-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"></path>
-                                </svg>
-                                Feature Engineering
-                            </h4>
+                <!-- Category 2: Gestión de Columnas -->
+                <div class="operation-category">
+                    <div class="category-header" @click="toggleCategory('column-management')">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h2a2 2 0 002-2z"></path>
+                            </svg>
+                            <span class="font-medium text-foreground-default">Gestión de Columnas</span>
                         </div>
-                        <div class="p-4">
-                            <p class="text-sm text-foreground-muted mb-4">
-                                Aplica transformaciones automáticas a los datos.
-                            </p>
-                            
-                            <!-- Transformation Type Selector -->
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-foreground-default mb-2">
-                                    Tipo de Transformación
-                                </label>
-                                <select id="transformation_type" name="transformation_type" 
-                                        class="w-full px-3 py-2 bg-background-primary border border-border-default rounded-lg text-foreground-default focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
-                                    <option value="">Seleccionar transformación...</option>
-                                    <option value="mean_median_imputer">Imputación (Media/Mediana)</option>
-                                    <option value="onehot_encoder">Codificación One-Hot</option>
-                                    <option value="equal_frequency_discretiser">Discretización por Frecuencia</option>
-                                </select>
+                        <svg class="w-4 h-4 text-foreground-muted transition-transform duration-200" :class="{ 'rotate-180': expandedCategories.includes('column-management') }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                    <div class="category-content" :class="{ 'expanded': expandedCategories.includes('column-management') }">
+                        <div class="operation-item" @click="openOperationForm('remove-columns')">
+                            <div>
+                                <div class="font-medium text-foreground-default">Eliminar Columnas</div>
+                                <div class="text-sm text-foreground-muted">Selecciona columnas para eliminar</div>
                             </div>
-                            
-                            <!-- Transformation Parameters -->
-                            <div id="transformation_parameters" class="mb-4 hidden">
-                                <!-- Parameters will be populated by JavaScript -->
-                            </div>
-                            
-                            <!-- Apply Transformation Button -->
-                            <button type="button" id="apply_transformation_btn" 
-                                    @click="applyTransformation()"
-                                    class="w-full px-4 py-2 bg-success-600 hover:bg-success-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                    disabled>
-                                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            <button class="add-operation-btn">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                 </svg>
-                                Aplicar Transformación
+                            </button>
+                        </div>
+                        <div class="operation-item" @click="openOperationForm('rename-columns')">
+                            <div>
+                                <div class="font-medium text-foreground-default">Renombrar Columnas</div>
+                                <div class="text-sm text-foreground-muted">Cambia nombres de columnas</div>
+                            </div>
+                            <button class="add-operation-btn">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="operation-item" @click="openOperationForm('reorder-columns')">
+                            <div>
+                                <div class="font-medium text-foreground-default">Reordenar Columnas</div>
+                                <div class="text-sm text-foreground-muted">Cambia el orden de las columnas</div>
+                            </div>
+                            <button class="add-operation-btn">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
                             </button>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Section 4: Data Type Configuration -->
-                    <div class="bg-background-primary border border-border-default rounded-lg shadow-sm">
-                        <div class="px-4 py-3 border-b border-border-default">
-                            <h4 class="text-base font-semibold text-foreground-default flex items-center">
-                                <svg class="w-5 h-5 mr-2 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                                </svg>
-                                Tipos de Datos
-                            </h4>
+                <!-- Category 3: Feature Engineering -->
+                <div class="operation-category">
+                    <div class="category-header" @click="toggleCategory('feature-engineering')">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-3 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            <span class="font-medium text-foreground-default">Feature Engineering</span>
                         </div>
-                        <div class="p-4">
-                            <p class="text-sm text-foreground-muted mb-4">
-                                Configura los tipos de datos para cada columna.
-                            </p>
-                            
-                            <div class="space-y-3 max-h-60 overflow-y-auto">
-                                {% for col_name in column_info.keys %}
-                                <div class="flex items-center space-x-3 p-2 bg-background-secondary rounded-lg">
-                                    <div class="flex-1 min-w-0">
-                                        <div class="text-sm font-medium text-foreground-default truncate">{{ col_name }}</div>
-                                        <div class="text-xs text-foreground-muted">
-                                            {% with column_info|get_item:col_name as col_data %}
-                                                {{ col_data.pandas_dtype|default:"Unknown" }}
-                                            {% endwith %}
-                                        </div>
-                                    </div>
-                                    <div class="flex-shrink-0">
-                                        <select name="type-{{ col_name }}" 
-                                                class="text-xs px-2 py-1 bg-background-primary border border-border-default rounded focus:ring-1 focus:ring-brand-500">
-                                            <option value="">Mantener</option>
-                                            <option value="object">Texto</option>
-                                            <option value="int64">Entero</option>
-                                            <option value="float64">Decimal</option>
-                                            <option value="datetime64[ns]">Fecha</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
+                        <svg class="w-4 h-4 text-foreground-muted transition-transform duration-200" :class="{ 'rotate-180': expandedCategories.includes('feature-engineering') }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
                     </div>
-
-                    <!-- Section 5: Column Analysis -->
-                    <div class="bg-background-primary border border-border-default rounded-lg shadow-sm">
-                        <div class="px-4 py-3 border-b border-border-default">
-                            <h4 class="text-base font-semibold text-foreground-default flex items-center">
-                                <svg class="w-5 h-5 mr-2 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4"></path>
+                    <div class="category-content" :class="{ 'expanded': expandedCategories.includes('feature-engineering') }">
+                        <div class="operation-item" @click="openOperationForm('one-hot-encoding')">
+                            <div>
+                                <div class="font-medium text-foreground-default">One-Hot Encoding</div>
+                                <div class="text-sm text-foreground-muted">Codifica variables categóricas</div>
+                            </div>
+                            <button class="add-operation-btn">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                 </svg>
-                                Análisis de Columnas
-                            </h4>
+                            </button>
                         </div>
-                        <div class="p-4">
-                            <p class="text-sm text-foreground-muted mb-4">
-                                Genera gráficos interactivos para analizar columnas numéricas.
-                            </p>
-                            
-                            <div class="space-y-4">
-                                <div>
-                                    <label for="chart_type_select" class="block text-sm font-medium text-foreground-default mb-2">
-                                        Tipo de Gráfico
-                                    </label>
-                                    <select id="chart_type_select" 
-                                            class="w-full px-3 py-2 bg-background-primary border border-border-default rounded-lg text-foreground-default focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
-                                        <option value="histogram">Histograma (1 columna)</option>
-                                        <option value="boxplot">Diagrama de Caja (1 columna)</option>
-                                        <option value="scatter">Diagrama de Dispersión (2 columnas)</option>
-                                    </select>
-                                </div>
-
-                                <!-- Single Column Selection (for histogram and boxplot) -->
-                                <div id="single_column_section">
-                                    <label for="analysis_column_select" class="block text-sm font-medium text-foreground-default mb-2">
-                                        Seleccionar Columna Numérica
-                                    </label>
-                                    <select id="analysis_column_select" 
-                                            class="w-full px-3 py-2 bg-background-primary border border-border-default rounded-lg text-foreground-default focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
-                                        <option value="">Seleccione una columna...</option>
-                                    </select>
-                                </div>
-
-                                <!-- Dual Column Selection (for scatter plots) -->
-                                <div id="dual_column_section" class="hidden space-y-3">
-                                    <div class="p-3 bg-brand-50 dark:bg-darcula-accent/10 border border-brand-200 dark:border-darcula-accent/30 rounded-lg">
-                                        <div class="flex items-center mb-2">
-                                            <svg class="w-4 h-4 text-brand-600 dark:text-darcula-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                            </svg>
-                                            <span class="text-sm font-medium text-brand-700 dark:text-darcula-accent">Diagrama de Dispersión</span>
-                                        </div>
-                                        <p class="text-xs text-brand-600 dark:text-darcula-accent">
-                                            Selecciona dos columnas numéricas para analizar la relación entre variables.
-                                        </p>
-                                    </div>
-                                    
-                                    <div>
-                                        <label for="x_axis_column_select" class="block text-sm font-medium text-foreground-default mb-2">
-                                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
-                                            </svg>
-                                            Eje X (Variable Independiente)
-                                        </label>
-                                        <select id="x_axis_column_select" 
-                                                class="w-full px-3 py-2 bg-background-primary border border-border-default rounded-lg text-foreground-default focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
-                                            <option value="">Seleccione columna para eje X...</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label for="y_axis_column_select" class="block text-sm font-medium text-foreground-default mb-2">
-                                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
-                                            </svg>
-                                            Eje Y (Variable Dependiente)
-                                        </label>
-                                        <select id="y_axis_column_select" 
-                                                class="w-full px-3 py-2 bg-background-primary border border-border-default rounded-lg text-foreground-default focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
-                                            <option value="">Seleccione columna para eje Y...</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                
-                                <button type="button" id="generate_chart_btn" 
-                                        class="w-full px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        disabled>
-                                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4"></path>
-                                    </svg>
-                                    Generar Gráfico
-                                </button>
+                        <div class="operation-item" @click="openOperationForm('scaling')">
+                            <div>
+                                <div class="font-medium text-foreground-default">Escalado de Variables</div>
+                                <div class="text-sm text-foreground-muted">Normaliza o estandariza columnas</div>
                             </div>
-                            
-                            <!-- Chart Container -->
-                            <div id="chart_container" class="mt-4 hidden">
-                                <div class="border border-border-default rounded-lg p-4 bg-background-secondary">
-                                    <div id="chart_content" class="min-h-[400px]">
-                                        <!-- Chart will be loaded here -->
-                                    </div>
-                                </div>
+                            <button class="add-operation-btn">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="operation-item" @click="openOperationForm('binning')">
+                            <div>
+                                <div class="font-medium text-foreground-default">Discretización</div>
+                                <div class="text-sm text-foreground-muted">Convierte variables continuas en categorías</div>
                             </div>
-                            
-                            <!-- Loading indicator -->
-                            <div id="chart_loading" class="mt-4 hidden">
-                                <div class="flex items-center justify-center py-8">
-                                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
-                                    <span class="ml-2 text-sm text-foreground-muted">Generando gráfico...</span>
-                                </div>
-                            </div>
+                            <button class="add-operation-btn">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Footer Actions -->
-                <div class="border-t border-border-default bg-background-primary px-6 py-4">
-                    <!-- New Dataset Name -->
-                    <div class="mb-4">
-                        <label for="new_dataset_name" class="block text-sm font-medium text-foreground-default mb-2">
-                            Nombre del Nuevo Dataset
-                        </label>
-                        <input type="text" id="new_dataset_name" name="new_dataset_name" 
-                               value="{{ datasource.name }} (Preparado)"
-                               class="w-full px-3 py-2 bg-background-primary border border-border-default rounded-lg text-foreground-default focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+
+                <!-- Category 4: Tipos de Datos -->
+                <div class="operation-category">
+                    <div class="category-header" @click="toggleCategory('data-types')">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span class="font-medium text-foreground-default">Tipos de Datos</span>
+                        </div>
+                        <svg class="w-4 h-4 text-foreground-muted transition-transform duration-200" :class="{ 'rotate-180': expandedCategories.includes('data-types') }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                    <div class="category-content" :class="{ 'expanded': expandedCategories.includes('data-types') }">
+                        <div class="operation-item" @click="openOperationForm('convert-numeric')">
+                            <div>
+                                <div class="font-medium text-foreground-default">Convertir a Numérico</div>
+                                <div class="text-sm text-foreground-muted">Cambia columnas a tipo numérico</div>
+                            </div>
+                            <button class="add-operation-btn">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="operation-item" @click="openOperationForm('convert-categorical')">
+                            <div>
+                                <div class="font-medium text-foreground-default">Convertir a Categórico</div>
+                                <div class="text-sm text-foreground-muted">Cambia columnas a tipo categórico</div>
+                            </div>
+                            <button class="add-operation-btn">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="operation-item" @click="openOperationForm('convert-datetime')">
+                            <div>
+                                <div class="font-medium text-foreground-default">Convertir a Fecha/Hora</div>
+                                <div class="text-sm text-foreground-muted">Convierte texto a formato fecha</div>
+                            </div>
+                            <button class="add-operation-btn">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    <!-- Operation Form Panels (Right Side) -->
+    <!-- Mean Imputation Form -->
+    <div class="operation-form-panel" :class="{ 'open': activeForm === 'mean-imputation' }">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-foreground-default">Imputación por Media</h3>
+                <button @click="closeForm()" class="text-foreground-muted hover:text-foreground-default">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <form @submit.prevent="applyOperation('mean-imputation')">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-foreground-default mb-2">Columnas a imputar</label>
+                        <select multiple class="w-full p-3 border border-border-default rounded-lg bg-background-primary text-foreground-default">
+                            <option value="column1">Columna 1</option>
+                            <option value="column2">Columna 2</option>
+                            <option value="column3">Columna 3</option>
+                        </select>
+                        <p class="text-sm text-foreground-muted mt-1">Selecciona las columnas numéricas para imputar</p>
                     </div>
                     
-                    <!-- Save Button -->
-                    <button type="submit" 
-                            class="w-full px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition-colors">
-                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
-                        </svg>
-                        Guardar como Nueva Fuente de Datos
-                    </button>
+                    <div>
+                        <label class="block text-sm font-medium text-foreground-default mb-2">Umbral de valores nulos (%)</label>
+                        <input type="range" min="0" max="100" value="50" class="custom-slider" x-model="meanImputationThreshold">
+                        <div class="flex justify-between text-sm text-foreground-muted mt-1">
+                            <span>0%</span>
+                            <span x-text="meanImputationThreshold + '%'"></span>
+                            <span>100%</span>
+                        </div>
+                        <p class="text-sm text-foreground-muted mt-1">Solo imputar si menos del x% de valores son nulos</p>
+                    </div>
+                    
+                    <div class="flex gap-3 pt-4">
+                        <button type="submit" class="flex-1 bg-brand-600 hover:bg-brand-700 text-white py-2 px-4 rounded-lg font-medium transition-colors">
+                            Aplicar Imputación
+                        </button>
+                        <button type="button" @click="closeForm()" class="px-4 py-2 border border-border-default rounded-lg text-foreground-default hover:bg-background-secondary transition-colors">
+                            Cancelar
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
     </div>
+
+    <!-- Scaling Form -->
+    <div class="operation-form-panel" :class="{ 'open': activeForm === 'scaling' }">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-foreground-default">Escalado de Variables</h3>
+                <button @click="closeForm()" class="text-foreground-muted hover:text-foreground-default">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <form @submit.prevent="applyOperation('scaling')">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-foreground-default mb-2">Tipo de escalado</label>
+                        <select class="w-full p-3 border border-border-default rounded-lg bg-background-primary text-foreground-default" x-model="scalingType">
+                            <option value="standard">Estandarización (Z-score)</option>
+                            <option value="minmax">Normalización (Min-Max)</option>
+                            <option value="robust">Escalado Robusto</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-foreground-default mb-2">Columnas a escalar</label>
+                        <select multiple class="w-full p-3 border border-border-default rounded-lg bg-background-primary text-foreground-default">
+                            <option value="column1">Columna 1</option>
+                            <option value="column2">Columna 2</option>
+                            <option value="column3">Columna 3</option>
+                        </select>
+                    </div>
+                    
+                    <div x-show="scalingType === 'minmax'">
+                        <label class="block text-sm font-medium text-foreground-default mb-2">Rango de escalado</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs text-foreground-muted mb-1">Mínimo</label>
+                                <input type="number" value="0" step="0.1" class="w-full p-2 border border-border-default rounded-lg bg-background-primary text-foreground-default">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-foreground-muted mb-1">Máximo</label>
+                                <input type="number" value="1" step="0.1" class="w-full p-2 border border-border-default rounded-lg bg-background-primary text-foreground-default">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3 pt-4">
+                        <button type="submit" class="flex-1 bg-brand-600 hover:bg-brand-700 text-white py-2 px-4 rounded-lg font-medium transition-colors">
+                            Aplicar Escalado
+                        </button>
+                        <button type="button" @click="closeForm()" class="px-4 py-2 border border-border-default rounded-lg text-foreground-default hover:bg-background-secondary transition-colors">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Binning Form -->
+    <div class="operation-form-panel" :class="{ 'open': activeForm === 'binning' }">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-foreground-default">Discretización</h3>
+                <button @click="closeForm()" class="text-foreground-muted hover:text-foreground-default">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <form @submit.prevent="applyOperation('binning')">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-foreground-default mb-2">Columna a discretizar</label>
+                        <select class="w-full p-3 border border-border-default rounded-lg bg-background-primary text-foreground-default">
+                            <option value="column1">Columna 1</option>
+                            <option value="column2">Columna 2</option>
+                            <option value="column3">Columna 3</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-foreground-default mb-2">Número de bins</label>
+                        <input type="range" min="2" max="20" value="5" class="custom-slider" x-model="numberOfBins">
+                        <div class="flex justify-between text-sm text-foreground-muted mt-1">
+                            <span>2</span>
+                            <span x-text="numberOfBins"></span>
+                            <span>20</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-foreground-default mb-2">Estrategia</label>
+                        <select class="w-full p-3 border border-border-default rounded-lg bg-background-primary text-foreground-default">
+                            <option value="uniform">Ancho uniforme</option>
+                            <option value="quantile">Frecuencia uniforme</option>
+                            <option value="kmeans">K-means</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex gap-3 pt-4">
+                        <button type="submit" class="flex-1 bg-brand-600 hover:bg-brand-700 text-white py-2 px-4 rounded-lg font-medium transition-colors">
+                            Aplicar Discretización
+                        </button>
+                        <button type="button" @click="closeForm()" class="px-4 py-2 border border-border-default rounded-lg text-foreground-default hover:bg-background-secondary transition-colors">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add more operation forms as needed -->
+    <!-- ... (Other forms would follow similar pattern) ... -->
+
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-<script src="{% static 'data_tools/js/data_studio.js' %}"></script>
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
 
 <script>
 // Make data available to JavaScript
 window.gridRowData = {{ grid_data_json|safe }};
 window.columnDefsData = {{ column_defs_json|safe }};
 window.datasourceId = "{{ datasource.id }}";
-window.recipeStepsData = {{ recipe_steps|default:"[]"|safe }};
+window.datasourceName = "{{ datasource.name }}";
+window.datasourceFilename = "{{ datasource.file.name }}";
+window.datasourceFileType = "{{ datasource.source_type|default:'file' }}";
 
-// Alpine.js Recipe Builder Component
-function recipeBuilder() {
+function dataStudioApp() {
     return {
-        recipeSteps: [],
-        nextStepId: 1,
+        panelCollapsed: false,
+        expandedCategories: [],
+        activeForm: null,
+        darkMode: document.documentElement.classList.contains('dark'),
+        
+        // Form data
+        meanImputationThreshold: 50,
+        scalingType: 'standard',
+        numberOfBins: 5,
 
         init() {
-            // Load recipe from Django context (backend)
-            this.loadRecipeFromBackend();
-            
-            // Initialize integration with data studio
-            this.setupDataStudioIntegration();
+            this.initializeGrid();
         },
 
-        addStep(type, description, details = '', metadata = {}) {
-            const step = {
-                id: this.nextStepId++,
-                action_type: type,
-                action_name: description,
-                timestamp: new Date().toISOString(),
-                details: {
-                    description: details,
-                    metadata: metadata
-                }
-            };
-            
-            this.recipeSteps.push(step);
-            
-            console.log('Added recipe step:', step);
+        togglePanel() {
+            this.panelCollapsed = !this.panelCollapsed;
         },
 
-        removeStep(index) {
-            if (index >= 0 && index < this.recipeSteps.length) {
-                const removedStep = this.recipeSteps.splice(index, 1)[0];
-                console.log('Removed recipe step:', removedStep);
-            }
-        },
-
-        clearRecipe() {
-            if (confirm('¿Estás seguro de que quieres limpiar toda la receta?')) {
-                this.recipeSteps = [];
-                console.log('Recipe cleared');
-            }
-        },
-
-        saveRecipe() {
-            // Recipe steps are now automatically saved when transformations are applied
-            // This button could be used for additional functionality like creating a preset
-            console.log('Current recipe:', this.recipeSteps);
-            alert('La receta se guarda automáticamente con cada transformación aplicada');
-        },
-
-        loadRecipeFromBackend() {
-            try {
-                // Load recipe steps from Django context
-                if (window.recipeStepsData && Array.isArray(window.recipeStepsData)) {
-                    this.recipeSteps = window.recipeStepsData;
-                    if (this.recipeSteps.length > 0) {
-                        // Set next ID based on existing steps
-                        const maxId = Math.max(...this.recipeSteps.map((s, index) => s.id || index + 1), 0);
-                        this.nextStepId = maxId + 1;
-                    }
-                    console.log('Loaded recipe steps from backend:', this.recipeSteps);
-                }
-            } catch (error) {
-                console.error('Error loading recipe from backend:', error);
-                this.recipeSteps = [];
-            }
-        },
-
-        formatTime(timestamp) {
-            const date = new Date(timestamp);
-            return date.toLocaleString('es-ES', { 
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit', 
-                minute: '2-digit'
-            });
-        },
-
-        // Get step description for display
-        getStepDescription(step) {
-            return step.action_name || step.description || 'Transformación';
-        },
-
-        // Get step details for display
-        getStepDetails(step) {
-            if (step.details && typeof step.details === 'object') {
-                if (step.details.description) {
-                    return step.details.description;
-                } else if (step.details.removed_columns) {
-                    return `Columnas eliminadas: ${step.details.removed_columns.join(', ')}`;
-                } else if (step.details.type_conversions) {
-                    const conversions = Object.entries(step.details.type_conversions).map(([col, type]) => `${col}: ${type}`);
-                    return `Conversiones: ${conversions.join(', ')}`;
-                }
-            }
-            return step.details || '';
-        },
-
-        setupDataStudioIntegration() {
-            // Integration with existing data studio functionality
-            const self = this;
-            
-            // Override the existing removeSelectedColumns function
-            if (window.dataStudio) {
-                const originalRemoveColumns = window.dataStudio.removeSelectedColumns.bind(window.dataStudio);
-                window.dataStudio.removeSelectedColumns = function() {
-                    const columnsToRemove = Array.from(this.selectedColumns);
-                    if (columnsToRemove.length > 0) {
-                        // Add to recipe before removing
-                        const description = `Eliminadas ${columnsToRemove.length} columna${columnsToRemove.length > 1 ? 's' : ''}`;
-                        const details = `Columnas: ${columnsToRemove.join(', ')}`;
-                        self.addStep('column_removal', description, details, { columns: columnsToRemove });
-                        
-                        // Call original function
-                        originalRemoveColumns();
-                    }
-                };
-
-                // Override the existing applyTransformation function
-                const originalApplyTransformation = window.dataStudio.applyTransformation.bind(window.dataStudio);
-                window.dataStudio.applyTransformation = function() {
-                    const transformationType = document.getElementById('transformation_type').value;
-                    if (transformationType) {
-                        // Get transformation details
-                        const transformationName = this.getTransformationDisplayName(transformationType);
-                        const parameters = this.getTransformationParameters();
-                        
-                        // Add to recipe before applying
-                        const description = `Aplicada: ${transformationName}`;
-                        const details = this.formatTransformationDetails(transformationType, parameters);
-                        self.addStep('feature_engineering', description, details, { 
-                            type: transformationType, 
-                            parameters: parameters 
-                        });
-                        
-                        // Call original function
-                        originalApplyTransformation();
-                    }
-                };
-
-                // Add helper methods to dataStudio
-                window.dataStudio.getTransformationDisplayName = function(type) {
-                    const names = {
-                        'mean_median_imputer': 'Imputación de valores nulos',
-                        'onehot_encoder': 'Codificación One-Hot',
-                        'equal_frequency_discretiser': 'Discretización por frecuencia'
-                    };
-                    return names[type] || type;
-                };
-
-                window.dataStudio.getTransformationParameters = function() {
-                    const form = document.getElementById('data-studio-form');
-                    const parameters = {};
-                    if (form) {
-                        const formData = new FormData(form);
-                        for (let [key, value] of formData.entries()) {
-                            if (key.includes('_strategy') || key.includes('_categories') || key.includes('_bins')) {
-                                parameters[key] = value;
-                            }
-                        }
-                    }
-                    return parameters;
-                };
-
-                window.dataStudio.formatTransformationDetails = function(type, parameters) {
-                    let details = '';
-                    switch(type) {
-                        case 'mean_median_imputer':
-                            details = `Estrategia: ${parameters.imputer_strategy || 'mean'}`;
-                            break;
-                        case 'onehot_encoder':
-                            details = `Top categorías: ${parameters.encoder_top_categories || '10'}`;
-                            break;
-                        case 'equal_frequency_discretiser':
-                            details = `Número de bins: ${parameters.discretiser_bins || '5'}`;
-                            break;
-                        default:
-                            details = JSON.stringify(parameters);
-                    }
-                    return details;
-                };
-            }
-        },
-
-        // Methods called from Alpine.js template
-        removeSelectedColumns() {
-            if (window.dataStudio) {
-                window.dataStudio.removeSelectedColumns();
-            }
-        },
-
-        applyTransformation() {
-            if (window.dataStudio) {
-                window.dataStudio.applyTransformation();
-            }
-        }
-    }
-}
-
-// Alpine.js Missing Data Toolkit Component
-function missingDataToolkit() {
-    return {
-        activeTab: 'constructor',
-        targetVariable: '',
-        requiredVariables: [],
-        analysisRunning: false,
-        analysisStatus: '',
-        analysisMessage: '',
-        analysisSuccess: false,
-        analysisTaskId: null,
-        
-        // SQL Editor variables
-        sqlQuery: '',
-        sqlExecuting: false,
-        sqlStatus: '',
-        sqlMessage: '',
-        sqlSuccess: false,
-        sqlResults: null,
-        sqlResultsCount: 0,
-        
-        // Query History variables
-        queryHistory: [],
-        historyLoading: false,
-
-        init() {
-            console.log('Missing Data Toolkit initialized');
-            // Load initial query history when switching to SQL tab
-            this.$watch('activeTab', (newTab) => {
-                if (newTab === 'sql-editor' && this.queryHistory.length === 0) {
-                    this.loadQueryHistory();
-                }
-            });
-        },
-
-        // Toggle required variable selection
-        toggleRequiredVariable(variable) {
-            const index = this.requiredVariables.indexOf(variable);
+        toggleCategory(category) {
+            const index = this.expandedCategories.indexOf(category);
             if (index > -1) {
-                this.requiredVariables.splice(index, 1);
+                this.expandedCategories.splice(index, 1);
             } else {
-                this.requiredVariables.push(variable);
-            }
-            console.log('Required variables:', this.requiredVariables);
-        },
-
-        // Constructor Interactivo methods
-        showMissingDataVisualization() {
-            // TODO: Implement missing data visualization modal
-            console.log('Show missing data visualization');
-            alert('Funcionalidad de visualización en desarrollo');
-        },
-
-        dropIncompleteRows() {
-            if (confirm('¿Estás seguro de que quieres eliminar todas las filas con datos faltantes? Esta acción no se puede deshacer.')) {
-                // TODO: Implement drop incomplete rows functionality
-                console.log('Drop incomplete rows');
-                alert('Funcionalidad de eliminación de filas incompletas en desarrollo');
+                this.expandedCategories.push(category);
             }
         },
 
-        showImputationOptions() {
-            // TODO: Implement imputation options modal
-            console.log('Show imputation options');
-            alert('Funcionalidad de opciones de imputación en desarrollo');
+        openOperationForm(operationType) {
+            this.activeForm = operationType;
         },
 
-        // Deep Analysis methods
-        async runDeepAnalysis() {
-            if (!this.targetVariable || this.requiredVariables.length === 0) {
-                alert('Por favor selecciona una variable objetivo y al menos una variable requerida');
-                return;
-            }
+        closeForm() {
+            this.activeForm = null;
+        },
 
-            this.analysisRunning = true;
-            this.analysisStatus = false;
-            this.analysisMessage = '';
-            this.analysisTaskId = null;
+        applyOperation(operationType) {
+            console.log('Applying operation:', operationType);
+            // Here you would call the backend API to apply the operation
+            this.closeForm();
+            
+            // Show success message
+            alert(`Operación ${operationType} aplicada exitosamente`);
+        },
 
-            try {
-                console.log('Running deep analysis with:', {
-                    target: this.targetVariable,
-                    required: this.requiredVariables
-                });
-
-                const response = await fetch('/data-tools/run-deep-missing-analysis/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': this.getCsrfToken()
+        initializeGrid() {
+            // Initialize AG Grid with the data
+            if (window.gridRowData && window.columnDefsData) {
+                const gridOptions = {
+                    columnDefs: window.columnDefsData,
+                    rowData: window.gridRowData,
+                    defaultColDef: {
+                        resizable: true,
+                        sortable: true,
+                        filter: true,
+                        floatingFilter: true
                     },
-                    body: JSON.stringify({
-                        datasource_id: window.datasourceId,
-                        target_column: this.targetVariable,
-                        required_variables: this.requiredVariables
-                    })
-                });
+                    rowSelection: 'multiple',
+                    pagination: true,
+                    paginationPageSize: 25,
+                    paginationPageSizeSelector: [10, 25, 50, 100],
+                    suppressRowClickSelection: true,
+                    enableCellTextSelection: true,
+                    animateRows: true
+                };
 
-                const data = await response.json();
-
-                if (data.success) {
-                    this.analysisSuccess = true;
-                    this.analysisStatus = true;
-                    this.analysisMessage = data.message || 'Análisis profundo ejecutado correctamente';
-                    this.analysisTaskId = data.task_id;
-                    console.log('Deep analysis started:', data);
-                } else {
-                    this.analysisSuccess = false;
-                    this.analysisStatus = true;
-                    this.analysisMessage = data.error || 'Error al ejecutar el análisis profundo';
-                    console.error('Deep analysis failed:', data);
+                const gridDiv = document.querySelector('#data-preview-grid');
+                if (gridDiv) {
+                    this.gridApi = agGrid.createGrid(gridDiv, gridOptions);
                 }
-
-            } catch (error) {
-                this.analysisSuccess = false;
-                this.analysisStatus = true;
-                this.analysisMessage = 'Error de conexión al ejecutar el análisis';
-                console.error('Deep analysis error:', error);
-            } finally {
-                this.analysisRunning = false;
             }
-        },
-
-        // SQL Editor methods
-        async executeSqlQuery() {
-            if (!this.sqlQuery.trim()) {
-                this.sqlStatus = 'Error: La consulta SQL no puede estar vacía';
-                this.sqlSuccess = false;
-                return;
-            }
-
-            this.sqlExecuting = true;
-            this.sqlStatus = '';
-            this.sqlResults = null;
-            
-            try {
-                const response = await fetch('/data-tools/api/execute-sql/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': this.getCsrfToken()
-                    },
-                    body: JSON.stringify({
-                        datasource_id: '{{ datasource.id }}',
-                        sql_query: this.sqlQuery
-                    })
-                });
-
-                const data = await response.json();
-
-                if (response.ok && data.success) {
-                    // Update the grid with SQL results
-                    this.updateGridWithSqlResults(data);
-                    this.sqlMessage = data.message;
-                    this.sqlSuccess = true;
-                    this.sqlResults = data.data;
-                    this.sqlResultsCount = data.rows_returned;
-                    
-                    // Reload query history after successful execution
-                    this.loadQueryHistory();
-                } else {
-                    this.sqlMessage = data.error || 'Error desconocido al ejecutar la consulta';
-                    this.sqlSuccess = false;
-                }
-                
-                this.sqlStatus = this.sqlMessage;
-                
-            } catch (error) {
-                console.error('Error executing SQL query:', error);
-                this.sqlMessage = `Error de conexión: ${error.message}`;
-                this.sqlSuccess = false;
-                this.sqlStatus = this.sqlMessage;
-            } finally {
-                this.sqlExecuting = false;
-            }
-        },
-
-        updateGridWithSqlResults(data) {
-            // Get the AG Grid instance
-            const gridInstance = window.dataStudio;
-            if (!gridInstance || !gridInstance.gridApi) {
-                console.error('Grid API not available');
-                return;
-            }
-
-            // Create new column definitions from SQL results
-            if (data.data && data.data.length > 0) {
-                const columns = data.columns.map(colName => ({
-                    headerName: colName,
-                    field: colName,
-                    sortable: true,
-                    filter: true,
-                    resizable: true,
-                    headerComponent: 'customHeaderComponent',
-                    headerComponentParams: {
-                        enableColumnSelection: true,
-                        enableRowSelection: false,
-                        enableSorting: true
-                    }
-                }));
-
-                // Update grid columns and data
-                gridInstance.gridApi.setColumnDefs(columns);
-                gridInstance.gridApi.setRowData(data.data);
-                
-                // Auto-size columns to fit content
-                setTimeout(() => {
-                    gridInstance.gridApi.sizeColumnsToFit();
-                }, 100);
-
-                console.log(`Grid updated with SQL results: ${data.rows_returned} rows, ${data.columns.length} columns`);
-            }
-        },
-
-        async previewSqlResults() {
-            // For preview, we'll just execute but show limited results
-            const originalQuery = this.sqlQuery;
-            
-            // Add LIMIT if not present for preview
-            let previewQuery = originalQuery.trim();
-            if (!previewQuery.toUpperCase().includes('LIMIT')) {
-                previewQuery += ' LIMIT 100';
-            }
-            
-            const tempQuery = this.sqlQuery;
-            this.sqlQuery = previewQuery;
-            
-            await this.executeSqlQuery();
-            
-            // Restore original query
-            this.sqlQuery = tempQuery;
-        },
-
-        // Query History methods
-        async loadQueryHistory() {
-            this.historyLoading = true;
-            try {
-                const response = await fetch(`/data-tools/api/query-history/?datasource_id=${window.datasourceId}&limit=10&successful_only=false`, {
-                    method: 'GET',
-                    headers: {
-                        'X-CSRFToken': this.getCsrfToken()
-                    }
-                });
-
-                const data = await response.json();
-
-                if (response.ok && data.success) {
-                    this.queryHistory = data.history;
-                    console.log('Query history loaded:', this.queryHistory.length, 'queries');
-                } else {
-                    console.error('Failed to load query history:', data.error);
-                    this.queryHistory = [];
-                }
-
-            } catch (error) {
-                console.error('Error loading query history:', error);
-                this.queryHistory = [];
-            } finally {
-                this.historyLoading = false;
-            }
-        },
-
-        loadHistoryQuery(query) {
-            // Load the historical query into the editor
-            this.sqlQuery = query.sql_query;
-            
-            // Update CodeMirror if it's initialized
-            const sqlTextarea = document.getElementById('sql-editor');
-            if (sqlTextarea && window.sqlEditor) {
-                window.sqlEditor.setValue(query.sql_query);
-            }
-            
-            console.log('Loaded history query:', query.query_preview);
-        },
-
-        formatHistoryTime(timestamp) {
-            const date = new Date(timestamp);
-            const now = new Date();
-            const diffMs = now - date;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMs / 3600000);
-            const diffDays = Math.floor(diffMs / 86400000);
-
-            if (diffMins < 1) {
-                return 'Hace unos segundos';
-            } else if (diffMins < 60) {
-                return `Hace ${diffMins} min`;
-            } else if (diffHours < 24) {
-                return `Hace ${diffHours}h`;
-            } else if (diffDays < 7) {
-                return `Hace ${diffDays}d`;
-            } else {
-                return date.toLocaleDateString('es-ES', {
-                    month: 'short',
-                    day: 'numeric'
-                });
-            }
-        },
-
-        getCsrfToken() {
-            return document.querySelector('[name=csrfmiddlewaretoken]').value;
         }
     }
 }
-</script>
-
-<!-- CodeMirror JavaScript -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/sql/sql.min.js"></script>
-
-<script>
-// Initialize CodeMirror for SQL Editor
-document.addEventListener('DOMContentLoaded', function() {
-    const sqlTextarea = document.getElementById('sql-editor');
-    if (sqlTextarea) {
-        let sqlEditor = null;
-        
-        // Function to initialize CodeMirror
-        function initializeSqlEditor() {
-            if (sqlEditor) return; // Already initialized
-            
-            sqlEditor = CodeMirror.fromTextArea(sqlTextarea, {
-                mode: 'sql',
-                lineNumbers: true,
-                indentWithTabs: true,
-                smartIndent: true,
-                lineWrapping: true,
-                matchBrackets: true,
-                autoCloseBrackets: true,
-                theme: document.documentElement.classList.contains('dark') ? 'material-darker' : 'default',
-                extraKeys: {
-                    "Ctrl-Space": "autocomplete",
-                    "Ctrl-Enter": function(cm) {
-                        // Trigger SQL execution on Ctrl+Enter
-                        const executeButton = document.querySelector('[x-on\\:click="executeSqlQuery()"]');
-                        if (executeButton && !executeButton.disabled) {
-                            executeButton.click();
-                        }
-                    }
-                },
-                placeholder: "SELECT * FROM df LIMIT 10;"
-            });
-            
-            // Make CodeMirror globally accessible for query history
-            window.sqlEditor = sqlEditor;
-            
-            // Sync CodeMirror value with Alpine.js
-            sqlEditor.on('change', function(cm) {
-                sqlTextarea.value = cm.getValue();
-                // Trigger Alpine.js model update
-                sqlTextarea.dispatchEvent(new Event('input'));
-            });
-            
-            // Listen for theme changes
-            const observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                        const isDark = document.documentElement.classList.contains('dark');
-                        sqlEditor.setOption('theme', isDark ? 'material-darker' : 'default');
-                    }
-                });
-            });
-            
-            observer.observe(document.documentElement, {
-                attributes: true,
-                attributeFilter: ['class']
-            });
-        }
-        
-        // Initialize when SQL editor tab becomes active
-        function checkSqlTabActive() {
-            const sqlTab = document.querySelector('[x-show="activeTab === \'sql-editor\'"]');
-            if (sqlTab && !sqlTab.style.display.includes('none')) {
-                initializeSqlEditor();
-            }
-        }
-        
-        // Monitor tab changes
-        const tabButtons = document.querySelectorAll('[x-on\\:click*="activeTab"]');
-        tabButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                setTimeout(checkSqlTabActive, 100);
-            });
-        });
-        
-        // Check if SQL tab is initially active
-        setTimeout(checkSqlTabActive, 500);
-    }
-});
 </script>
 {% endblock %}

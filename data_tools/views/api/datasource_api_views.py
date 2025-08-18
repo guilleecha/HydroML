@@ -36,11 +36,11 @@ class DataSourceColumnsAPIView(BaseAPIView, View):
             # Read file based on format
             df = self._read_dataframe(datasource.file.path)
             
-            # Generate column information
-            columns_info = self._generate_columns_info(df)
+            # For ML experiment form, just return column names
+            columns = list(df.columns)
             
             return self.success_response({
-                'columns': columns_info,
+                'columns': columns,
                 'total_rows': len(df),
                 'total_columns': len(df.columns)
             })

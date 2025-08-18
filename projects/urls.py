@@ -15,6 +15,10 @@ urlpatterns = [
 
     # CAMBIO AQUÍ: de <int:pk> a <uuid:pk>
     path('<uuid:pk>/', project_views.project_detail, name='project_detail'),
+    
+    # Project management actions
+    path('<uuid:pk>/toggle-favorite/', project_views.project_toggle_favorite, name='project_toggle_favorite'),
+    path('<uuid:pk>/delete/', project_views.project_delete, name='project_delete'),
 
     # CAMBIO AQUÍ: de <int:project_id> a <uuid:project_id>
     path('<uuid:project_id>/upload/', datasource_views.datasource_upload, name='datasource_upload'),
@@ -23,6 +27,11 @@ urlpatterns = [
     path('datasource/upload-form-partial/', 
          datasource_views.datasource_upload_form_partial, 
          name='datasource_upload_form_partial'),
+
+    # API endpoint to get project datasources
+    path('<uuid:project_id>/datasources/api/', 
+         datasource_views.project_datasources_api, 
+         name='project_datasources_api'),
 
     # Upload summary page (polls for processing status)
     path('datasource/<uuid:datasource_id>/upload-summary/',

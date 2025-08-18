@@ -1,0 +1,207 @@
+<!-- Operations Panel Container -->
+<div class="flex-1 p-6 space-y-6 overflow-y-auto">
+    
+    <!-- Column Selection Display -->
+    <div class="bg-background-primary border border-border-default rounded-lg shadow-sm">
+        <div class="px-4 py-3 border-b border-border-default">
+            <h4 class="text-base font-semibold text-foreground-default flex items-center">
+                <svg class="w-5 h-5 mr-2 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h2a2 2 0 002-2z"></path>
+                </svg>
+                Selected Columns
+            </h4>
+        </div>
+        <div class="p-4">
+            <div id="selectedColumnsDisplay">
+                <p class="text-gray-500">No columns selected</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scaling Transformation -->
+    <div class="bg-background-primary border border-border-default rounded-lg shadow-sm operation-section">
+        <div class="px-4 py-3 border-b border-border-default">
+            <h4 class="text-base font-semibold text-foreground-default flex items-center">
+                <svg class="w-5 h-5 mr-2 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                </svg>
+                Data Scaling
+            </h4>
+        </div>
+        <div class="p-4">
+            <form id="scalingForm" class="space-y-4">
+                <div>
+                    <label for="scalingType" class="block text-sm font-medium text-foreground-default mb-2">Scaling Method</label>
+                    <select id="scalingType" name="scaling_type" class="w-full px-3 py-2 border border-border-default rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                        <option value="standard">Standard Scaling (Z-score)</option>
+                        <option value="min_max">Min-Max Scaling</option>
+                        <option value="robust">Robust Scaling</option>
+                        <option value="quantile">Quantile Scaling</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full column-operation-btn px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Apply Scaling
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Normalization Transformation -->
+    <div class="bg-background-primary border border-border-default rounded-lg shadow-sm operation-section">
+        <div class="px-4 py-3 border-b border-border-default">
+            <h4 class="text-base font-semibold text-foreground-default flex items-center">
+                <svg class="w-5 h-5 mr-2 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                Data Normalization
+            </h4>
+        </div>
+        <div class="p-4">
+            <form id="normalizationForm" class="space-y-4">
+                <div>
+                    <label for="normalizationType" class="block text-sm font-medium text-foreground-default mb-2">Normalization Method</label>
+                    <select id="normalizationType" name="normalization_type" class="w-full px-3 py-2 border border-border-default rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                        <option value="min_max">Min-Max (0-1)</option>
+                        <option value="l2">L2 Norm</option>
+                        <option value="l1">L1 Norm</option>
+                        <option value="max">Max Norm</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full column-operation-btn px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Apply Normalization
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Encoding Transformation -->
+    <div class="bg-background-primary border border-border-default rounded-lg shadow-sm operation-section">
+        <div class="px-4 py-3 border-b border-border-default">
+            <h4 class="text-base font-semibold text-foreground-default flex items-center">
+                <svg class="w-5 h-5 mr-2 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                </svg>
+                Data Encoding
+            </h4>
+        </div>
+        <div class="p-4">
+            <form id="encodingForm" class="space-y-4">
+                <div>
+                    <label for="encodingType" class="block text-sm font-medium text-foreground-default mb-2">Encoding Method</label>
+                    <select id="encodingType" name="encoding_type" class="w-full px-3 py-2 border border-border-default rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                        <option value="label">Label Encoding</option>
+                        <option value="onehot">One-Hot Encoding</option>
+                        <option value="binary">Binary Encoding</option>
+                        <option value="target">Target Encoding</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full column-operation-btn px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Apply Encoding
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Missing Values Handling -->
+    <div class="bg-background-primary border border-border-default rounded-lg shadow-sm operation-section">
+        <div class="px-4 py-3 border-b border-border-default">
+            <h4 class="text-base font-semibold text-foreground-default flex items-center">
+                <svg class="w-5 h-5 mr-2 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Missing Values
+            </h4>
+        </div>
+        <div class="p-4">
+            <form id="missingValuesForm" class="space-y-4">
+                <div>
+                    <label for="missingStrategy" class="block text-sm font-medium text-foreground-default mb-2">Strategy</label>
+                    <select id="missingStrategy" name="missing_strategy" class="w-full px-3 py-2 border border-border-default rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                        <option value="drop">Drop Rows</option>
+                        <option value="mean">Fill with Mean</option>
+                        <option value="median">Fill with Median</option>
+                        <option value="mode">Fill with Mode</option>
+                        <option value="custom">Custom Value</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="fillValue" class="block text-sm font-medium text-foreground-default mb-2">Fill Value (for custom)</label>
+                    <input type="text" id="fillValue" name="fill_value" class="w-full px-3 py-2 border border-border-default rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500" placeholder="Enter custom value">
+                </div>
+                <button type="submit" class="w-full column-operation-btn px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Handle Missing Values
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Chart Generation -->
+    <div class="bg-background-primary border border-border-default rounded-lg shadow-sm operation-section">
+        <div class="px-4 py-3 border-b border-border-default">
+            <h4 class="text-base font-semibold text-foreground-default flex items-center">
+                <svg class="w-5 h-5 mr-2 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                Chart Generation
+            </h4>
+        </div>
+        <div class="p-4">
+            <div class="space-y-4">
+                <div>
+                    <label for="chartType" class="block text-sm font-medium text-foreground-default mb-2">Chart Type</label>
+                    <select id="chartType" name="chart_type" class="w-full px-3 py-2 border border-border-default rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                        <option value="scatter">Scatter Plot</option>
+                        <option value="line">Line Chart</option>
+                        <option value="bar">Bar Chart</option>
+                        <option value="histogram">Histogram</option>
+                        <option value="box">Box Plot</option>
+                        <option value="heatmap">Heatmap</option>
+                    </select>
+                </div>
+                <button type="button" id="generateChartBtn" class="w-full column-operation-btn px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Generate Chart
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Display Container -->
+    <div class="bg-background-primary border border-border-default rounded-lg shadow-sm">
+        <div class="px-4 py-3 border-b border-border-default">
+            <h4 class="text-base font-semibold text-foreground-default">Generated Charts</h4>
+        </div>
+        <div class="p-4">
+            <div id="chartContainer" class="min-h-[300px] w-full">
+                <!-- Charts will be rendered here -->
+                <p class="text-gray-500 text-center py-12">No charts generated yet</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analysis Results -->
+    <div class="bg-background-primary border border-border-default rounded-lg shadow-sm">
+        <div class="px-4 py-3 border-b border-border-default">
+            <h4 class="text-base font-semibold text-foreground-default">Analysis Results</h4>
+        </div>
+        <div class="p-4">
+            <div id="analysisResults">
+                <!-- Analysis results will be populated here -->
+                <p class="text-gray-500">Load data to see analysis results</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Loading Indicator -->
+<div id="loadingIndicator" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg" style="display: none; z-index: 9999;">
+    Loading...
+</div>
+
+<!-- Column Selection Panel (Hidden by default) -->
+<div id="columnSelectionPanel" class="fixed right-4 top-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg p-4 max-w-sm" style="display: none; z-index: 1000;">
+    <h4 class="text-lg font-semibold mb-4">Column Selection</h4>
+    <div id="columnCheckboxes">
+        <!-- Column checkboxes will be populated by JavaScript -->
+    </div>
+</div>

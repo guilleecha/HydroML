@@ -1,23 +1,27 @@
 from django.contrib import admin
-# from .models import Notification
+from .models import HyperparameterPreset
 
 
-# @admin.register(Notification)
-# class NotificationAdmin(admin.ModelAdmin):
-#     """
-#     Django admin configuration for the Notification model.
-#     """
-#     list_display = ('user', 'message_preview', 'notification_type', 'is_read', 'timestamp')
-#     list_filter = ('is_read', 'notification_type', 'timestamp')
-#     search_fields = ('user__username', 'message')
-#     ordering = ('-timestamp',)
-#     readonly_fields = ('timestamp',)
+@admin.register(HyperparameterPreset)
+class HyperparameterPresetAdmin(admin.ModelAdmin):
+    """
+    Optimized admin configuration for HyperparameterPreset model.
+    """
+    list_display = ('name', 'model_type', 'user', 'created_at')
+    list_filter = ('model_type', 'created_at')
+    search_fields = ('name', 'description', 'user__username')
+    readonly_fields = ('created_at', 'updated_at')
+    ordering = ('-created_at',)
     
-#     def message_preview(self, obj):
-#         """Display a truncated version of the message in the list view."""
-#         return obj.message[:50] + '...' if len(obj.message) > 50 else obj.message
-#     message_preview.short_description = 'Message'
-    
-#     def get_queryset(self, request):
-#         """Optimize queries with select_related for user."""
-#         return super().get_queryset(request).select_related('user')
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'description', 'user')
+        }),
+        ('Configuration', {
+            'fields': ('model_type', 'hyperparameters')
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )

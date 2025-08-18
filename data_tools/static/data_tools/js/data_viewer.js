@@ -1,6 +1,7 @@
 // Data Viewer using AG Grid
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Data Viewer JS loaded');
+    console.log('Data Viewer JS loaded - starting initialization');
+    console.log('AG Grid available:', typeof agGrid !== 'undefined');
 
     // DOM Elements
     const loadingSpinner = document.getElementById('loading-spinner');
@@ -8,9 +9,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorMessage = document.getElementById('error-message');
     const gridContainer = document.getElementById('data-viewer-grid');
 
+    console.log('DOM elements found:', {
+        loadingSpinner: !!loadingSpinner,
+        errorContainer: !!errorContainer,
+        errorMessage: !!errorMessage,
+        gridContainer: !!gridContainer
+    });
+
     // Get API URL from template
     const scriptData = JSON.parse(document.getElementById('data-viewer-script-data').textContent);
     const apiUrl = scriptData.dataSourceUrl;
+    
+    console.log('API URL from template:', apiUrl);
 
     // Main function to load data and initialize AG Grid
     async function loadDataAndInitializeGrid() {
@@ -31,7 +41,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(jsonData.error);
             }
 
-            console.log('Data received:', jsonData);
+            console.log('Data received from API:', {
+                columns: jsonData.columns,
+                dataLength: jsonData.data ? jsonData.data.length : 0,
+                sampleData: jsonData.data ? jsonData.data.slice(0, 2) : null
+            });
 
             // Hide loading spinner
             console.log('Hiding loading spinner...');

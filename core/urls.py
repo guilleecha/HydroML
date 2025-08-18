@@ -1,26 +1,27 @@
 from django.urls import path
 from . import views, api
+from .views import dashboard_views, preset_views
 
 
 app_name = 'core'
 
 urlpatterns = [
     # Dashboard
-    path('dashboard/', views.dashboard_view, name='dashboard'),
+    path('dashboard/', dashboard_views.DashboardView.as_view(), name='dashboard'),
     
     # Help/FAQ page
-    path('help/', views.help_page, name='help'),
+    path('help/', dashboard_views.HelpPageView.as_view(), name='help'),
     
     # Hyperparameter Presets
-    path('presets/', views.preset_list, name='preset_list'),
-    path('presets/create/', views.preset_create, name='preset_create'),
-    path('presets/<int:preset_id>/', views.preset_detail, name='preset_detail'),
-    path('presets/<int:preset_id>/edit/', views.preset_update, name='preset_update'),
-    path('presets/<int:preset_id>/delete/', views.preset_delete, name='preset_delete'),
+    path('presets/', preset_views.PresetListView.as_view(), name='preset_list'),
+    path('presets/create/', preset_views.PresetCreateView.as_view(), name='preset_create'),
+    path('presets/<int:pk>/', preset_views.PresetDetailView.as_view(), name='preset_detail'),
+    path('presets/<int:pk>/edit/', preset_views.PresetUpdateView.as_view(), name='preset_update'),
+    path('presets/<int:pk>/delete/', preset_views.PresetDeleteView.as_view(), name='preset_delete'),
     
     # API endpoints
-    path('api/presets/', views.preset_api_list, name='preset_api_list'),
-    path('api/presets/<int:preset_id>/', views.preset_api_detail, name='preset_api_detail'),
+    path('api/presets/', preset_views.PresetAPIListView.as_view(), name='preset_api_list'),
+    path('api/presets/<int:pk>/', preset_views.PresetAPIDetailView.as_view(), name='preset_api_detail'),
     
     # API endpoints for breadcrumb navigation
     path('api/projects/other/', api.get_other_projects, name='api_other_projects'),

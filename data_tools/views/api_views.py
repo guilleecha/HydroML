@@ -16,53 +16,120 @@ def get_columns_api(request, datasource_id):
     API endpoint que devuelve las columnas de un DataSource específico.
     Soporta múltiples formatos de archivo: CSV, Parquet, Excel.
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    logger.info(f"🔧 [BACKEND DEBUG] get_columns_api called with datasource_id: {datasource_id}")
+    logger.info(f"👤 [BACKEND DEBUG] Request user: {request.user}")
+    logger.info(f"🌐 [BACKEND DEBUG] Request method: {request.method}")
+    logger.info(f"📋 [BACKEND DEBUG] Request META: {dict(request.META)}")
+    
     try:
+        logger.info(f"🔍 [BACKEND DEBUG] Searching for DataSource with ID: {datasource_id}")
+        logger.info(f"🔍 [BACKEND DEBUG] DataSource ID type: {type(datasource_id)}")
+        
         # Asegurarse de que el datasource pertenece al proyecto del usuario
         datasource = get_object_or_404(DataSource, id=datasource_id, project__owner=request.user)
+        logger.info(f"✅ [BACKEND DEBUG] DataSource found: {datasource}")
+        logger.info(f"📋 [BACKEND DEBUG] DataSource name: {datasource.name}")
+        logger.info(f"📋 [BACKEND DEBUG] DataSource status: {datasource.status}")
+        logger.info(f"📋 [BACKEND DEBUG] DataSource project: {datasource.project}")
+        logger.info(f"📋 [BACKEND DEBUG] DataSource file: {datasource.file}")
         
         # Verificar que el DataSource esté listo
+        logger.info(f"🔍 [BACKEND DEBUG] Checking DataSource status...")
         if datasource.status != DataSource.Status.READY:
+            error_msg = f'DataSource "{datasource.name}" no está listo (estado: {datasource.status})'
+            logger.error(f"❌ [BACKEND DEBUG] Status check failed: {error_msg}")
             return JsonResponse({
-                'error': f'DataSource "{datasource.name}" no está listo (estado: {datasource.status})'
+                'error': error_msg
             }, status=400)
+        logger.info(f"✅ [BACKEND DEBUG] DataSource status is READY")
         
         # Verificar que el DataSource tiene un archivo asociado
+        logger.info(f"🔍 [BACKEND DEBUG] Checking if DataSource has file...")
         if not datasource.file:
+            error_msg = f'DataSource "{datasource.name}" no tiene archivo asociado'
+            logger.error(f"❌ [BACKEND DEBUG] File check failed: {error_msg}")
             return JsonResponse({
-                'error': f'DataSource "{datasource.name}" no tiene archivo asociado'
+                'error': error_msg
             }, status=400)
+        logger.info(f"✅ [BACKEND DEBUG] DataSource has file: {datasource.file}")
         
-        # Leer el archivo con soporte para múltiples formatos
-        file_path = datasource.file.path
+    # Leer el archivo con soporte para múltiples formatos
+    import os
+    file_path = datasource.file.path
+    logger.info(f"📁 [BACKEND DEBUG] File path: {file_path}")
+        logger.info(f"📁 [BACKEND DEBUG] File exists: {os.path.exists(file_path)}")
+        logger.info(f"📁 [BACKEND DEBUG] File size: {os.path.getsize(file_path) if os.path.exists(file_path) else 'N/A'} bytes")
         
         # Detectar formato de archivo y leer apropiadamente
+        logger.info(f"📁 [BACKEND DEBUG] Detecting file format...")
+        df = None
+        
         if file_path.endswith('.parquet'):
+            logger.info(f"📁 [BACKEND DEBUG] Reading as Parquet file...")
             df = pd.read_parquet(file_path)
+            logger.info(f"✅ [BACKEND DEBUG] Parquet file read successfully")
         elif file_path.endswith('.csv'):
+            logger.info(f"📁 [BACKEND DEBUG] Reading as CSV file...")
             try:
-                # Intentar diferentes delimitadores y codificaciones
+                logger.info(f"📁 [BACKEND DEBUG] Trying comma delimiter with latin-1 encoding...")
                 df = pd.read_csv(file_path, delimiter=',', encoding='latin-1')
-            except pd.errors.ParserError:
+                logger.info(f"✅ [BACKEND DEBUG] CSV read with comma delimiter")
+            except pd.errors.ParserError as e:
+                logger.warning(f"⚠️ [BACKEND DEBUG] Comma delimiter failed: {e}")
                 try:
+                    logger.info(f"📁 [BACKEND DEBUG] Trying semicolon delimiter...")
                     df = pd.read_csv(file_path, delimiter=';', encoding='latin-1')
-                except pd.errors.ParserError:
+                    logger.info(f"✅ [BACKEND DEBUG] CSV read with semicolon delimiter")
+                except pd.errors.ParserError as e:
+                    logger.warning(f"⚠️ [BACKEND DEBUG] Semicolon delimiter failed: {e}")
                     try:
+                        logger.info(f"📁 [BACKEND DEBUG] Trying tab delimiter...")
                         df = pd.read_csv(file_path, delimiter='\t', encoding='latin-1')
+                        logger.info(f"✅ [BACKEND DEBUG] CSV read with tab delimiter")
                     except pd.errors.ParserError as e:
+                        logger.error(f"❌ [BACKEND DEBUG] All CSV delimiter attempts failed: {e}")
                         return JsonResponse({'error': f'Error al analizar el archivo CSV: {str(e)}'}, status=400)
         elif file_path.endswith(('.xls', '.xlsx')):
+            logger.info(f"📁 [BACKEND DEBUG] Reading as Excel file...")
             df = pd.read_excel(file_path)
+            logger.info(f"✅ [BACKEND DEBUG] Excel file read successfully")
         else:
-            # Último recurso: intentar leer como Parquet
+            logger.info(f"📁 [BACKEND DEBUG] Unknown format, trying Parquet as fallback...")
             try:
                 df = pd.read_parquet(file_path)
+                logger.info(f"✅ [BACKEND DEBUG] Fallback Parquet read successful")
             except Exception as e:
+                logger.error(f"❌ [BACKEND DEBUG] Fallback Parquet read failed: {e}")
                 return JsonResponse({'error': f'Formato de archivo no soportado: {file_path}'}, status=400)
         
-        columns = df.columns.tolist()
-        return JsonResponse({'columns': columns})
+        logger.info(f"📊 [BACKEND DEBUG] DataFrame loaded successfully")
+        logger.info(f"📊 [BACKEND DEBUG] DataFrame shape: {df.shape}")
+        logger.info(f"📊 [BACKEND DEBUG] DataFrame columns count: {len(df.columns)}")
         
+        columns = df.columns.tolist()
+        logger.info(f"📋 [BACKEND DEBUG] Extracted columns: {columns}")
+        logger.info(f"📋 [BACKEND DEBUG] Columns type: {type(columns)}")
+        logger.info(f"📋 [BACKEND DEBUG] First 5 columns: {columns[:5] if len(columns) > 5 else columns}")
+        
+        response_data = {'columns': columns}
+        logger.info(f"📤 [BACKEND DEBUG] Preparing response: {response_data}")
+        logger.info(f"✅ [BACKEND DEBUG] API call completed successfully")
+        
+        return JsonResponse(response_data)
+        
+    except DataSource.DoesNotExist:
+        error_msg = f"DataSource with ID {datasource_id} not found or access denied"
+        logger.error(f"❌ [BACKEND DEBUG] DataSource.DoesNotExist: {error_msg}")
+        return JsonResponse({'error': error_msg}, status=404)
     except Exception as e:
+        logger.error(f"❌ [BACKEND DEBUG] Unexpected error: {str(e)}")
+        logger.error(f"❌ [BACKEND DEBUG] Error type: {type(e)}")
+        logger.error(f"❌ [BACKEND DEBUG] Error args: {e.args}")
+        import traceback
+        logger.error(f"❌ [BACKEND DEBUG] Full traceback: {traceback.format_exc()}")
         return JsonResponse({'error': str(e)}, status=500)
 
 @login_required

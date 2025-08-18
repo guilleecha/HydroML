@@ -85,17 +85,17 @@
                                         </svg>
                                     </div>
                                     <div class="min-w-0 flex-1">
-                                        <a href="{% url 'data_tools:data_source_detail' pk=ds.pk %}" class="text-sm font-medium text-brand-600 dark:text-darcula-accent hover:text-brand-700 dark:hover:text-darcula-foreground truncate block">
+                                        <a href="{% url 'data_tools:data_studio_page' pk=ds.pk %}" class="text-sm font-medium text-brand-600 dark:text-darcula-accent hover:text-brand-700 dark:hover:text-darcula-foreground truncate block">
                                             {{ ds.name }}
                                         </a>
                                         <p class="text-xs text-foreground-muted dark:text-darcula-foreground-muted mt-1 truncate">
-                                            {{ ds.file_name }}
+                                            {{ ds.filename }}
                                         </p>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-3 py-4 text-sm text-foreground-default dark:text-darcula-foreground">
-                                {{ ds.get_file_type_display }}
+                                {{ ds.get_data_type_display }}
                             </td>
                             <td class="px-3 py-4 text-sm text-foreground-muted dark:text-darcula-foreground-muted">
                                 {% if ds.total_rows %}{{ ds.total_rows|floatformat:0 }}{% else %}-{% endif %}
@@ -105,12 +105,12 @@
                             </td>
                             <td class="px-3 py-4">
                                 <div class="flex items-center space-x-2">
-                                    <a href="{% url 'data_tools:data_source_detail' pk=ds.pk %}" 
+                                    <a href="{% url 'data_tools:data_studio_page' pk=ds.pk %}" 
                                        class="text-brand-600 dark:text-darcula-accent hover:text-brand-700 dark:hover:text-darcula-foreground text-sm font-medium">
                                         Ver
                                     </a>
                                     <span class="text-foreground-muted dark:text-darcula-foreground-muted">•</span>
-                                    <a href="{% url 'data_tools:data_studio' %}?dataset={{ ds.pk }}" 
+                                    <a href="{% url 'data_tools:data_studio_page' pk=ds.pk %}" 
                                        class="text-foreground-muted dark:text-darcula-foreground-muted hover:text-brand-600 dark:hover:text-darcula-accent text-sm">
                                         Explorar
                                     </a>

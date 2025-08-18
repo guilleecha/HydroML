@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}HydroML{% endblock %}</title>
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%233b82f6'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='white' font-size='40' font-family='Arial'%3EH%3C/text%3E%3C/svg%3E">
+    
     <!-- Prevent flash of unstyled content                         <a href="{% url 'accounts:signup' %}" 
                             class="flex items-center w-full px-3 py-2 text-sm font-medium text-white bg-gray-800 dark:bg-gray-700 hover:bg-gray-900 dark:hover:bg-gray-600 rounded-lg transition-colors"OUC) in dark mode -->
     <script>
@@ -530,7 +533,7 @@
                         {% if user.is_authenticated %}
                             <div class="hidden md:flex items-center space-x-3">
                                 <!-- Notifications Button -->
-                                <div class="relative" x-data="notificationDropdown()" x-init="init()">
+                                <div class="relative" x-data="notificationDropdown()" x-init="">
                                     <button @click="toggleDropdown()" 
                                             type="button" 
                                             class="relative p-2 text-foreground-muted dark:text-darcula-foreground-muted hover:text-foreground-default dark:hover:text-darcula-foreground hover:bg-background-tertiary dark:hover:bg-darcula-background-lighter rounded-lg transition-colors"
@@ -739,7 +742,7 @@
     <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.1.1/dist/ag-grid-community.min.js"></script>
     
     <!-- Plotly.js -->
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
     
     {% block extra_js %}{% endblock %}
 </body>

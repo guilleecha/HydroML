@@ -1,0 +1,41 @@
+<!-- Header Section with Breadcrumbs and Title -->
+<div class="border-b border-border-default dark:border-onedark-border bg-background-primary dark:bg-onedark-background px-8 py-6">
+    <!-- Breadcrumbs -->
+    {% if breadcrumbs %}
+    <nav class="flex mb-4" aria-label="Breadcrumb">
+        <ol class="flex items-center space-x-2">
+            {% for crumb in breadcrumbs %}
+                {% if not forloop.last %}
+                    <li>
+                        <a href="{{ crumb.url }}" class="text-foreground-muted hover:text-foreground-primary transition-colors">
+                            {{ crumb.name }}
+                        </a>
+                    </li>
+                    <li class="text-foreground-muted">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                    </li>
+                {% else %}
+                    <li class="text-foreground-primary font-medium">{{ crumb.name }}</li>
+                {% endif %}
+            {% endfor %}
+        </ol>
+    </nav>
+    {% endif %}
+    
+    <!-- Header Title -->
+    <div class="flex items-center justify-between">
+        <div class="flex items-center">
+            <div class="w-12 h-12 bg-background-secondary rounded-xl flex items-center justify-center mr-4">
+                <svg class="w-6 h-6 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.78 0-2.678-2.153-1.415-3.414l5-5A2 2 0 009 11.172V5l-1-1z"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-foreground-default">Data Studio</h1>
+                <p class="text-foreground-muted">{{ datasource.name }}</p>
+            </div>
+        </div>
+    </div>
+</div>

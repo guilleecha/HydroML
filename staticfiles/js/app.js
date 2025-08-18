@@ -48,6 +48,10 @@ window.hydroMLApp = () => ({
     isNewProjectPanelOpen: false,
     newProjectFormLoaded: false,
     
+    // New Suite panel state management
+    isNewSuitePanelOpen: false,
+    newSuiteFormLoaded: false,
+    
     // Initialization
     init() {
         // Check for saved theme preference or default to system preference
@@ -106,28 +110,20 @@ window.hydroMLApp = () => ({
     },
     
     updateTheme() {
-        localStorage.setItem('theme', this.darkMode ? 'dark' : 'light');
-        
-        // Update the document class immediately
-        const htmlElement = document.documentElement;
         if (this.darkMode) {
-            htmlElement.classList.add('dark');
+            document.documentElement.classList.add('dark');
         } else {
-            htmlElement.classList.remove('dark');
+            document.documentElement.classList.remove('dark');
         }
-        
-        // Also update this component's class binding
-        this.$nextTick(() => {
-            // Force a re-render by updating the class attribute
-            htmlElement.className = htmlElement.className;
-        });
+        localStorage.setItem('theme', this.darkMode ? 'dark' : 'light');
     },
     
     // Upload panel methods
     async openUploadPanel(forceProjectSelection = false) {
         // Close all other panels first
-        this.isNewProjectPanelOpen = false;
         this.isNewExperimentPanelOpen = false;
+        this.isNewProjectPanelOpen = false;
+        this.isNewSuitePanelOpen = false;
         
         // Then open the requested panel
         this.isUploadPanelOpen = true;
@@ -145,44 +141,36 @@ window.hydroMLApp = () => ({
     
     async loadUploadForm(forceProjectSelection = false) {
         try {
-            // Get current project ID from the page if we're on a project detail page
+            // Get current project ID from URL
             const projectId = this.getCurrentProjectId();
-            
-            let url = '/projects/datasource/upload-form-partial/';
             const params = new URLSearchParams();
             
             if (projectId && !forceProjectSelection) {
                 params.append('project_id', projectId);
-            } else if (forceProjectSelection) {
+            }
+            if (forceProjectSelection) {
                 params.append('force_selection', 'true');
             }
             
-            if (params.toString()) {
-                url += '?' + params.toString();
-            }
+            const url = params.toString() 
+                ? `/projects/datasource/upload-form-partial/?${params}`
+                : '/projects/datasource/upload-form-partial/';
                 
             const response = await fetch(url);
-            if (response.ok) {
-                const html = await response.text();
-                document.getElementById('upload-form-container').innerHTML = html;
+            const html = await response.text();
+            
+            const container = document.getElementById('upload-form-container');
+            if (container) {
+                container.innerHTML = html;
                 this.uploadFormLoaded = true;
-                
-                // Initialize any form-specific JavaScript if needed
                 this.initializeUploadForm();
-            } else {
-                throw new Error('Failed to load form');
             }
         } catch (error) {
             console.error('Error loading upload form:', error);
-            document.getElementById('upload-form-container').innerHTML = `
-                <div class="text-center text-danger-600 dark:text-darcula-error">
-                    <svg class="mx-auto h-8 w-8 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p>Error al cargar el formulario</p>
-                    <button onclick="location.reload()" class="mt-2 text-sm underline">Intentar de nuevo</button>
-                </div>
-            `;
+            const container = document.getElementById('upload-form-container');
+            if (container) {
+                container.innerHTML = '<div class="text-red-600">Error al cargar el formulario</div>';
+            }
         }
     },
     
@@ -191,6 +179,7 @@ window.hydroMLApp = () => ({
         // Close all other panels first
         this.isUploadPanelOpen = false;
         this.isNewProjectPanelOpen = false;
+        this.isNewSuitePanelOpen = false;
         
         // Then open the requested panel
         this.isNewExperimentPanelOpen = true;
@@ -199,7 +188,7 @@ window.hydroMLApp = () => ({
             await this.loadNewExperimentForm();
         }
     },
-    
+
     closeNewExperimentPanel() {
         this.isNewExperimentPanelOpen = false;
         // Reset form loaded state so it reloads fresh next time
@@ -211,6 +200,7 @@ window.hydroMLApp = () => ({
         // Close all other panels first
         this.isUploadPanelOpen = false;
         this.isNewExperimentPanelOpen = false;
+        this.isNewSuitePanelOpen = false;
         
         // Then open the requested panel
         this.isNewProjectPanelOpen = true;
@@ -219,84 +209,130 @@ window.hydroMLApp = () => ({
             await this.loadNewProjectForm();
         }
     },
-    
+
     closeNewProjectPanel() {
         this.isNewProjectPanelOpen = false;
         // Reset form loaded state so it reloads fresh next time
         this.newProjectFormLoaded = false;
     },
     
+    // New Suite panel methods
+    async openNewSuitePanel() {
+        // Close all other panels first
+        this.isUploadPanelOpen = false;
+        this.isNewExperimentPanelOpen = false;
+        this.isNewProjectPanelOpen = false;
+        
+        // Then open the requested panel
+        this.isNewSuitePanelOpen = true;
+        
+        if (!this.newSuiteFormLoaded) {
+            await this.loadNewSuiteForm();
+        }
+    },
+
+    closeNewSuitePanel() {
+        this.isNewSuitePanelOpen = false;
+        // Reset form loaded state so it reloads fresh next time
+        this.newSuiteFormLoaded = false;
+    },
+    
     async loadNewExperimentForm() {
         try {
-            // Get current project ID from the page if we're on a project detail page
+            // Get current project ID from URL
             const projectId = this.getCurrentProjectId();
             const url = projectId 
                 ? `/experiments/ml-experiment-form-partial/?project_id=${projectId}`
                 : '/experiments/ml-experiment-form-partial/';
                 
             const response = await fetch(url);
-            if (response.ok) {
-                const html = await response.text();
-                document.getElementById('new-experiment-form-container').innerHTML = html;
+            const html = await response.text();
+            
+            const container = document.getElementById('new-experiment-form-container');
+            if (container) {
+                container.innerHTML = html;
                 this.newExperimentFormLoaded = true;
-                
-                // Initialize any form-specific JavaScript if needed
-                this.initializeNewExperimentForm();
-            } else {
-                throw new Error('Failed to load form');
+                // Initialize ML experiment form logic after DOM is ready
+                setTimeout(() => {
+                    this.initializeMLExperimentFormLogic();
+                }, 100);
             }
         } catch (error) {
             console.error('Error loading new experiment form:', error);
-            document.getElementById('new-experiment-form-container').innerHTML = `
-                <div class="text-center text-danger-600 dark:text-darcula-error">
-                    <svg class="mx-auto h-8 w-8 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p>Error al cargar el formulario</p>
-                    <button onclick="location.reload()" class="mt-2 text-sm underline">Intentar de nuevo</button>
-                </div>
-            `;
+            const container = document.getElementById('new-experiment-form-container');
+            if (container) {
+                container.innerHTML = '<div class="text-red-600">Error al cargar el formulario</div>';
+            }
         }
     },
     
     async loadNewProjectForm() {
         try {
-            const response = await fetch('/projects/create-form-partial/');
-            if (response.ok) {
-                const html = await response.text();
-                document.getElementById('new-project-form-container').innerHTML = html;
+            const response = await fetch('/projects/create-partial/');
+            const html = await response.text();
+            
+            const container = document.getElementById('new-project-form-container');
+            if (container) {
+                container.innerHTML = html;
                 this.newProjectFormLoaded = true;
-                
-                // Initialize any form-specific JavaScript if needed
-                this.initializeNewProjectForm();
-            } else {
-                throw new Error('Failed to load form');
+                // Initialize form logic after DOM is ready
+                setTimeout(() => {
+                    this.initializeNewProjectForm();
+                }, 100);
             }
         } catch (error) {
             console.error('Error loading new project form:', error);
-            document.getElementById('new-project-form-container').innerHTML = `
-                <div class="text-center text-danger-600 dark:text-darcula-error">
-                    <svg class="mx-auto h-8 w-8 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p>Error al cargar el formulario</p>
-                    <button onclick="location.reload()" class="mt-2 text-sm underline">Intentar de nuevo</button>
-                </div>
-            `;
+            const container = document.getElementById('new-project-form-container');
+            if (container) {
+                container.innerHTML = '<div class="text-red-600">Error al cargar el formulario</div>';
+            }
+        }
+    },
+    
+    async loadNewSuiteForm() {
+        try {
+            // Get current project ID from URL
+            const projectId = this.getCurrentProjectId();
+            if (!projectId) {
+                throw new Error('No project ID found in URL');
+            }
+            
+            const url = `/experiments/projects/${projectId}/suites/create-partial/`;
+            const response = await fetch(url);
+            const html = await response.text();
+            
+            const container = document.getElementById('new-suite-form-container');
+            if (container) {
+                container.innerHTML = html;
+                this.newSuiteFormLoaded = true;
+                // Initialize form logic after DOM is ready
+                setTimeout(() => {
+                    this.initializeNewSuiteForm();
+                }, 100);
+            }
+        } catch (error) {
+            console.error('Error loading new suite form:', error);
+            const container = document.getElementById('new-suite-form-container');
+            if (container) {
+                container.innerHTML = '<div class="text-red-600">Error al cargar el formulario</div>';
+            }
         }
     },
     
     getCurrentProjectId() {
-        // Try to extract project ID from the current URL
-        const path = window.location.pathname;
-        const matches = path.match(/\/projects\/([a-f0-9-]+)\//);
-        return matches ? matches[1] : null;
+        // Extract project ID from current URL
+        const pathParts = window.location.pathname.split('/');
+        const projectIndex = pathParts.indexOf('projects');
+        if (projectIndex !== -1 && pathParts[projectIndex + 1]) {
+            return pathParts[projectIndex + 1];
+        }
+        return null;
     },
     
     initializeUploadForm() {
         // Re-initialize any Alpine.js components in the dynamically loaded content
         this.$nextTick(() => {
-            // Find any Alpine.js components in the uploaded form and initialize them
+            // Find any Alpine.js components in the upload form and initialize them
             const formContainer = document.getElementById('upload-form-container');
             if (formContainer && window.Alpine) {
                 window.Alpine.initTree(formContainer);
@@ -305,19 +341,270 @@ window.hydroMLApp = () => ({
     },
     
     initializeNewExperimentForm() {
+        console.log('🚀 [APP.JS] ================================');
+        console.log('🚀 [APP.JS] initializeNewExperimentForm called');
+        
         // Re-initialize any Alpine.js components in the dynamically loaded content
         this.$nextTick(() => {
+            console.log('🔧 [APP.JS] Inside $nextTick - DOM should be ready');
+            
             // Find any Alpine.js components in the new experiment form and initialize them
             const formContainer = document.getElementById('new-experiment-form-container');
+            console.log('🔧 [APP.JS] Form container found:', !!formContainer);
+            
             if (formContainer && window.Alpine) {
+                console.log('🔧 [APP.JS] Initializing Alpine.js tree for form container');
                 window.Alpine.initTree(formContainer);
             }
             
-            // Initialize the ML experiment form JavaScript if available
-            if (window.MLExperimentForm && typeof window.MLExperimentForm.init === 'function') {
-                window.MLExperimentForm.init();
-            }
+            // NUEVA IMPLEMENTACIÓN: Ejecutar directamente la lógica del ml_experiment_form.js
+            console.log('🔧 [APP.JS] Manually initializing ML experiment form logic...');
+            this.initializeMLExperimentFormLogic();
         });
+    },
+    
+    // Nueva función para inicializar manualmente la lógica del formulario ML
+    initializeMLExperimentFormLogic() {
+        console.log('🧪 [MANUAL INIT] ================================');
+        console.log('🧪 [MANUAL INIT] Starting manual ML experiment form initialization');
+        
+        // Verificar que el formulario existe
+        const experimentForm = document.getElementById('experiment-form');
+        if (!experimentForm) {
+            console.error('❌ [MANUAL INIT] Experiment form not found, aborting initialization');
+            return;
+        }
+        console.log('✅ [MANUAL INIT] Experiment form found:', experimentForm);
+        
+        // Obtener referencias a los elementos críticos
+        const datasourceSelect = document.getElementById('id_input_datasource');
+        const targetColumnSelect = document.getElementById('id_target_column_select');
+        const featuresAvailable = document.getElementById('features-available');
+        const featuresSelected = document.getElementById('features-selected');
+        const hiddenTargetInput = document.getElementById('id_target_column');
+        const hiddenFeatureSet = document.getElementById('id_feature_set');
+        const btnAdd = document.getElementById('btn-add-feature');
+        const btnRemove = document.getElementById('btn-remove-feature');
+        
+        console.log('🔍 [MANUAL INIT] Element validation:');
+        console.log('🔍 [MANUAL INIT] - datasourceSelect:', !!datasourceSelect);
+        console.log('🔍 [MANUAL INIT] - targetColumnSelect:', !!targetColumnSelect);
+        console.log('🔍 [MANUAL INIT] - featuresAvailable:', !!featuresAvailable);
+        console.log('🔍 [MANUAL INIT] - featuresSelected:', !!featuresSelected);
+        console.log('🔍 [MANUAL INIT] - hiddenTargetInput:', !!hiddenTargetInput);
+        console.log('🔍 [MANUAL INIT] - hiddenFeatureSet:', !!hiddenFeatureSet);
+        console.log('🔍 [MANUAL INIT] - btnAdd:', !!btnAdd);
+        console.log('🔍 [MANUAL INIT] - btnRemove:', !!btnRemove);
+        
+        if (!datasourceSelect) {
+            console.error('❌ [MANUAL INIT] Critical element datasourceSelect not found!');
+            return;
+        }
+        
+        // Obtener la URL template del dataset
+        const getColumnsUrlTemplate = experimentForm.dataset.getColumnsUrlTemplate || experimentForm.dataset.getColumnsUrl;
+        console.log('🌐 [MANUAL INIT] URL template:', getColumnsUrlTemplate);
+        
+        if (!getColumnsUrlTemplate) {
+            console.error('❌ [MANUAL INIT] getColumnsUrlTemplate missing from form dataset!');
+            return;
+        }
+        
+        // Función para sincronizar campos ocultos
+        const syncHiddenInputs = () => {
+            if (hiddenTargetInput && targetColumnSelect) {
+                hiddenTargetInput.value = targetColumnSelect.value;
+            }
+            if (hiddenFeatureSet && featuresSelected) {
+                const values = Array.from(featuresSelected.options).map(opt => opt.value);
+                hiddenFeatureSet.value = JSON.stringify(values);
+            }
+            console.log('🔄 [MANUAL INIT] Hidden inputs synchronized');
+        };
+        
+        // Función para mover opciones entre listas
+        const moveOptions = (source, destination) => {
+            Array.from(source.selectedOptions).forEach(opt => {
+                destination.appendChild(opt);
+            });
+            syncHiddenInputs();
+        };
+        
+        // Función para poblar opciones de select
+        const populateSelectOptions = (selectElement, columns, defaultText) => {
+            console.log('🔧 [MANUAL INIT] Populating select with', columns?.length, 'columns');
+            
+            if (!selectElement) {
+                console.error('❌ [MANUAL INIT] Select element not provided');
+                return;
+            }
+            
+            selectElement.innerHTML = '';
+            const defaultOption = new Option(defaultText, '');
+            selectElement.add(defaultOption);
+            
+            if (columns && Array.isArray(columns)) {
+                columns.forEach(column => {
+                    const option = new Option(column, column);
+                    selectElement.add(option);
+                });
+                console.log('✅ [MANUAL INIT] Added', columns.length, 'options to select');
+            }
+        };
+        
+        // Función principal para manejar cambios en DataSource
+        const handleDataSourceChange = async (event) => {
+            console.log('🔧 [MANUAL INIT] DataSource change triggered');
+            console.log('🔧 [MANUAL INIT] New value:', event.target.value);
+            
+            const datasourceId = event.target.value;
+            
+            // Reset dropdowns
+            if (targetColumnSelect) {
+                targetColumnSelect.innerHTML = '<option value="">Cargando...</option>';
+                targetColumnSelect.disabled = true;
+            }
+            if (featuresAvailable) {
+                featuresAvailable.innerHTML = '';
+            }
+            if (featuresSelected) {
+                featuresSelected.innerHTML = '';
+            }
+            
+            syncHiddenInputs();
+            
+            if (!datasourceId) {
+                if (targetColumnSelect) {
+                    targetColumnSelect.innerHTML = '<option value="">Primero selecciona una Fuente de Datos</option>';
+                }
+                console.log('⚠️ [MANUAL INIT] No datasource selected');
+                return;
+            }
+            
+            try {
+                console.log('🌐 [MANUAL INIT] Making API call...');
+                const apiUrl = getColumnsUrlTemplate.replace('00000000-0000-0000-0000-000000000000', datasourceId);
+                console.log('🌐 [MANUAL INIT] API URL:', apiUrl);
+                
+                const response = await fetch(apiUrl);
+                console.log('📡 [MANUAL INIT] Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('📦 [MANUAL INIT] API response data:', data);
+                
+                if (data.columns && Array.isArray(data.columns)) {
+                    console.log('✅ [MANUAL INIT] Columns received:', data.columns.length);
+                    
+                    // Populate target column select
+                    if (targetColumnSelect) {
+                        populateSelectOptions(targetColumnSelect, data.columns, '-- Selecciona variable objetivo --');
+                        targetColumnSelect.disabled = false;
+                    }
+                    
+                    // Populate features available
+                    if (featuresAvailable) {
+                        populateSelectOptions(featuresAvailable, data.columns, '-- Selecciona columnas características --');
+                    }
+                } else {
+                    throw new Error('No columns found in API response');
+                }
+                
+            } catch (error) {
+                console.error('❌ [MANUAL INIT] Error loading columns:', error);
+                if (targetColumnSelect) {
+                    targetColumnSelect.innerHTML = `<option value="">Error: ${error.message}</option>`;
+                }
+            }
+        };
+        
+        // Registrar event listeners
+        console.log('🔧 [MANUAL INIT] Registering event listeners...');
+        
+        // DataSource change listener
+        datasourceSelect.addEventListener('change', handleDataSourceChange);
+        console.log('✅ [MANUAL INIT] DataSource change listener registered');
+        
+        // Feature list movement listeners
+        if (btnAdd && featuresAvailable && featuresSelected) {
+            btnAdd.addEventListener('click', () => moveOptions(featuresAvailable, featuresSelected));
+            console.log('✅ [MANUAL INIT] Add feature button listener registered');
+        }
+        
+        if (btnRemove && featuresAvailable && featuresSelected) {
+            btnRemove.addEventListener('click', () => moveOptions(featuresSelected, featuresAvailable));
+            console.log('✅ [MANUAL INIT] Remove feature button listener registered');
+        }
+        
+        // Target column change listener
+        if (targetColumnSelect) {
+            targetColumnSelect.addEventListener('change', syncHiddenInputs);
+            console.log('✅ [MANUAL INIT] Target column change listener registered');
+        }
+        
+        // Features selected change listener
+        if (featuresSelected) {
+            featuresSelected.addEventListener('change', syncHiddenInputs);
+            console.log('✅ [MANUAL INIT] Features selected change listener registered');
+        }
+        
+        // Model selection and hyperparameters logic
+        const modelSelect = document.getElementById("id_model_name");
+        const rfFields = document.getElementById("rf-fields");
+        const gbFields = document.getElementById("gb-fields");
+        
+        if (modelSelect) {
+            const updateHyperparameterFields = () => {
+                // Hide all fields first
+                if (rfFields) rfFields.classList.add("hidden");
+                if (gbFields) gbFields.classList.add("hidden");
+                
+                // Show relevant fields
+                const value = modelSelect.value;
+                if (value === "RandomForestRegressor" && rfFields) {
+                    rfFields.classList.remove("hidden");
+                } else if (value === "GradientBoostingRegressor" && gbFields) {
+                    gbFields.classList.remove("hidden");
+                }
+                console.log('🔧 [MANUAL INIT] Hyperparameter fields updated for model:', value);
+            };
+            
+            modelSelect.addEventListener("change", updateHyperparameterFields);
+            updateHyperparameterFields(); // Initial call
+            console.log('✅ [MANUAL INIT] Model selection listener registered');
+        }
+        
+        // Split strategy visibility logic
+        const splitStrategy = document.getElementById('id_split_strategy');
+        const randomStateField = document.getElementById('id_split_random_state');
+        
+        if (splitStrategy && randomStateField) {
+            const updateRandomStateVisibility = () => {
+                const randomStateDiv = randomStateField.closest('.form-group, .mb-4, div') || randomStateField.parentElement;
+                
+                if (splitStrategy.value === 'RANDOM') {
+                    randomStateDiv.style.display = '';
+                } else {
+                    randomStateDiv.style.display = 'none';
+                }
+                console.log('🔧 [MANUAL INIT] Random state visibility updated');
+            };
+            
+            splitStrategy.addEventListener('change', updateRandomStateVisibility);
+            updateRandomStateVisibility(); // Initial call
+            console.log('✅ [MANUAL INIT] Split strategy listener registered');
+        }
+        
+        console.log('🎉 [MANUAL INIT] ML experiment form initialization completed successfully!');
+        
+        // Test the DataSource selector immediately
+        if (datasourceSelect && datasourceSelect.options.length > 1) {
+            console.log('🧪 [MANUAL INIT] Testing DataSource selector with available options...');
+            console.log('🧪 [MANUAL INIT] Available options:', Array.from(datasourceSelect.options).map(opt => ({value: opt.value, text: opt.text})));
+        }
     },
     
     initializeNewProjectForm() {
@@ -331,52 +618,48 @@ window.hydroMLApp = () => ({
         });
     },
     
+    initializeNewSuiteForm() {
+        // Re-initialize any Alpine.js components in the dynamically loaded content
+        this.$nextTick(() => {
+            // Find any Alpine.js components in the new suite form and initialize them
+            const formContainer = document.getElementById('new-suite-form-container');
+            if (formContainer && window.Alpine) {
+                window.Alpine.initTree(formContainer);
+            }
+        });
+    },
+    
     async submitExperimentForm(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        
         try {
-            const form = event.target;
-            const formData = new FormData(form);
-            const projectId = this.getCurrentProjectId();
-            const url = projectId 
-                ? `/experiments/ml-experiment-form-partial/?project_id=${projectId}`
-                : '/experiments/ml-experiment-form-partial/';
-            
-            const response = await fetch(url, {
+            const response = await fetch(form.action, {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
                 }
             });
             
-            const data = await response.json();
+            const result = await response.json();
             
-            if (data.success) {
-                // Close the panel
+            if (result.success) {
                 this.closeNewExperimentPanel();
+                this.showMessage(result.message, 'success');
                 
-                // Show success message
-                this.showMessage(data.message, 'success');
-                
-                // Redirect to refresh the page
-                if (data.redirect_url) {
-                    window.location.href = data.redirect_url;
-                } else {
-                    // Fallback - reload current page
-                    window.location.reload();
+                // Redirect if specified
+                if (result.redirect_url) {
+                    window.location.href = result.redirect_url;
                 }
             } else {
-                // Show error message
-                this.showMessage(data.message || 'Error al crear el experimento', 'error');
-                
-                // If there are field-specific errors, you could handle them here
-                if (data.errors) {
-                    console.error('Form validation errors:', data.errors);
-                    // You could implement field-specific error display here
-                }
+                // Handle form errors
+                this.showMessage('Error en el formulario. Revisa los campos.', 'error');
             }
         } catch (error) {
             console.error('Error submitting experiment form:', error);
-            this.showMessage('Error de conexión. Por favor, intenta de nuevo.', 'error');
+            this.showMessage('Error al crear el experimento', 'error');
         }
     },
     
@@ -403,11 +686,13 @@ window.hydroMLApp = () => ({
         this.isUploadPanelOpen = false;
         this.isNewExperimentPanelOpen = false;
         this.isNewProjectPanelOpen = false;
+        this.isNewSuitePanelOpen = false;
         
         // Reset form loaded states
         this.uploadFormLoaded = false;
         this.newExperimentFormLoaded = false;
         this.newProjectFormLoaded = false;
+        this.newSuiteFormLoaded = false;
     }
 });
 
@@ -420,10 +705,6 @@ window.notificationDropdown = () => ({
     
     async init() {
         await this.fetchNotifications();
-        // Poll for new notifications every 30 seconds
-        setInterval(() => {
-            this.fetchNotifications();
-        }, 30000);
     },
     
     toggleDropdown() {
@@ -438,86 +719,98 @@ window.notificationDropdown = () => ({
     },
     
     async fetchNotifications() {
+        this.loading = true;
         try {
-            this.loading = true;
-            const response = await fetch('/api/notifications/', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
+            // TODO: Implement notifications API endpoint
+            console.log('Notifications API not implemented yet');
+            this.notifications = [];
+            this.unreadCount = 0;
+            return;
             
-            if (response.ok) {
-                const data = await response.json();
-                this.notifications = data.notifications || [];
-                this.unreadCount = data.unread_count || 0;
-            } else {
-                console.error('Failed to fetch notifications:', response.status);
-            }
+            const response = await fetch('/accounts/api/notifications/');
+            const data = await response.json();
+            this.notifications = data.notifications || [];
+            this.unreadCount = data.unread_count || 0;
         } catch (error) {
             console.error('Error fetching notifications:', error);
+            this.notifications = [];
+            this.unreadCount = 0;
         } finally {
             this.loading = false;
         }
     },
     
-    async markAsRead(notificationId) {
-        try {
-            const response = await fetch('/api/notifications/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({
-                    notification_id: notificationId
-                })
-            });
-            
-            if (response.ok) {
-                // Remove from notifications list
-                this.notifications = this.notifications.filter(n => n.id !== notificationId);
-                this.unreadCount = Math.max(0, this.unreadCount - 1);
-            } else {
-                console.error('Failed to mark notification as read:', response.status);
-            }
-        } catch (error) {
-            console.error('Error marking notification as read:', error);
-        }
-    },
-    
     async markAllAsRead() {
         try {
-            const response = await fetch('/api/notifications/', {
-                method: 'DELETE',
+            const response = await fetch('/accounts/api/notifications/mark-all-read/', {
+                method: 'POST',
                 headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value,
                     'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
                 }
             });
             
             if (response.ok) {
-                this.notifications = [];
                 this.unreadCount = 0;
-                this.closeDropdown();
-            } else {
-                console.error('Failed to mark all notifications as read:', response.status);
+                this.notifications.forEach(notification => {
+                    notification.is_read = true;
+                });
             }
         } catch (error) {
-            console.error('Error marking all notifications as read:', error);
+            console.error('Error marking notifications as read:', error);
         }
     },
     
-    async handleNotificationClick(notification) {
-        // Mark as read
-        await this.markAsRead(notification.id);
+    handleNotificationClick(notification) {
+        // Handle click on notification
+        if (notification.target_url) {
+            window.location.href = notification.target_url;
+        }
+        this.closeDropdown();
+    },
+    
+    // Function to refresh DataSource lists after upload
+    async refreshDataSourceLists() {
+        const projectId = this.getCurrentProjectId();
+        if (!projectId) return;
         
-        // Navigate to the link if it exists
-        if (notification.link) {
-            window.location.href = notification.link;
+        try {
+            const response = await fetch(`/projects/${projectId}/datasources/api/`);
+            const data = await response.json();
+            
+            if (data.success) {
+                // Update the experiment form datasource dropdown if it exists
+                this.updateExperimentFormDataSources(data.datasources);
+                
+                // Update the main page datasources table
+                this.updateMainPageDataSources(data.datasources);
+            }
+        } catch (error) {
+            console.error('Error refreshing datasource lists:', error);
+        }
+    },
+    
+    updateExperimentFormDataSources(datasources) {
+        const select = document.getElementById('id_input_datasource');
+        if (!select) return;
+        
+        // Clear current options except the first one (usually empty option)
+        while (select.children.length > 1) {
+            select.removeChild(select.lastChild);
         }
         
-        this.closeDropdown();
+        // Add new datasources
+        datasources.forEach(ds => {
+            const option = document.createElement('option');
+            option.value = ds.id;
+            option.textContent = ds.name;
+            select.appendChild(option);
+        });
+    },
+    
+    updateMainPageDataSources(datasources) {
+        // This would ideally update the main table, but for now we'll just reload
+        // In a more sophisticated implementation, we'd update the DOM directly
+        window.location.reload();
     }
 });

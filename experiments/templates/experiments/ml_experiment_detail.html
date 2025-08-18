@@ -5,39 +5,6 @@
 <div class="mx-auto py-8">
     <div id="task-error-alert" class="mb-4"></div>
 
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-3xl font-bold text-foreground-default dark:text-darcula-foreground">{{ experiment.name }}</h1>
-        <span id="experiment-status-badge" 
-              class="px-3 py-1 rounded-full text-sm font-semibold"
-              data-status-url="{% url 'experiments:get_experiment_status' experiment_id=experiment.id %}"
-              data-initial-status="{{ experiment.status }}">
-            <!-- El estado se cargará aquí por JS -->
-        </span>
-    </div>
-
-    <!-- Tags Section -->
-    {% if experiment.tags.exists %}
-    <div class="mb-6">
-        <div class="flex flex-wrap gap-2">
-            {% for tag in experiment.tags.all %}
-                <span class="inline-flex items-center px-3 py-1 bg-blue-100 dark:bg-darcula-background-lighter text-blue-800 dark:text-darcula-string text-sm font-medium rounded-full border border-blue-200 dark:border-darcula-border-light hover:bg-blue-200 dark:hover:bg-darcula-background transition-colors">
-                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                    </svg>
-                    {{ tag.name }}
-                </span>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-
-{% extends "core/base.html" %}
-{% load static %}
-
-{% block content %}
-<div class="mx-auto py-8">
-    <div id="task-error-alert" class="mb-4"></div>
-
     <!-- Header Section -->
     <div class="bg-white dark:bg-darcula-background-lighter rounded-xl border border-border-default p-6 mb-8">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
@@ -1241,7 +1208,7 @@
                                             <div class="text-xs text-foreground-muted dark:text-darcula-foreground-muted">
                                                 Subido: {{ datasource_item.datasource.uploaded_at|date:"d M Y H:i" }}
                                             </div>
-                                            <a href="{% url 'data_tools:data_studio' datasource_id=datasource_item.datasource.pk %}" 
+                                            <a href="{% url 'data_tools:data_studio_page' pk=datasource_item.datasource.pk %}" 
                                                class="inline-flex items-center px-3 py-1 text-xs font-medium text-{{ datasource_item.color }}-700 dark:text-{{ datasource_item.color }}-300 bg-{{ datasource_item.color }}-50 dark:bg-{{ datasource_item.color }}-900/20 border border-{{ datasource_item.color }}-200 dark:border-{{ datasource_item.color }}-700 rounded-md hover:bg-{{ datasource_item.color }}-100 dark:hover:bg-{{ datasource_item.color }}-900/40 transition-colors">
                                                 <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
@@ -1275,7 +1242,7 @@
                                         <div class="text-xs text-foreground-muted dark:text-darcula-foreground-muted">
                                             Subido: {{ experiment.input_datasource.uploaded_at|date:"d M Y H:i" }}
                                         </div>
-                                        <a href="{% url 'data_tools:data_studio' datasource_id=experiment.input_datasource.pk %}" 
+                                        <a href="{% url 'data_tools:data_studio_page' pk=experiment.input_datasource.pk %}" 
                                            class="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors">
                                             <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>

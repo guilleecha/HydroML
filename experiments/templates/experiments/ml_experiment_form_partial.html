@@ -4,7 +4,7 @@
 <!-- New Experiment Form - Partial Template for Slide-Over Panel -->
 <form method="post" id="experiment-form" 
       class="space-y-6"
-      data-get-columns-url="{% url 'data_tools:get_columns_api' datasource_id='00000000-0000-0000-0000-000000000000' %}"
+      data-get-columns-url-template="{% url 'data_tools:get_columns_api' datasource_id='00000000-0000-0000-0000-000000000000' %}"
       @submit.prevent="submitExperimentForm($event)">
     
     {% csrf_token %}
@@ -32,21 +32,23 @@
     </div>
 
     <div class="mt-4">
-        <label class="block text-sm font-medium text-foreground-default dark:text-darcula-foreground">Selección de Variables Predictoras</label>
-        <div class="grid grid-cols-12 gap-4 mt-1">
-            <div class="col-span-5">
-                <span class="text-xs font-semibold text-foreground-muted dark:text-darcula-foreground-muted">Disponibles</span>
-                <select id="features-available" multiple class="w-full h-40 border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background text-foreground-default dark:text-darcula-foreground rounded-md"></select>
+        <fieldset class="border border-border-default dark:border-darcula-border rounded-md p-4">
+            <legend class="block text-sm font-medium text-foreground-default dark:text-darcula-foreground px-2">Selección de Variables Predictoras</legend>
+            <div class="grid grid-cols-12 gap-4 mt-1">
+                <div class="col-span-5">
+                    <label for="features-available" class="text-xs font-semibold text-foreground-muted dark:text-darcula-foreground-muted block mb-1">Disponibles</label>
+                    <select id="features-available" multiple class="w-full h-40 border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background text-foreground-default dark:text-darcula-foreground rounded-md" aria-label="Variables disponibles para seleccionar"></select>
+                </div>
+                <div class="col-span-2 flex flex-col items-center justify-center space-y-2">
+                    <button type="button" id="btn-add-feature" class="px-3 py-1.5 border border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background-lighter text-foreground-default dark:text-darcula-foreground rounded-md shadow-sm hover:bg-background-secondary dark:hover:bg-darcula-background" aria-label="Agregar variables seleccionadas">&gt;&gt;</button>
+                    <button type="button" id="btn-remove-feature" class="px-3 py-1.5 border border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background-lighter text-foreground-default dark:text-darcula-foreground rounded-md shadow-sm hover:bg-background-secondary dark:hover:bg-darcula-background" aria-label="Remover variables seleccionadas">&lt;&lt;</button>
+                </div>
+                <div class="col-span-5">
+                    <label for="features-selected" class="text-xs font-semibold text-foreground-muted dark:text-darcula-foreground-muted block mb-1">Seleccionadas</label>
+                    <select id="features-selected" multiple class="w-full h-40 border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background text-foreground-default dark:text-darcula-foreground rounded-md" aria-label="Variables seleccionadas para el modelo"></select>
+                </div>
             </div>
-            <div class="col-span-2 flex flex-col items-center justify-center space-y-2">
-                <button type="button" id="btn-add-feature" class="px-3 py-1.5 border border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background-lighter text-foreground-default dark:text-darcula-foreground rounded-md shadow-sm hover:bg-background-secondary dark:hover:bg-darcula-background">&gt;&gt;</button>
-                <button type="button" id="btn-remove-feature" class="px-3 py-1.5 border border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background-lighter text-foreground-default dark:text-darcula-foreground rounded-md shadow-sm hover:bg-background-secondary dark:hover:bg-darcula-background">&lt;&lt;</button>
-            </div>
-            <div class="col-span-5">
-                <span class="text-xs font-semibold text-foreground-muted dark:text-darcula-foreground-muted">Seleccionadas</span>
-                <select id="features-selected" multiple class="w-full h-40 border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background text-foreground-default dark:text-darcula-foreground rounded-md"></select>
-            </div>
-        </div>
+        </fieldset>
     </div>
     
     {{ form.model_name|as_crispy_field }}
@@ -65,8 +67,11 @@
     {{ form.split_strategy|as_crispy_field }}
     
     <!-- Custom Test Split Size Slider with Alpine.js -->
-    <div x-data="{ splitValue: {{ form.test_split_size.value|default:20 }} }" class="mb-4">
-        <label for="id_test_split_size" class="block text-sm font-medium text-foreground-default dark:text-darcula-foreground mb-2">
+    <div x-data="{ 
+        splitValue: {{ form.test_split_size.value|default:20 }}, 
+        get splitValueDecimal() { return this.splitValue / 100; } 
+    }" class="mb-4">
+        <label for="test_split_slider" class="block text-sm font-medium text-foreground-default dark:text-darcula-foreground mb-2">
             Tamaño del Conjunto de Prueba: <span x-text="splitValue + '%'" class="font-semibold text-brand-600 dark:text-darcula-accent"></span>
         </label>
         <div class="flex items-center space-x-4">
@@ -81,6 +86,7 @@
                 class="flex-1 h-2 bg-background-secondary dark:bg-darcula-background-lighter rounded-lg appearance-none cursor-pointer slider"
                 x-on:input="$el.style.setProperty('--value', ($event.target.value - 5) / (50 - 5) * 100 + '%'); $el.style.background = `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${($event.target.value - 5) / (50 - 5) * 100}%, #e5e7eb ${($event.target.value - 5) / (50 - 5) * 100}%, #e5e7eb 100%)`"
                 x-init="$el.style.background = `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(splitValue - 5) / (50 - 5) * 100}%, #e5e7eb ${(splitValue - 5) / (50 - 5) * 100}%, #e5e7eb 100%)`"
+                aria-label="Seleccionar porcentaje del conjunto de prueba"
             >
             <span class="text-sm text-foreground-muted dark:text-darcula-foreground-muted">50%</span>
         </div>
@@ -89,7 +95,8 @@
             type="hidden" 
             name="test_split_size" 
             id="id_test_split_size"
-            x-model="splitValue / 100"
+            x-model="splitValueDecimal"
+            aria-hidden="true"
         >
     </div>
     

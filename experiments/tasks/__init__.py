@@ -14,18 +14,17 @@ Modules:
 from .experiment_tasks import (
     run_train_test_split_task,
     run_model_training_task, 
+    run_time_series_cross_validation_task,
     run_final_evaluation_task,
     set_experiment_status_as_finished,
-    run_full_experiment_pipeline_task
-)
-
-from .suite_tasks import (
+    run_full_experiment_pipeline_task,
     run_experiment_suite_task
 )
 
 __all__ = [
     'run_train_test_split_task',
     'run_model_training_task',
+    'run_time_series_cross_validation_task',
     'run_final_evaluation_task', 
     'set_experiment_status_as_finished',
     'run_full_experiment_pipeline_task',

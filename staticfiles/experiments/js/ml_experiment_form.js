@@ -1,7 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
     // --- Referencias a Elementos del DOM ---
+    console.log('🧪 ML Experiment Form JavaScript Loading...');
     const experimentForm = document.getElementById('experiment-form');
-    if (!experimentForm) return;
+    if (!experimentForm) {
+        console.error('❌ Experiment form not found!');
+        return;
+    }
+    console.log('✅ Experiment form found:', experimentForm);
 
     const modelSelect = document.getElementById("id_model_name");
     const rfFields = document.getElementById("rf-fields");
@@ -24,7 +29,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Preset loading elements
     const presetSelect = document.getElementById('id_load_preset');
     
-    const getColumnsUrlTemplate = experimentForm.dataset.getColumnsUrl;
+    const getColumnsUrlTemplate = experimentForm.dataset.getColumnsUrlTemplate || experimentForm.dataset.getColumnsUrl;
+    console.log('🌐 [STATIC] getColumnsUrlTemplate from dataset:', getColumnsUrlTemplate);
 
     // --- Lógica para Dynamic Preset Filtering ---
     function updatePresetDropdown(modelType) {
@@ -297,6 +303,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Lógica para Poblar Columnas Dinámicamente ---
     datasourceSelect.addEventListener('change', function() {
+        console.log('📊 DataSource selection changed:', this.value);
         const datasourceId = this.value;
         
         targetColumnSelect.innerHTML = '<option value="">Cargando...</option>';
@@ -307,17 +314,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!datasourceId) {
             targetColumnSelect.innerHTML = '<option value="">Primero selecciona una Fuente de Datos</option>';
+            console.log('ℹ️ No datasource selected');
             return;
         }
 
         const url = getColumnsUrlTemplate.replace('00000000-0000-0000-0000-000000000000', datasourceId);
+        console.log('🌐 Fetching columns from URL:', url);
 
         fetch(url)
             .then(resp => {
+                console.log('📡 Fetch response status:', resp.status);
                 if (!resp.ok) throw new Error('Error de red al buscar columnas.');
                 return resp.json();
             })
             .then(data => {
+                console.log('✅ Columns data received:', data);
                 if (data.error) throw new Error(data.error);
 
                 targetColumnSelect.innerHTML = '<option value="">Selecciona una columna...</option>';
@@ -329,11 +340,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     targetColumnSelect.add(targetOption);
                     featuresAvailable.add(featuresOption);
                 });
+                console.log(`✅ Added ${data.columns.length} columns to selectors`);
 
                 targetColumnSelect.disabled = false;
             })
             .catch(error => {
-                console.error("Error al poblar columnas:", error);
+                console.error("❌ Error loading columns:", error);
                 targetColumnSelect.innerHTML = `<option value="">Error: ${error.message}</option>`;
             });
     });

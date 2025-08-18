@@ -19,17 +19,38 @@ from core.utils.breadcrumbs import create_breadcrumb
 
 
 @login_required
+def project_datasources_api(request, project_id):
+    """
+    API endpoint to get DataSources for a project (for dynamic updates).
+    """
+    project = get_object_or_404(Project, id=project_id, owner=request.user)
+    datasources = project.datasources.filter(status='READY').values('id', 'name', 'filename', 'data_type')
+    
+    return JsonResponse({
+        'success': True,
+        'datasources': list(datasources)
+    })
+
+
+@login_required
 def datasource_upload_form_partial(request):
     """
     Returns the upload form as a partial template for AJAX loading.
-    Enhanced to support conditional project selection.
+    Enhanced to support contextual UX modes for different use cases.
     """
     # Get parameters
     project_id = request.GET.get('project_id')
     force_selection = request.GET.get('force_selection', 'false').lower() == 'true'
+    ux_mode = request.GET.get('ux_mode', 'auto')  # 'dashboard', 'project', 'data_tools', 'auto'
     
     project = None
     show_project_selection = False
+    ux_context = {
+        'mode': ux_mode,
+        'show_project_change_option': False,
+        'show_current_project_button': False,
+        'contextual_message': None,
+    }
     
     if project_id and not force_selection:
         try:
@@ -46,15 +67,50 @@ def datasource_upload_form_partial(request):
             'success': False,
             'error': 'No se encontró ningún proyecto. Crea un proyecto primero.'
         })
-    elif user_projects_count == 1 and not project and not force_selection:
-        # Only one project available, use it automatically
-        project = user_projects.first()
-        show_project_selection = False
-    elif not project or force_selection:
-        # Multiple projects but no context, or forced selection - show selection
+    
+    # Apply UX Mode Logic
+    if ux_mode == 'dashboard':
+        # DASHBOARD MODE: Always show selector, with optional current project context
         show_project_selection = True
+        if project:
+            ux_context['show_current_project_button'] = True
+            ux_context['contextual_message'] = f"Subiendo desde el dashboard. Proyecto actual: {project.name}"
+        else:
+            ux_context['contextual_message'] = "Selecciona el workspace donde subir los datos."
         project = project or user_projects.first()  # Default selection
-    # If project is specified and not forced, don't show selection
+        
+    elif ux_mode == 'project':
+        # PROJECT MODE: Pre-select current project, show option to change
+        if project:
+            show_project_selection = False
+            ux_context['show_project_change_option'] = True
+            ux_context['contextual_message'] = f"Los datos se subirán a '{project.name}'. ¿Quieres cambiar de workspace?"
+        else:
+            # Fallback if no project context in project mode
+            show_project_selection = True
+            ux_context['contextual_message'] = "Selecciona el workspace de destino."
+            project = user_projects.first()
+            
+    elif ux_mode == 'data_tools':
+        # DATA TOOLS MODE: Specific behavior for data analysis tools
+        if project:
+            show_project_selection = False
+            ux_context['contextual_message'] = f"Subiendo datos para análisis en '{project.name}'."
+        else:
+            show_project_selection = True
+            ux_context['contextual_message'] = "Selecciona el workspace para el análisis de datos."
+            project = user_projects.first()
+            
+    else:
+        # AUTO MODE: Legacy behavior for backward compatibility
+        if user_projects_count == 1 and not project and not force_selection:
+            # Only one project available, use it automatically
+            project = user_projects.first()
+            show_project_selection = False
+        elif not project or force_selection:
+            # Multiple projects but no context, or forced selection - show selection
+            show_project_selection = True
+            project = project or user_projects.first()  # Default selection
     
     if request.method == 'POST':
         form = DataSourceUploadForm(
@@ -102,6 +158,8 @@ def datasource_upload_form_partial(request):
         'project': project,
         'show_project_selection': show_project_selection,
         'user_projects_count': user_projects_count,
+        'ux_context': ux_context,
+        'user_projects': user_projects,  # For advanced UX features
     }
     return render(request, 'projects/datasource_form_partial.html', context)
 

@@ -73,6 +73,12 @@ class Project(models.Model):
         help_text="Permite que otros usuarios vean este proyecto"
     )
     
+    is_favorite = models.BooleanField(
+        default=False,
+        verbose_name="Proyecto Favorito",
+        help_text="Marca este proyecto como favorito para el usuario"
+    )
+    
     created_at = models.DateTimeField(
         auto_now_add=True,
         help_text="Timestamp when the project was created"
@@ -105,26 +111,6 @@ class Project(models.Model):
         """
         from django.urls import reverse
         return reverse('projects:project_detail', kwargs={'pk': self.pk})
-    
-    @property
-    def datasource_count(self):
-        """
-        Get the number of DataSources in this project.
-        
-        Returns:
-            int: Number of DataSources associated with this project
-        """
-        return self.datasources.count()
-    
-    @property 
-    def experiment_count(self):
-        """
-        Get the number of ExperimentSuites in this project.
-        
-        Returns:
-            int: Number of ExperimentSuites associated with this project
-        """
-        return getattr(self, 'experiment_suites', None).count() if hasattr(self, 'experiment_suites') else 0
     
     def can_be_accessed_by(self, user):
         """

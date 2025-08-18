@@ -516,6 +516,9 @@ def register_model_view(request, pk):
         return redirect('experiments:ml_experiment_detail', pk=experiment.pk)
     
     try:
+        # Optimized imports - only import what we need
+        from mlflow.tracking import MlflowClient
+        import mlflow.models
         import mlflow
         
         # Set MLflow tracking URI
