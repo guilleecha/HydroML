@@ -18,9 +18,62 @@ function dataStudioApp() {
             jumpToPage: 1
         },
 
+        filterManager: null,
+        filterState: {
+            showFilterBuilder: false,
+            showFilterPresets: false,
+            showSaveFilterDialog: false,
+            selectedFilterColumn: '',
+            availableColumns: [],
+            activeFilters: {},
+            presets: []
+        },
+
         init() {
             this.initializeGrid();
             this.checkSessionStatus();
+            this.setupFilterEventListeners();
+        },
+
+        setupFilterEventListeners() {
+            // Listen for filter UI build events
+            document.addEventListener('build-filter-ui', (event) => {
+                this.buildFilterUI(event.detail);
+            });
+
+            // Listen for filter preset events
+            document.addEventListener('save-current-filters', () => {
+                this.saveCurrentFilters();
+            });
+
+            document.addEventListener('load-filter-preset', (event) => {
+                this.loadFilterPreset(event.detail);
+            });
+
+            document.addEventListener('delete-filter-preset', (event) => {
+                this.deleteFilterPreset(event.detail);
+            });
+
+            document.addEventListener('clear-all-filters', () => {
+                this.clearAllFilters();
+            });
+
+            // Listen for filter application events
+            document.addEventListener('apply-multi-select-filter', (event) => {
+                this.applyMultiSelectFilter(event.detail);
+            });
+
+            document.addEventListener('apply-range-filter', (event) => {
+                this.applyRangeFilter(event.detail);
+            });
+
+            document.addEventListener('apply-text-filter', (event) => {
+                this.applyTextFilter(event.detail);
+            });
+
+            document.addEventListener('remove-filter', (event) => {
+                this.removeFilter(event.detail);
+            });
         },
 
         closeForm() {
@@ -194,6 +247,7 @@ function dataStudioApp() {
                         params.api.sizeColumnsToFit();
                         this.updateRowCountDisplay(params);
                         this.updatePaginationState(params);
+                        this.initializeFilterManager();
                     },
                     
                     onPaginationChanged: (params) => {
@@ -309,6 +363,283 @@ function dataStudioApp() {
                     this.gridApi.paginationSetPageSize(this.pagination.totalRows);
                 } else {
                     this.gridApi.paginationSetPageSize(parseInt(newSize));
+                }
+            }
+        },
+
+        initializeFilterManager() {
+            if (!this.gridApi || !window.FilterManager) {
+                console.warn('Grid API or FilterManager not available');
+                return;
+            }
+
+            this.filterManager = new window.FilterManager(this.gridApi, window.columnDefsData);
+            window.filterManager = this.filterManager; // Global access for sidebar
+            
+            this.filterState.availableColumns = (window.columnDefsData || [])
+                .filter(col => col.field && col.field !== 'rowNumber')
+                .map(col => ({
+                    field: col.field,
+                    headerName: col.headerName || col.field,
+                    type: this.filterManager.getColumnType(col.field)
+                }));
+
+            this.updateActiveFiltersDisplay();
+        },
+
+        buildFilterUI(columnField) {
+            if (!this.filterManager || !columnField) return;
+
+            const container = document.getElementById('filter-builder-container');
+            if (!container) return;
+
+            const columnType = this.filterManager.getColumnType(columnField);
+            const columnName = this.filterState.availableColumns.find(col => col.field === columnField)?.headerName || columnField;
+            
+            let html = '';
+
+            switch (columnType) {
+                case 'category':
+                    html = this.buildMultiSelectFilter(columnField, columnName);
+                    break;
+                case 'number':
+                    html = this.buildRangeFilter(columnField, columnName);
+                    break;
+                case 'text':
+                default:
+                    html = this.buildTextFilter(columnField, columnName);
+                    break;
+            }
+
+            container.innerHTML = html;
+            this.attachFilterEventListeners(columnField, columnType);
+        },
+
+        buildMultiSelectFilter(columnField, columnName) {
+            const uniqueValues = this.filterManager.getUniqueValues(columnField, 100);
+            
+            return `
+                <div class="space-y-2">
+                    <div class="text-xs font-medium text-gray-700 dark:text-gray-300">${columnName} (Multi-Select)</div>
+                    <div class="max-h-32 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-800">
+                        ${uniqueValues.map(value => `
+                            <label class="flex items-center space-x-2 text-xs py-1 hover:bg-gray-50 dark:hover:bg-gray-700 rounded cursor-pointer">
+                                <input type="checkbox" value="${value}" data-filter-field="${columnField}" data-filter-type="multiSelect" 
+                                       class="filter-checkbox w-3 h-3 text-cyan-600">
+                                <span class="text-gray-700 dark:text-gray-300">${value}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                    <button onclick="document.dispatchEvent(new CustomEvent('apply-multi-select-filter', {detail: '${columnField}'}))" 
+                            class="w-full px-3 py-1 text-xs bg-cyan-600 hover:bg-cyan-700 text-white rounded transition-colors">
+                        Apply Filter
+                    </button>
+                </div>
+            `;
+        },
+
+        buildRangeFilter(columnField, columnName) {
+            const range = this.filterManager.getNumericRange(columnField);
+            
+            return `
+                <div class="space-y-2">
+                    <div class="text-xs font-medium text-gray-700 dark:text-gray-300">${columnName} (Range)</div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-xs text-gray-600 dark:text-gray-400">Min</label>
+                            <input type="number" id="range-min-${columnField}" 
+                                   value="${range.min}" min="${range.min}" max="${range.max}" 
+                                   class="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-600 dark:text-gray-400">Max</label>
+                            <input type="number" id="range-max-${columnField}" 
+                                   value="${range.max}" min="${range.min}" max="${range.max}"
+                                   class="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                        </div>
+                    </div>
+                    <button onclick="document.dispatchEvent(new CustomEvent('apply-range-filter', {detail: '${columnField}'}))" 
+                            class="w-full px-3 py-1 text-xs bg-cyan-600 hover:bg-cyan-700 text-white rounded transition-colors">
+                        Apply Range
+                    </button>
+                </div>
+            `;
+        },
+
+        buildTextFilter(columnField, columnName) {
+            return `
+                <div class="space-y-2">
+                    <div class="text-xs font-medium text-gray-700 dark:text-gray-300">${columnName} (Text)</div>
+                    <div class="space-y-2">
+                        <select id="text-filter-type-${columnField}" 
+                                class="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                            <option value="contains">Contains</option>
+                            <option value="equals">Equals</option>
+                            <option value="startsWith">Starts With</option>
+                            <option value="endsWith">Ends With</option>
+                            <option value="notEqual">Not Equal</option>
+                        </select>
+                        <input type="text" id="text-filter-value-${columnField}" placeholder="Enter filter text..."
+                               class="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                        <button onclick="document.dispatchEvent(new CustomEvent('apply-text-filter', {detail: '${columnField}'}))" 
+                                class="w-full px-3 py-1 text-xs bg-cyan-600 hover:bg-cyan-700 text-white rounded transition-colors">
+                            Apply Text Filter
+                        </button>
+                    </div>
+                </div>
+            `;
+        },
+
+        attachFilterEventListeners(columnField, columnType) {
+            // Add event listeners for Enter key on inputs
+            if (columnType === 'text') {
+                const textInput = document.getElementById(`text-filter-value-${columnField}`);
+                if (textInput) {
+                    textInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            document.dispatchEvent(new CustomEvent('apply-text-filter', {detail: columnField}));
+                        }
+                    });
+                }
+            } else if (columnType === 'number') {
+                const minInput = document.getElementById(`range-min-${columnField}`);
+                const maxInput = document.getElementById(`range-max-${columnField}`);
+                [minInput, maxInput].forEach(input => {
+                    if (input) {
+                        input.addEventListener('keydown', (e) => {
+                            if (e.key === 'Enter') {
+                                document.dispatchEvent(new CustomEvent('apply-range-filter', {detail: columnField}));
+                            }
+                        });
+                    }
+                });
+            }
+        },
+
+        applyMultiSelectFilter(columnField) {
+            const checkboxes = document.querySelectorAll(`input[data-filter-field="${columnField}"]:checked`);
+            const selectedValues = Array.from(checkboxes).map(cb => cb.value);
+            
+            if (selectedValues.length > 0) {
+                this.filterManager.applyMultiSelectFilter(columnField, selectedValues);
+                this.updateActiveFiltersDisplay();
+            }
+        },
+
+        applyRangeFilter(columnField) {
+            const minInput = document.getElementById(`range-min-${columnField}`);
+            const maxInput = document.getElementById(`range-max-${columnField}`);
+            
+            if (minInput && maxInput) {
+                const min = parseFloat(minInput.value);
+                const max = parseFloat(maxInput.value);
+                
+                if (!isNaN(min) && !isNaN(max) && min <= max) {
+                    this.filterManager.applyRangeFilter(columnField, min, max);
+                    this.updateActiveFiltersDisplay();
+                }
+            }
+        },
+
+        applyTextFilter(columnField) {
+            const typeSelect = document.getElementById(`text-filter-type-${columnField}`);
+            const valueInput = document.getElementById(`text-filter-value-${columnField}`);
+            
+            if (typeSelect && valueInput && valueInput.value.trim()) {
+                this.filterManager.applyTextFilter(columnField, valueInput.value.trim(), typeSelect.value);
+                this.updateActiveFiltersDisplay();
+            }
+        },
+
+        updateActiveFiltersDisplay() {
+            if (!this.filterManager) return;
+
+            const container = document.getElementById('active-filters-container');
+            if (!container) return;
+
+            const activeFilters = this.filterManager.getActiveFiltersState();
+            
+            if (Object.keys(activeFilters).length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const html = Object.entries(activeFilters).map(([field, filterData]) => {
+                let displayText = '';
+                switch (filterData.type) {
+                    case 'multiSelect':
+                        displayText = `${filterData.values.length} values`;
+                        break;
+                    case 'range':
+                        displayText = `${filterData.min} - ${filterData.max}`;
+                        break;
+                    case 'text':
+                        displayText = `${filterData.filterType}: "${filterData.value}"`;
+                        break;
+                }
+                
+                return `
+                    <div class="flex items-center justify-between p-2 bg-cyan-50 dark:bg-cyan-900 border border-cyan-200 dark:border-cyan-700 rounded text-xs">
+                        <span class="flex-1">
+                            <span class="font-medium text-cyan-800 dark:text-cyan-200">${filterData.displayName}:</span>
+                            <span class="text-cyan-600 dark:text-cyan-300 ml-1">${displayText}</span>
+                        </span>
+                        <button onclick="document.dispatchEvent(new CustomEvent('remove-filter', {detail: '${field}'}))" 
+                                class="ml-2 text-cyan-600 hover:text-cyan-800 dark:text-cyan-400 dark:hover:text-cyan-200">
+                            ×
+                        </button>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        },
+
+        removeFilter(field) {
+            if (this.filterManager) {
+                this.filterManager.clearFilter(field);
+                this.updateActiveFiltersDisplay();
+            }
+        },
+
+        clearAllFilters() {
+            if (this.filterManager) {
+                this.filterManager.clearAllFilters();
+                this.updateActiveFiltersDisplay();
+                
+                // Clear the filter builder UI
+                const container = document.getElementById('filter-builder-container');
+                if (container) {
+                    container.innerHTML = '';
+                }
+                this.filterState.selectedFilterColumn = '';
+            }
+        },
+
+        saveCurrentFilters() {
+            const name = prompt('Enter a name for this filter preset:');
+            if (name && name.trim()) {
+                const description = prompt('Enter a description (optional):') || '';
+                const presetId = this.filterManager.savePreset(name.trim(), description.trim());
+                if (presetId) {
+                    alert('Filter preset saved successfully!');
+                    this.filterState.presets = this.filterManager.getPresets();
+                } else {
+                    alert('Failed to save preset. Make sure you have active filters.');
+                }
+            }
+        },
+
+        loadFilterPreset(presetId) {
+            if (this.filterManager && this.filterManager.loadPreset(presetId)) {
+                this.updateActiveFiltersDisplay();
+            }
+        },
+
+        deleteFilterPreset(presetId) {
+            if (confirm('Are you sure you want to delete this filter preset?')) {
+                if (this.filterManager && this.filterManager.deletePreset(presetId)) {
+                    this.filterState.presets = this.filterManager.getPresets();
                 }
             }
         },

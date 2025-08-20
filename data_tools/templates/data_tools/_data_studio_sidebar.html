@@ -230,6 +230,135 @@
             </div>
         </div>
 
+        <!-- Advanced Filters Section -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 mb-3">
+            <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3 flex items-center justify-between">
+                <span class="flex items-center">
+                    <span class="text-cyan-600 dark:text-cyan-400 mr-2">🔍</span>
+                    Advanced Filters
+                </span>
+                <div class="flex items-center space-x-2">
+                    <span x-show="filterManager?.getActiveFiltersCount() > 0" 
+                          class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-cyan-100 dark:bg-cyan-900 text-cyan-800 dark:text-cyan-200"
+                          x-text="`${filterManager?.getActiveFiltersCount() || 0} active`"></span>
+                </div>
+            </h4>
+            
+            <div class="space-y-2">
+                <button @click="showFilterBuilder = !showFilterBuilder" 
+                        class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors flex items-center justify-between">
+                    <span class="flex items-center">
+                        <span class="mr-2">🛠️</span>
+                        Filter Builder
+                    </span>
+                    <svg class="w-4 h-4 transform transition-transform duration-200" 
+                         :class="showFilterBuilder ? 'rotate-180' : ''"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                
+                <div x-show="showFilterBuilder" 
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 max-h-0"
+                     x-transition:enter-end="opacity-100 max-h-96"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100 max-h-96"
+                     x-transition:leave-end="opacity-0 max-h-0"
+                     class="overflow-hidden">
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded p-3 mt-2">
+                        <div class="text-xs text-gray-600 dark:text-gray-400 mb-2">Select a column to filter:</div>
+                        <select @change="selectedFilterColumn = $event.target.value; if ($event.target.value) { $dispatch('build-filter-ui', $event.target.value); }" 
+                                x-model="selectedFilterColumn"
+                                class="w-full text-xs border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                            <option value="">Choose column...</option>
+                            <template x-for="column in availableColumns" :key="column.field">
+                                <option :value="column.field" x-text="column.headerName || column.field"></option>
+                            </template>
+                        </select>
+                        
+                        <div x-show="selectedFilterColumn" class="mt-3" id="filter-builder-container">
+                            <!-- Filter UI will be dynamically inserted here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <button @click="showFilterPresets = !showFilterPresets" 
+                        class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors flex items-center justify-between">
+                    <span class="flex items-center">
+                        <span class="mr-2">💾</span>
+                        Saved Filters
+                        <span x-show="filterManager?.getPresets()?.length > 0" 
+                              class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300"
+                              x-text="filterManager?.getPresets()?.length || 0"></span>
+                    </span>
+                    <svg class="w-4 h-4 transform transition-transform duration-200" 
+                         :class="showFilterPresets ? 'rotate-180' : ''"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                
+                <div x-show="showFilterPresets" 
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 max-h-0"
+                     x-transition:enter-end="opacity-100 max-h-64"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100 max-h-64"
+                     x-transition:leave-end="opacity-0 max-h-0"
+                     class="overflow-hidden">
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded p-3 mt-2 max-h-64 overflow-y-auto">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="text-xs text-gray-600 dark:text-gray-400">Saved Filter Presets</div>
+                            <button @click="$dispatch('save-current-filters')"
+                                    :disabled="!filterManager?.getActiveFiltersCount() > 0"
+                                    class="text-xs px-2 py-1 bg-cyan-600 hover:bg-cyan-700 disabled:bg-gray-400 text-white rounded transition-colors">
+                                Save Current
+                            </button>
+                        </div>
+                        
+                        <div x-show="filterManager?.getPresets()?.length === 0" class="text-xs text-gray-500 dark:text-gray-400 text-center py-2">
+                            No saved filters
+                        </div>
+                        
+                        <template x-for="preset in filterManager?.getPresets() || []" :key="preset.id">
+                            <div class="flex items-center justify-between p-2 mb-1 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600">
+                                <div class="flex-1">
+                                    <div class="text-xs font-medium text-gray-900 dark:text-gray-100" x-text="preset.name"></div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400" x-text="preset.description"></div>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <button @click="$dispatch('load-filter-preset', preset.id)"
+                                            class="text-xs px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors">
+                                        Load
+                                    </button>
+                                    <button @click="$dispatch('delete-filter-preset', preset.id)"
+                                            class="text-xs px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded transition-colors">
+                                        ×
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                
+                <button @click="$dispatch('clear-all-filters')" 
+                        :disabled="!filterManager?.getActiveFiltersCount() > 0"
+                        class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed rounded transition-colors">
+                    <span class="mr-2">🧹</span>
+                    Clear All Filters
+                </button>
+            </div>
+
+            <!-- Active Filters Display -->
+            <div x-show="filterManager?.getActiveFiltersCount() > 0" class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                <div class="text-xs text-gray-600 dark:text-gray-400 mb-2">Active Filters:</div>
+                <div class="space-y-1" id="active-filters-container">
+                    <!-- Active filter chips will be inserted here -->
+                </div>
+            </div>
+        </div>
+
         <!-- Export Section -->
         <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
             <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3 flex items-center">
