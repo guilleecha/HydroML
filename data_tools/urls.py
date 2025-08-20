@@ -25,6 +25,9 @@ from .views.api.transformation_api_views import (
 from .views.api.nan_cleaning_api import QuickNaNCleaningAPIView, NaNAnalysisAPIView
 # Import Export API views
 from .views.api.export_api_views import ExportJobAPIView, ExportJobActionAPIView, ExportTemplateAPIView
+# Import new enhanced API views
+from .views.api.bulk_operations_api import BulkOperationsAPIView, bulk_operation_status, cancel_bulk_operation
+from .views.api.api_documentation import APIDocumentationView, api_stats_endpoint, api_health_check, openapi_spec
 
 app_name = 'data_tools'
 
@@ -193,4 +196,35 @@ urlpatterns = [
     path('api/v1/export-templates/<uuid:pk>/',
          ExportTemplateAPIView.as_view(),
          name='export_template_detail_api'),
+    
+    # --- Enhanced API Endpoints ---
+    # Bulk Operations API
+    path('api/studio/<uuid:datasource_id>/bulk/',
+         BulkOperationsAPIView.as_view(),
+         name='bulk_operations_api'),
+    
+    path('api/bulk-operation/<uuid:operation_id>/status/',
+         bulk_operation_status,
+         name='bulk_operation_status'),
+    
+    path('api/bulk-operation/<uuid:operation_id>/cancel/',
+         cancel_bulk_operation,
+         name='cancel_bulk_operation'),
+    
+    # API Documentation and Monitoring
+    path('api/docs/',
+         APIDocumentationView.as_view(),
+         name='api_documentation'),
+    
+    path('api/stats/',
+         api_stats_endpoint,
+         name='api_stats'),
+    
+    path('api/health/',
+         api_health_check,
+         name='api_health'),
+    
+    path('api/openapi.json',
+         openapi_spec,
+         name='openapi_spec'),
 ]

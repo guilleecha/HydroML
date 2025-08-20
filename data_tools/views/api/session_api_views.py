@@ -17,6 +17,8 @@ from django.shortcuts import get_object_or_404
 from projects.models import DataSource
 from data_tools.services.session_manager import get_session_manager
 from data_tools.services.data_loader import load_data_from_parquet
+from data_tools.services.api_performance_service import rate_limit, cache_response, monitor_performance
+from data_tools.websockets.data_studio_consumer import sync_send_session_update
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +27,8 @@ logger = logging.getLogger(__name__)
 @csrf_exempt
 @login_required
 @require_http_methods(["POST"])
+@rate_limit(limit=10, window_seconds=3600)  # 10 per hour
+@monitor_performance
 def initialize_session(request, datasource_id):
     """
     Initialize a new Data Studio session with the original DataFrame.

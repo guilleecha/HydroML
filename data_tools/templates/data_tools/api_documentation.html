@@ -1,0 +1,467 @@
+{% extends "core/base_github_style.html" %}
+{% load static %}
+
+{% block page_title %}API Documentation - HydroML Data Studio{% endblock %}
+
+{% block breadcrumb_nav %}
+<nav class="flex items-center text-sm text-gray-600 dark:text-gray-400" aria-label="Breadcrumb">
+    <ol class="flex items-center space-x-1">
+        <li class="text-gray-400 dark:text-gray-500">/</li>
+        <li>
+            <a href="{% url 'core:data_sources_list' %}" class="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
+                datasources
+            </a>
+        </li>
+        <li class="text-gray-400 dark:text-gray-500">/</li>
+        <li>
+            <span class="text-blue-600 dark:text-blue-400 font-medium font-mono">
+                api-docs
+            </span>
+        </li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<style>
+    .api-section {
+        @apply bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 mb-6;
+    }
+    
+    .endpoint-card {
+        @apply bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 p-4 mb-4;
+    }
+    
+    .method-badge {
+        @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    }
+    
+    .method-get { @apply bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300; }
+    .method-post { @apply bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300; }
+    .method-put { @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300; }
+    .method-delete { @apply bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300; }
+    
+    .code-block {
+        @apply bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto;
+    }
+    
+    .tab-content {
+        display: none;
+    }
+    
+    .tab-content.active {
+        display: block;
+    }
+    
+    .tab-button {
+        @apply px-4 py-2 text-sm font-medium border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 transition-colors;
+    }
+    
+    .tab-button.active {
+        @apply border-blue-500 text-blue-600 dark:text-blue-400;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                    HydroML Data Studio API Documentation
+                </h1>
+                <p class="mt-2 text-lg text-gray-600 dark:text-gray-400">
+                    Advanced API for data transformation, analysis, and real-time operations
+                </p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300">
+                    Version {{ api_specs.info.version }}
+                </span>
+                <a href="{% url 'data_tools:openapi_spec' %}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    OpenAPI Spec
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Start -->
+    <div class="api-section">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Start</h2>
+        
+        <div class="grid md:grid-cols-2 gap-6">
+            <div>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Authentication</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-3">
+                    All API endpoints require Django session authentication. Make sure you're logged into the HydroML platform.
+                </p>
+                <div class="code-block">
+                    <pre><code class="language-javascript">// Include CSRF token in requests
+const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+fetch('/data-tools/api/studio/datasource-id/session/status/', {
+    headers: {
+        'X-CSRFToken': csrfToken
+    }
+});</code></pre>
+                </div>
+            </div>
+            
+            <div>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Real-time Updates</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-3">
+                    Connect to WebSocket for live progress updates during transformations and bulk operations.
+                </p>
+                <div class="code-block">
+                    <pre><code class="language-javascript">// Connect to WebSocket
+const ws = new WebSocket('{{ websocket_url }}datasource-id/');
+
+ws.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    console.log('Real-time update:', data);
+};</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Features -->
+    <div class="api-section">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Key Features</h2>
+        
+        <div class="grid md:grid-cols-3 gap-6">
+            <div class="text-center">
+                <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Rate Limiting</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-sm">
+                    Intelligent rate limiting with sliding window algorithm to ensure fair usage
+                </p>
+            </div>
+            
+            <div class="text-center">
+                <div class="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Smart Caching</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-sm">
+                    Automatic response caching with TTL and invalidation for optimal performance
+                </p>
+            </div>
+            
+            <div class="text-center">
+                <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2h4a1 1 0 110 2h-1v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6H3a1 1 0 110-2h4zM9 6v10h6V6H9z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Bulk Operations</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-sm">
+                    High-performance bulk operations with real-time progress tracking
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="mb-6">
+        <nav class="flex space-x-8 border-b border-gray-200 dark:border-gray-700">
+            <button class="tab-button active" onclick="showTab('endpoints')">Endpoints</button>
+            <button class="tab-button" onclick="showTab('websockets')">WebSocket Events</button>
+            <button class="tab-button" onclick="showTab('examples')">Examples</button>
+            <button class="tab-button" onclick="showTab('monitoring')">Monitoring</button>
+        </nav>
+    </div>
+
+    <!-- Endpoints Tab -->
+    <div id="endpoints" class="tab-content active">
+        {% for section_name, section in api_specs.endpoints.items %}
+        <div class="api-section">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4 capitalize">
+                {{ section_name|title|replace:"_":" " }}
+            </h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">
+                Base path: <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{{ section.base_path }}</code>
+            </p>
+            
+            {% for endpoint_name, endpoint in section.endpoints.items %}
+            <div class="endpoint-card">
+                <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center space-x-3">
+                        <span class="method-badge method-{{ endpoint.method|lower }}">
+                            {{ endpoint.method }}
+                        </span>
+                        <code class="text-sm font-mono text-gray-900 dark:text-gray-100">
+                            {{ section.base_path }}{{ endpoint.path }}
+                        </code>
+                    </div>
+                    {% if endpoint.rate_limit %}
+                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                        Rate limit: {{ endpoint.rate_limit }}
+                    </span>
+                    {% endif %}
+                </div>
+                
+                <p class="text-gray-700 dark:text-gray-300 mb-3">{{ endpoint.description }}</p>
+                
+                {% if endpoint.cached %}
+                <div class="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400 mb-3">
+                    <span class="inline-flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7"></path>
+                        </svg>
+                        Cached (TTL: {{ endpoint.cache_ttl }})
+                    </span>
+                </div>
+                {% endif %}
+                
+                {% if endpoint.parameters %}
+                <div class="mb-3">
+                    <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Parameters:</h4>
+                    <div class="bg-gray-50 dark:bg-gray-600 rounded p-3">
+                        <pre class="text-sm"><code>{{ endpoint.parameters|pretty_json }}</code></pre>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if endpoint.response_example %}
+                <div class="mb-3">
+                    <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Response Example:</h4>
+                    <div class="code-block">
+                        <pre><code class="language-json">{{ endpoint.response_example|pretty_json }}</code></pre>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if endpoint.websocket_events %}
+                <div class="flex items-center space-x-2 text-sm">
+                    <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    <span class="text-gray-600 dark:text-gray-400">
+                        WebSocket events: {{ endpoint.websocket_events|join:", " }}
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- WebSocket Events Tab -->
+    <div id="websockets" class="tab-content">
+        <div class="api-section">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">WebSocket Events</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-6">
+                Real-time events sent through WebSocket connections for live updates during data operations.
+            </p>
+            
+            {% for event_name, event in api_specs.websocket_events.items %}
+            <div class="endpoint-card">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">{{ event_name }}</h3>
+                <p class="text-gray-700 dark:text-gray-300 mb-3">{{ event.description }}</p>
+                <div class="code-block">
+                    <pre><code class="language-json">{{ event.example|pretty_json }}</code></pre>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Examples Tab -->
+    <div id="examples" class="tab-content">
+        <div class="api-section">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Complete Examples</h2>
+            
+            <div class="space-y-6">
+                <div class="endpoint-card">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3">Starting a Bulk Operation</h3>
+                    <div class="code-block">
+                        <pre><code class="language-javascript">// Initialize WebSocket connection
+const ws = new WebSocket('{{ websocket_url }}your-datasource-id/');
+
+ws.onopen = function() {
+    console.log('WebSocket connected');
+    
+    // Subscribe to operation updates
+    ws.send(JSON.stringify({
+        type: 'subscribe_to_operation',
+        operation_id: 'operation-uuid'
+    }));
+};
+
+ws.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    
+    if (data.type === 'bulk_progress') {
+        console.log(`Progress: ${data.processed}/${data.total}`);
+        updateProgressBar(data.processed / data.total);
+    }
+};
+
+// Start bulk operation
+async function startBulkDelete() {
+    const response = await fetch('/data-tools/api/studio/datasource-id/bulk/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({
+            operation_type: 'delete_rows',
+            items: [1, 2, 3, 10, 15, 20],
+            options: {
+                batch_size: 2
+            }
+        })
+    });
+    
+    const result = await response.json();
+    if (result.success) {
+        console.log('Operation started:', result.data.operation_id);
+    }
+}</code></pre>
+                    </div>
+                </div>
+                
+                <div class="endpoint-card">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3">Session Management</h3>
+                    <div class="code-block">
+                        <pre><code class="language-javascript">// Complete session management example
+class DataStudioSession {
+    constructor(datasourceId) {
+        this.datasourceId = datasourceId;
+        this.baseUrl = '/data-tools/api/studio/' + datasourceId + '/session/';
+    }
+    
+    async initialize() {
+        const response = await fetch(this.baseUrl + 'initialize/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': this.getCsrfToken() }
+        });
+        return await response.json();
+    }
+    
+    async getStatus() {
+        const response = await fetch(this.baseUrl + 'status/');
+        return await response.json();
+    }
+    
+    async undo() {
+        const response = await fetch(this.baseUrl + 'undo/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': this.getCsrfToken() }
+        });
+        return await response.json();
+    }
+    
+    async save(name, description) {
+        const response = await fetch(this.baseUrl + 'save/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': this.getCsrfToken()
+            },
+            body: JSON.stringify({ name, description })
+        });
+        return await response.json();
+    }
+    
+    getCsrfToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]').value;
+    }
+}
+
+// Usage
+const session = new DataStudioSession('your-datasource-id');
+await session.initialize();
+const status = await session.getStatus();
+console.log('Session status:', status);</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monitoring Tab -->
+    <div id="monitoring" class="tab-content">
+        <div class="api-section">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">API Monitoring</h2>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3">Health Check</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-3">
+                        Monitor API health and system status.
+                    </p>
+                    <div class="code-block">
+                        <pre><code class="language-bash">curl {{ base_url }}health/</code></pre>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3">Performance Stats</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-3">
+                        Get detailed API performance metrics.
+                    </p>
+                    <div class="code-block">
+                        <pre><code class="language-bash">curl {{ base_url }}stats/</code></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3">Response Headers</h3>
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <ul class="space-y-2 text-sm">
+                        <li><code class="bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">X-RateLimit-Limit</code> - Maximum requests allowed</li>
+                        <li><code class="bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">X-RateLimit-Remaining</code> - Requests remaining in current window</li>
+                        <li><code class="bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">X-Cache</code> - Cache hit/miss status</li>
+                        <li><code class="bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">X-Response-Time</code> - API response time in seconds</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+<script>
+function showTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    // Remove active class from all tab buttons
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active');
+    });
+    
+    // Show selected tab content
+    document.getElementById(tabName).classList.add('active');
+    
+    // Add active class to clicked button
+    event.target.classList.add('active');
+}
+
+// Initialize Prism for syntax highlighting
+document.addEventListener('DOMContentLoaded', function() {
+    Prism.highlightAll();
+});
+</script>
+{% endblock %}
