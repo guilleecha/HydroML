@@ -94,9 +94,11 @@ Check if gh-sub-issue is available:
 ```bash
 if gh extension list | grep -q "yahsan2/gh-sub-issue"; then
   use_subissues=true
+  echo "✅ gh-sub-issue extension detected. Creating hierarchical sub-issues."
 else
   use_subissues=false
   echo "⚠️ gh-sub-issue not installed. Using fallback mode."
+  echo "💡 Install with: gh extension install yahsan2/gh-sub-issue"
 fi
 ```
 
@@ -121,18 +123,24 @@ if [ "$task_count" -lt 5 ]; then
     
     # Create sub-issue with labels
     if [ "$use_subissues" = true ]; then
+      # Create sub-issue directly linked to parent
       task_number=$(gh sub-issue create \
         --parent "$epic_number" \
         --title "$task_name" \
-        --body-file /tmp/task-body.md \
-        --label "task,epic:$ARGUMENTS" \
-        --json number -q .number)
+        --body "$(cat /tmp/task-body.md)" \
+        --label "task,epic:$ARGUMENTS" | \
+        grep -oE '#[0-9]+' | head -1 | cut -c2-)
     else
+      # Fallback: create regular issue and add manual reference
       task_number=$(gh issue create \
         --title "$task_name" \
         --body-file /tmp/task-body.md \
         --label "task,epic:$ARGUMENTS" \
         --json number -q .number)
+      
+      # Add reference comment to epic
+      gh issue comment "$epic_number" \
+        --body "Related task: #${task_number}"
     fi
     
     # Record mapping for renaming
@@ -276,6 +284,26 @@ fi
 ```
 
 With gh-sub-issue, this is automatic!
+
+### 4b. Auto-link Existing Issues (Post-Creation)
+
+If issues were created without gh-sub-issue, retroactively link them:
+```bash
+if [ "$use_subissues" = true ] && [ -f /tmp/retroactive-linking-needed ]; then
+  echo "🔗 Retroactively linking tasks as sub-issues..."
+  
+  # Link each created task as sub-issue
+  while IFS=: read -r task_file task_number; do
+    if gh sub-issue add "$epic_number" "$task_number" 2>/dev/null; then
+      echo "✅ Linked #${task_number} as sub-issue of #${epic_number}"
+    else
+      echo "⚠️ Failed to link #${task_number} (may already be linked)"
+    fi
+  done < /tmp/task-mapping.txt
+  
+  rm /tmp/retroactive-linking-needed
+fi
+```
 
 ### 5. Update Epic File
 
