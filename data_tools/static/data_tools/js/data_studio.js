@@ -39,9 +39,16 @@ function dataStudioApp() {
         },
 
         init() {
+            this.initializeSessionManager();
             this.initializeGrid();
             this.checkSessionStatus();
             this.setupFilterEventListeners();
+        },
+
+        initializeSessionManager() {
+            if (window.datasourceId && !window.dataStudioSessionManager) {
+                window.dataStudioSessionManager = new DataStudioSessionManager(window.datasourceId);
+            }
         },
 
         setupFilterEventListeners() {
@@ -143,6 +150,11 @@ function dataStudioApp() {
                 document.getElementById('undo-btn').disabled = sessionInfo.current_position === 0;
                 document.getElementById('redo-btn').disabled = sessionInfo.current_position === sessionInfo.history_length;
                 document.getElementById('save-session-btn').disabled = false;
+                
+                // Notify session manager of state change
+                if (window.dataStudioSessionManager) {
+                    window.dataStudioSessionManager.updateSessionState(sessionInfo);
+                }
             } else {
                 statusIndicator.className = 'w-3 h-3 rounded-full bg-gray-400';
                 statusText.textContent = 'No session';
@@ -153,6 +165,11 @@ function dataStudioApp() {
                 document.getElementById('undo-btn').disabled = true;
                 document.getElementById('redo-btn').disabled = true;
                 document.getElementById('save-session-btn').disabled = true;
+                
+                // Notify session manager of state change
+                if (window.dataStudioSessionManager) {
+                    window.dataStudioSessionManager.updateSessionState({ session_exists: false });
+                }
             }
         },
 
