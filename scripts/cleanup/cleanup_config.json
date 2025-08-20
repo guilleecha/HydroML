@@ -1,0 +1,124 @@
+{
+  "version": "1.0",
+  "description": "HydroML Project Cleanup Configuration",
+  "settings": {
+    "create_backups": true,
+    "backup_retention_days": 30,
+    "max_backups": 10,
+    "safe_mode": true
+  },
+  "root_directory_rules": {
+    "allowed_files": [
+      "manage.py",
+      "requirements.txt", 
+      "README.md",
+      "package.json",
+      "package-lock.json",
+      "tailwind.config.js",
+      "postcss.config.js",
+      "docker-compose.yml",
+      "Dockerfile",
+      ".gitignore",
+      "db.sqlite3"
+    ],
+    "allowed_directories": [
+      "accounts",
+      "connectors", 
+      "core",
+      "data",
+      "data_tools",
+      "docs",
+      "experiments",
+      "hydroML",
+      "media",
+      "projects",
+      "scripts",
+      "static",
+      "staticfiles",
+      "tests",
+      "node_modules",
+      "supabase",
+      ".git",
+      ".claude",
+      "quality_test_output"
+    ]
+  },
+  "cleanup_categories": {
+    "temp_tests": {
+      "description": "Temporary test files in wrong locations",
+      "patterns": ["test_*.py", "*_test.py"],
+      "exclude_directories": ["tests/", "*/tests/", "*/test/"],
+      "target_location": "tests/temp_files/",
+      "action": "move",
+      "enabled": true
+    },
+    "temp_docs": {
+      "description": "Temporary documentation and backup files",
+      "patterns": ["*_SUMMARY.md", "*_backup.md", "test_*.md"],
+      "exclude_directories": ["docs/"],
+      "target_location": "docs/archived/",
+      "action": "move", 
+      "enabled": true
+    },
+    "config_duplicates": {
+      "description": "Duplicate configuration files",
+      "patterns": ["pytest.ini", ".pytest_cache/"],
+      "exclude_directories": ["data_tools/tests/", "tests/"],
+      "target_location": null,
+      "action": "consolidate",
+      "enabled": true
+    },
+    "scripts_misplaced": {
+      "description": "Scripts in wrong locations",
+      "patterns": ["run_*.py", "*.sh"],
+      "exclude_directories": ["scripts/"],
+      "target_location": "scripts/",
+      "action": "move",
+      "enabled": true
+    },
+    "cache_files": {
+      "description": "Cache and temporary files",
+      "patterns": ["__pycache__/", "*.pyc", ".pytest_cache/", "node_modules/.cache/", "*.log"],
+      "exclude_directories": [],
+      "target_location": null,
+      "action": "delete",
+      "enabled": false
+    },
+    "old_artifacts": {
+      "description": "Old build and test artifacts",
+      "patterns": ["htmlcov/", "coverage.xml", "*.coverage", ".coverage"],
+      "exclude_directories": ["tests/", "data_tools/tests/"],
+      "target_location": null,
+      "action": "delete",
+      "enabled": false
+    }
+  },
+  "file_extensions": {
+    "source_code": [".py", ".js", ".css", ".html", ".json"],
+    "documentation": [".md", ".rst", ".txt"],
+    "configuration": [".ini", ".cfg", ".yaml", ".yml", ".toml"],
+    "data": [".csv", ".parquet", ".xlsx", ".json"],
+    "temporary": [".tmp", ".temp", ".bak", ".backup"],
+    "cache": [".pyc", ".pyo", ".cache"]
+  },
+  "ignore_patterns": [
+    ".git/*",
+    ".claude/worktrees/*", 
+    "node_modules/*",
+    "media/*",
+    "staticfiles/*",
+    "*.sqlite3",
+    "*.db"
+  ],
+  "notification_settings": {
+    "create_github_issue": false,
+    "send_summary_email": false,
+    "verbose_logging": true
+  },
+  "validation_rules": {
+    "max_files_per_category": 50,
+    "require_confirmation_for_deletions": true,
+    "backup_before_move": true,
+    "dry_run_by_default": true
+  }
+}
