@@ -183,20 +183,29 @@ class ExportJobAPIView(BaseAPIView, View):
             else:
                 return self.error_response(str(e))
         
-        # Create export job
-        export_job = ExportJob.objects.create(**validated_data)
+        # Create export job using the service
+        from data_tools.services.export_service import ExportService
         
-        # TODO: Trigger Celery task for background processing
-        # from data_tools.tasks import process_export_job
-        # process_export_job.delay(export_job.id)
-        
-        logger.info(f"Export job created: {export_job.id} by user {request.user.username}")
-        
-        return self.success_response(
-            data=ExportJobSerializer.to_dict(export_job),
-            message='Export job created successfully',
-            status_code=201
-        )
+        try:
+            export_service = ExportService()
+            export_job = export_service.create_export_job(
+                user=request.user,
+                datasource_id=validated_data['datasource'].id,
+                export_format=validated_data['format'],
+                filters=validated_data.get('filters', {}),
+                options=validated_data.get('options', {})
+            )
+            
+            logger.info(f"Export job created: {export_job.id} by user {request.user.username}")
+            
+            return self.success_response(
+                data=ExportJobSerializer.to_dict(export_job),
+                message='Export job created successfully',
+                status_code=201
+            )
+        except Exception as e:
+            logger.error(f"Error creating export job via service: {str(e)}")
+            return self.error_response(f'Export job creation failed: {str(e)}')
     
     def _delete_export_job(self, request, pk):
         """Delete an export job."""
@@ -274,27 +283,25 @@ class ExportJobActionAPIView(BaseAPIView, View):
     
     def _cancel_export_job(self, request, export_job):
         """Cancel an export job."""
-        if export_job.status not in ['pending', 'processing']:
+        from data_tools.services.export_service import ExportService
+        
+        export_service = ExportService()
+        
+        success = export_service.cancel_export(str(export_job.id), request.user)
+        
+        if success:
+            # Refresh job from database
+            export_job.refresh_from_db()
+            
+            return self.success_response(
+                data=ExportJobSerializer.to_dict(export_job),
+                message='Export job cancelled successfully'
+            )
+        else:
             return self.error_response(
-                'Only pending or processing jobs can be cancelled',
+                'Failed to cancel export job',
                 status_code=409
             )
-        
-        # TODO: Cancel Celery task
-        # from data_tools.tasks import cancel_export_job
-        # cancel_export_job.delay(export_job.id)
-        
-        # Update job status
-        export_job.status = 'cancelled'
-        export_job.completed_at = timezone.now()
-        export_job.save(update_fields=['status', 'completed_at'])
-        
-        logger.info(f"Export job cancelled: {export_job.id} by user {request.user.username}")
-        
-        return self.success_response(
-            data=ExportJobSerializer.to_dict(export_job),
-            message='Export job cancelled successfully'
-        )
     
     def _retry_export_job(self, request, export_job):
         """Retry a failed export job."""
@@ -328,27 +335,21 @@ class ExportJobActionAPIView(BaseAPIView, View):
     
     def _download_export_file(self, request, export_job):
         """Download completed export file."""
-        if export_job.status != 'completed':
-            return self.error_response(
-                'Only completed jobs can be downloaded',
-                status_code=409
-            )
+        from data_tools.services.export_service import ExportService
         
-        if export_job.is_expired:
-            return self.error_response(
-                'Export file has expired and is no longer available',
-                status_code=410
-            )
+        export_service = ExportService()
         
-        if not export_job.file_path or not os.path.exists(export_job.file_path):
+        file_path, filename = export_service.get_export_file(str(export_job.id), request.user)
+        
+        if not file_path:
             return self.error_response(
-                'Export file not found',
+                'Export file is not available for download',
                 status_code=404
             )
         
         try:
             # Prepare file response
-            with open(export_job.file_path, 'rb') as f:
+            with open(file_path, 'rb') as f:
                 content = f.read()
             
             # Determine content type based on format
@@ -362,7 +363,6 @@ class ExportJobActionAPIView(BaseAPIView, View):
             content_type = content_types.get(export_job.format, 'application/octet-stream')
             
             # Create response
-            filename = f"{export_job.datasource.name}_export_{export_job.id}.{export_job.format}"
             response = HttpResponse(content, content_type=content_type)
             response['Content-Disposition'] = f'attachment; filename="{filename}"'
             response['Content-Length'] = len(content)
