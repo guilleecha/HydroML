@@ -8,6 +8,15 @@ function dataStudioApp() {
         activeForm: null,
         sessionActive: false,
         sessionInfo: null,
+        
+        pagination: {
+            currentPage: 1,
+            totalPages: 1,
+            pageSize: 25,
+            totalRows: 0,
+            availablePageSizes: [10, 25, 50, 100, 'All'],
+            jumpToPage: 1
+        },
 
         init() {
             this.initializeGrid();
@@ -180,22 +189,16 @@ function dataStudioApp() {
                         }
                     },
                     
-                    onPaginationChanged: (event) => {
-                        const displayedRows = event.api.getDisplayedRowCount();
-                        const displayedInfo = document.getElementById('displayed-rows');
-                        if (displayedInfo) {
-                            displayedInfo.textContent = displayedRows;
-                        }
-                    },
-                    
                     onFirstDataRendered: (params) => {
                         console.log('First data rendered');
                         params.api.sizeColumnsToFit();
                         this.updateRowCountDisplay(params);
+                        this.updatePaginationState(params);
                     },
                     
                     onPaginationChanged: (params) => {
                         this.updateRowCountDisplay(params);
+                        this.updatePaginationState(params);
                     },
                     
                     onGridSizeChanged: (params) => {
@@ -245,6 +248,68 @@ function dataStudioApp() {
                 }
             } catch (error) {
                 console.warn('Error updating row count display:', error);
+            }
+        },
+
+        updatePaginationState(params) {
+            try {
+                const totalRows = params.api.getDisplayedRowCount();
+                const pageSize = params.api.paginationGetPageSize();
+                const currentPage = params.api.paginationGetCurrentPage() + 1; // AG Grid is 0-based
+                const totalPages = Math.ceil(totalRows / pageSize);
+
+                this.pagination.currentPage = currentPage;
+                this.pagination.totalPages = totalPages;
+                this.pagination.pageSize = pageSize;
+                this.pagination.totalRows = totalRows;
+                this.pagination.jumpToPage = currentPage;
+            } catch (error) {
+                console.warn('Error updating pagination state:', error);
+            }
+        },
+
+        navigateToPage(page) {
+            if (this.gridApi && page >= 1 && page <= this.pagination.totalPages) {
+                this.gridApi.paginationGoToPage(page - 1); // AG Grid is 0-based
+            }
+        },
+
+        navigateToFirstPage() {
+            this.navigateToPage(1);
+        },
+
+        navigateToLastPage() {
+            this.navigateToPage(this.pagination.totalPages);
+        },
+
+        navigateToNextPage() {
+            if (this.pagination.currentPage < this.pagination.totalPages) {
+                this.navigateToPage(this.pagination.currentPage + 1);
+            }
+        },
+
+        navigateToPreviousPage() {
+            if (this.pagination.currentPage > 1) {
+                this.navigateToPage(this.pagination.currentPage - 1);
+            }
+        },
+
+        jumpToPageInput() {
+            const page = parseInt(this.pagination.jumpToPage);
+            if (page >= 1 && page <= this.pagination.totalPages) {
+                this.navigateToPage(page);
+            } else {
+                this.pagination.jumpToPage = this.pagination.currentPage;
+            }
+        },
+
+        changePageSize(newSize) {
+            if (this.gridApi) {
+                if (newSize === 'All') {
+                    this.gridApi.paginationSetPageSize(this.pagination.totalRows);
+                } else {
+                    this.gridApi.paginationSetPageSize(parseInt(newSize));
+                }
             }
         },
 

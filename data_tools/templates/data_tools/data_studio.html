@@ -430,8 +430,79 @@
             <div class="flex-1 p-2 min-h-0">
                 <div id="data-preview-grid" 
                      class="h-full w-full ag-theme-quartz"
-                     style="height: 100%; width: 100%;">
+                     style="height: calc(100% - 60px); width: 100%;">
                     <!-- AG Grid will be rendered here -->
+                </div>
+                
+                <!-- Enhanced Pagination Controls -->
+                <div class="mt-2 border-t border-gray-200 dark:border-gray-700 pt-2">
+                    <div class="flex items-center justify-between text-sm">
+                        <!-- Left side: Page size selector -->
+                        <div class="flex items-center space-x-3">
+                            <span class="text-gray-600 dark:text-gray-400">Rows per page:</span>
+                            <select x-model="pagination.pageSize" 
+                                    @change="changePageSize($event.target.value)"
+                                    class="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-xs">
+                                <template x-for="size in pagination.availablePageSizes" :key="size">
+                                    <option :value="size" x-text="size"></option>
+                                </template>
+                            </select>
+                        </div>
+                        
+                        <!-- Center: Navigation controls -->
+                        <div class="flex items-center space-x-2">
+                            <button @click="navigateToFirstPage()" 
+                                    :disabled="pagination.currentPage === 1"
+                                    :class="pagination.currentPage === 1 ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed' : 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300'"
+                                    class="px-2 py-1 text-xs font-medium">
+                                ‹‹ First
+                            </button>
+                            <button @click="navigateToPreviousPage()" 
+                                    :disabled="pagination.currentPage === 1"
+                                    :class="pagination.currentPage === 1 ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed' : 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300'"
+                                    class="px-2 py-1 text-xs font-medium">
+                                ‹ Prev
+                            </button>
+                            
+                            <!-- Jump to page input -->
+                            <div class="flex items-center space-x-1">
+                                <span class="text-gray-600 dark:text-gray-400 text-xs">Page</span>
+                                <input type="number" 
+                                       x-model="pagination.jumpToPage"
+                                       @keydown.enter="jumpToPageInput()"
+                                       @blur="jumpToPageInput()"
+                                       :min="1" 
+                                       :max="pagination.totalPages"
+                                       class="w-12 px-1 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded text-center bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                                <span class="text-gray-600 dark:text-gray-400 text-xs">of</span>
+                                <span class="text-gray-900 dark:text-gray-100 text-xs font-medium" x-text="pagination.totalPages"></span>
+                            </div>
+                            
+                            <button @click="navigateToNextPage()" 
+                                    :disabled="pagination.currentPage === pagination.totalPages"
+                                    :class="pagination.currentPage === pagination.totalPages ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed' : 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300'"
+                                    class="px-2 py-1 text-xs font-medium">
+                                Next ›
+                            </button>
+                            <button @click="navigateToLastPage()" 
+                                    :disabled="pagination.currentPage === pagination.totalPages"
+                                    :class="pagination.currentPage === pagination.totalPages ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed' : 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300'"
+                                    class="px-2 py-1 text-xs font-medium">
+                                Last ››
+                            </button>
+                        </div>
+                        
+                        <!-- Right side: Current range display -->
+                        <div class="text-gray-600 dark:text-gray-400 text-xs">
+                            <span>Showing </span>
+                            <span x-text="((pagination.currentPage - 1) * pagination.pageSize) + 1"></span>
+                            <span> - </span>
+                            <span x-text="Math.min(pagination.currentPage * pagination.pageSize, pagination.totalRows)"></span>
+                            <span> of </span>
+                            <span x-text="pagination.totalRows"></span>
+                            <span> rows</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
