@@ -1,5 +1,7 @@
+version: '3.8'
+
 services:
-  # Servicio de la Base de Datos (PostgreSQL)
+  # Database Service (PostgreSQL)
   db:
     image: postgres:14
     volumes:
@@ -8,10 +10,20 @@ services:
       - POSTGRES_DB=hydro_db
       - POSTGRES_USER=hydro_user
       - POSTGRES_PASSWORD=hydro_pass
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hydro_user -d hydro_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  # Servicio de Redis
+  # Redis Service
   redis:
     image: redis:6-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Servicio de MLflow Tracking Server
   mlflow:

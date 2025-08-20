@@ -10,7 +10,7 @@
                       text-gray-600 dark:text-gray-400 hover:text-green-700 dark:hover:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-800/50
                   {% endif %}"
            :class="{ 'justify-center': !(sidebarExpanded || sidebarPinned) }"
-           :title="!(sidebarExpanded || sidebarPinned) ? 'Workspace Overview' : ''">
+           :title="!(sidebarExpanded || sidebarPinned) ? 'Workspace Dashboard' : ''">
             <svg class="flex-shrink-0 w-5 h-5 transition-colors
                         {% if 'dashboard' in request.resolver_match.url_name %}
                             text-green-600 dark:text-green-400
@@ -28,7 +28,7 @@
                   x-transition:enter-end="opacity-100"
                   x-transition:leave="transition-opacity ease-out duration-150"
                   x-transition:leave-start="opacity-100"
-                  x-transition:leave-end="opacity-0">Overview</span>
+                  x-transition:leave-end="opacity-0">Dashboard</span>
         </a>
     </li>
 
@@ -61,6 +61,38 @@
                   x-transition:leave="transition-opacity ease-out duration-150"
                   x-transition:leave-start="opacity-100"
                   x-transition:leave-end="opacity-0">Workspaces</span>
+        </a>
+    </li>
+
+    <!-- Data Sources -->
+    <li>
+        <a href="{% url 'projects:datasources_list' %}" 
+           class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors
+                  {% if request.resolver_match.url_name == 'datasources_list' %}
+                      bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-r-2 border-green-500
+                  {% else %}
+                      text-gray-600 dark:text-gray-400 hover:text-green-700 dark:hover:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-800/50
+                  {% endif %}"
+           :class="{ 'justify-center': !(sidebarExpanded || sidebarPinned) }"
+           :title="!(sidebarExpanded || sidebarPinned) ? 'Data Sources' : ''">
+            <svg class="flex-shrink-0 w-5 h-5 transition-colors
+                        {% if request.resolver_match.url_name == 'datasources_list' %}
+                            text-green-600 dark:text-green-400
+                        {% else %}
+                            text-gray-500 dark:text-gray-400 group-hover:text-green-600 dark:group-hover:text-green-400
+                        {% endif %}" 
+                 :class="{ 'mr-3': sidebarExpanded || sidebarPinned }"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path>
+            </svg>
+            <span x-show="sidebarExpanded || sidebarPinned"
+                  x-transition:enter="transition-opacity ease-in duration-200"
+                  x-transition:enter-start="opacity-0"
+                  x-transition:enter-end="opacity-100"
+                  x-transition:leave="transition-opacity ease-out duration-150"
+                  x-transition:leave-start="opacity-100"
+                  x-transition:leave-end="opacity-0">Data Sources</span>
         </a>
     </li>
 

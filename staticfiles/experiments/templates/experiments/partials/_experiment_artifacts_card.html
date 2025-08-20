@@ -1,0 +1,56 @@
+<!-- Artefactos Card -->
+<div class="bg-white dark:bg-darcula-background-lighter rounded-xl border border-border-default shadow-card p-6 hover:shadow-lg transition-shadow">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">Artefactos</h3>
+        <svg class="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+    </div>
+    
+    {% if experiment.status == 'FINISHED' and experiment.artifact_paths %}
+        <div class="space-y-3">
+            {% if experiment.artifact_paths.model %}
+            <div class="flex items-center justify-between p-3 bg-green-50 dark:bg-darcula-background border border-green-200 dark:border-darcula-border rounded-lg">
+                <div class="flex items-center">
+                    <svg class="w-4 h-4 text-green-600 dark:text-darcula-string mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                    <span class="text-sm font-medium text-green-800 dark:text-darcula-string">Modelo</span>
+                </div>
+                <a href="{% url 'core:serve_media' path=experiment.artifact_paths.model %}" class="text-xs text-green-600 dark:text-darcula-string hover:text-green-700">Descargar</a>
+            </div>
+            {% endif %}
+            
+            {% if experiment.artifact_paths.predictions %}
+            <div class="flex items-center justify-between p-3 bg-blue-50 dark:bg-darcula-background border border-blue-200 dark:border-darcula-border rounded-lg">
+                <div class="flex items-center">
+                    <svg class="w-4 h-4 text-blue-600 dark:text-darcula-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    <span class="text-sm font-medium text-blue-800 dark:text-darcula-accent">Predicciones</span>
+                </div>
+                <a href="{% url 'core:serve_media' path=experiment.artifact_paths.predictions %}" class="text-xs text-blue-600 dark:text-darcula-accent hover:text-blue-700">Descargar</a>
+            </div>
+            {% endif %}
+            
+            {% if experiment.artifact_paths.feature_importance %}
+            <div class="flex items-center justify-between p-3 bg-purple-50 dark:bg-darcula-background border border-purple-200 dark:border-darcula-border rounded-lg">
+                <div class="flex items-center">
+                    <svg class="w-4 h-4 text-purple-600 dark:text-darcula-keyword mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="text-sm font-medium text-purple-800 dark:text-darcula-keyword">Importancia</span>
+                </div>
+                <a href="{% url 'core:serve_media' path=experiment.artifact_paths.feature_importance %}" class="text-xs text-purple-600 dark:text-darcula-keyword hover:text-purple-700">Descargar</a>
+            </div>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="text-center py-8">
+            <svg class="mx-auto h-8 w-8 text-foreground-muted dark:text-darcula-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <p class="mt-2 text-sm text-foreground-muted dark:text-darcula-foreground-muted">Artefactos disponibles tras completar</p>
+        </div>
+    {% endif %}
+</div>

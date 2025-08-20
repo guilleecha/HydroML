@@ -9,6 +9,7 @@ from django.views.generic import TemplateView
 from django.db.models import Count
 from projects.models import DataSource, Project
 from experiments.models import MLExperiment, ExperimentSuite
+from connectors.models import DatabaseConnection
 
 
 def home(request):
@@ -104,3 +105,35 @@ def help_page(request):
     """
     view = HelpPageView.as_view()
     return view(request)
+
+
+class DataSourcesListView(LoginRequiredMixin, TemplateView):
+    """
+    Unified view for all user's data sources: uploaded files + database connections.
+    This replaces the need for separate views and provides a GitHub-style unified listing.
+    """
+    template_name = 'core/data_sources_list.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        
+        # Get uploaded data sources (files)
+        uploaded_datasources = DataSource.objects.filter(
+            owner=user
+        ).select_related('project').order_by('-uploaded_at')
+        
+        # Get database connections
+        database_connections = DatabaseConnection.objects.filter(
+            user=user
+        ).order_by('-created_at')
+        
+        # Combine both types for unified display
+        context.update({
+            'uploaded_datasources': uploaded_datasources,
+            'database_connections': database_connections,
+            'total_uploaded': uploaded_datasources.count(),
+            'total_connections': database_connections.count(),
+        })
+        
+        return context

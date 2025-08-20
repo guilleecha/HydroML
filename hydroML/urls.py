@@ -5,33 +5,21 @@ from django.conf import settings
 from django.conf.urls.static import static
 from core import views as core_views
 
-    
-
 urlpatterns = [
     path('admin/', admin.site.urls),
-
-    # La raíz del sitio apunta a la vista 'home' de la app 'core'
-    path('', core_views.home, name='home'),
-
-    # Core API routes
-    path('', include('core.urls')),
-
-    # La ruta '/projects/' carga el archivo urls.py de la app 'projects'
-    path('projects/', include('projects.urls')),
-
-    # La ruta '/tools/' carga el archivo urls.py de la app 'data_tools'
-    path('tools/', include('data_tools.urls')),
-
-    # La ruta '/experiments/' carga el archivo urls.py de la app 'experiments'
-    path('experiments/', include('experiments.urls')),
-
-    # La ruta '/connectors/' carga el archivo urls.py de la app 'connectors'
-    path('connectors/', include('connectors.urls')),
-
-    # La ruta '/accounts/' carga el archivo urls.py de la app 'accounts'
-    path('accounts/', include('accounts.urls')),
     
-    # Django built-in authentication URLs (password change, etc.)
+    # Home and core routes
+    path('', core_views.home, name='home'),
+    path('', include('core.urls')),
+    
+    # Application routes
+    path('projects/', include('projects.urls')),
+    path('tools/', include('data_tools.urls')),
+    path('experiments/', include('experiments.urls')),
+    path('connectors/', include('connectors.urls')),
+    
+    # Authentication routes
+    path('accounts/', include('accounts.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
 ]
 

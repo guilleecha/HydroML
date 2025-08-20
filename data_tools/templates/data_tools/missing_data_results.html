@@ -1,25 +1,45 @@
-{% extends "core/base.html" %}
+{% extends "core/base_github_style.html" %}
 {% load static %}
 
 {% block page_title %}Resultados de Análisis de Datos Faltantes{% endblock %}
 
+{% block page_heading %}Análisis de Datos Faltantes{% endblock %}
+
+{% block header_actions %}
+<div class="flex items-center space-x-3">
+    {% if datasource %}
+    <a href="{% url 'data_tools:data_studio_page' pk=datasource.pk %}" 
+       class="btn btn-secondary">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        Volver a Data Studio
+    </a>
+    {% endif %}
+    
+    <button onclick="window.print()" class="btn btn-primary">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+        </svg>
+        Imprimir Reporte
+    </button>
+</div>
+{% endblock %}
+
 {% block extra_css %}
 <style>
-    .results-layout {
-        min-height: calc(100vh - 120px);
-    }
-    
+    /* GitHub-style metric cards */
     .metric-card {
-        background: var(--bg-background-primary);
-        border: 1px solid var(--border-border-default);
-        border-radius: 0.5rem;
-        padding: 1.5rem;
+        background: var(--color-canvas-default);
+        border: 1px solid var(--color-border-default);
+        border-radius: 6px;
+        padding: 16px;
         transition: all 0.2s ease;
     }
     
     .metric-card:hover {
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        border-color: var(--border-brand-300);
+        border-color: var(--color-accent-emphasis);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
     
     .metric-value {
@@ -90,101 +110,31 @@
 {% endblock %}
 
 {% block content %}
-<div class="flex-1 results-layout">
-    <!-- Header Section with Breadcrumbs -->
-    <div class="border-b border-border-default dark:border-onedark-border bg-background-primary dark:bg-onedark-background px-8 py-6">
-        <!-- Breadcrumbs -->
-        {% if breadcrumbs %}
-        <nav class="flex mb-4" aria-label="Breadcrumb">
-            <ol class="flex items-center space-x-2">
-                {% for crumb in breadcrumbs %}
-                    {% if not forloop.last %}
-                        <li>
-                            <a href="{{ crumb.url }}" class="text-foreground-muted hover:text-foreground-primary transition-colors">
-                                {{ crumb.name }}
-                            </a>
-                        </li>
-                        <li class="text-foreground-muted">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                        </li>
-                    {% else %}
-                        <li class="text-foreground-primary font-medium">{{ crumb.name }}</li>
-                    {% endif %}
-                {% endfor %}
-            </ol>
-        </nav>
+{% if error_message %}
+<!-- Error State -->
+<div class="max-w-4xl mx-auto">
+    <div class="flash flash-error">
+        <svg class="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+        </svg>
+        <h3 class="text-lg font-semibold mb-2">Error en el Análisis</h3>
+        <p>{{ error_message }}</p>
+        
+        {% if task_status == 'PENDING' %}
+        <div class="flex items-center justify-center mt-4">
+            <div class="loading-spinner mr-3"></div>
+            <span>Recargando en 5 segundos...</span>
+        </div>
+        <script>
+            setTimeout(function() {
+                window.location.reload();
+            }, 5000);
+        </script>
         {% endif %}
-        
-        <!-- Header Title -->
-        <div class="flex items-center justify-between">
-            <div class="flex items-center">
-                <div class="w-12 h-12 bg-background-secondary rounded-xl flex items-center justify-center mr-4">
-                    <svg class="w-6 h-6 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4"></path>
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-bold text-foreground-default">Análisis de Datos Faltantes</h1>
-                    {% if datasource %}
-                    <p class="text-foreground-muted">{{ datasource.name }}</p>
-                    {% else %}
-                    <p class="text-foreground-muted">Resultados del análisis profundo</p>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <!-- Action buttons -->
-            <div class="flex items-center space-x-3">
-                {% if datasource %}
-                <a href="{% url 'data_tools:data_studio_page' pk=datasource.pk %}" 
-                   class="px-4 py-2 bg-background-secondary hover:bg-brand-50 border border-border-default hover:border-brand-300 text-foreground-default rounded-lg transition-colors">
-                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                    </svg>
-                    Volver a Data Studio
-                </a>
-                {% endif %}
-                
-                <button onclick="window.print()" 
-                        class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors">
-                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
-                    </svg>
-                    Imprimir Reporte
-                </button>
-            </div>
-        </div>
     </div>
+</div>
 
-    <!-- Main Content -->
-    <div class="p-8">
-        {% if error_message %}
-        <!-- Error State -->
-        <div class="max-w-4xl mx-auto">
-            <div class="bg-danger-50 border border-danger-200 rounded-lg p-6 text-center">
-                <svg class="w-12 h-12 text-danger-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                </svg>
-                <h3 class="text-lg font-semibold text-danger-800 mb-2">Error en el Análisis</h3>
-                <p class="text-danger-700">{{ error_message }}</p>
-                
-                {% if task_status == 'PENDING' %}
-                <div class="flex items-center justify-center mt-4">
-                    <div class="loading-spinner mr-3"></div>
-                    <span class="text-danger-700">Recargando en 5 segundos...</span>
-                </div>
-                <script>
-                    setTimeout(function() {
-                        window.location.reload();
-                    }, 5000);
-                </script>
-                {% endif %}
-            </div>
-        </div>
-        
-        {% elif analysis_results %}
+{% elif analysis_results %}
         <!-- Results Display -->
         <div class="max-w-7xl mx-auto space-y-8">
             
@@ -386,26 +336,24 @@
             {% endif %}
         </div>
         
-        {% else %}
-        <!-- Loading State -->
-        <div class="max-w-4xl mx-auto">
-            <div class="bg-background-primary border border-border-default rounded-lg p-8 text-center">
-                <div class="loading-spinner mx-auto mb-4"></div>
-                <h3 class="text-lg font-semibold text-foreground-default mb-2">Procesando Análisis</h3>
-                <p class="text-foreground-muted">El análisis de datos faltantes está en progreso. Esta página se actualizará automáticamente.</p>
-                <div class="mt-4 text-sm text-foreground-muted">
-                    Task ID: {{ task_id }}
-                </div>
-            </div>
+{% else %}
+<!-- Loading State -->
+<div class="max-w-4xl mx-auto">
+    <div class="Box p-8 text-center">
+        <div class="loading-spinner mx-auto mb-4"></div>
+        <h3 class="text-lg font-semibold mb-2">Procesando Análisis</h3>
+        <p class="color-fg-muted">El análisis de datos faltantes está en progreso. Esta página se actualizará automáticamente.</p>
+        <div class="mt-4 text-sm color-fg-muted">
+            Task ID: {{ task_id }}
         </div>
-        
-        <script>
-            // Auto-refresh if task is still running
-            setTimeout(function() {
-                window.location.reload();
-            }, 3000);
-        </script>
-        {% endif %}
     </div>
 </div>
+
+<script>
+    // Auto-refresh if task is still running
+    setTimeout(function() {
+        window.location.reload();
+    }, 3000);
+</script>
+{% endif %}
 {% endblock %}

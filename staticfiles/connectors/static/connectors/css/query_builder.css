@@ -1,0 +1,78 @@
+/**
+ * Query Builder Specific Styles
+ */
+
+.query-editor {
+    font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #f9fafb;
+    color: #111827;
+    resize: vertical;
+    min-height: 200px;
+}
+
+.dark .query-editor {
+    background: #1f2937;
+    border-color: #4b5563;
+    color: #f9fafb;
+}
+
+.query-editor:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.table-item {
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: background-color 0.15s ease;
+}
+
+.table-item:hover {
+    background-color: #f3f4f6;
+}
+
+.dark .table-item:hover {
+    background-color: #374151;
+}
+
+.column-item {
+    font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+    font-size: 12px;
+    padding: 4px 8px;
+    margin: 2px 0;
+    border-radius: 3px;
+    background: #f3f4f6;
+    color: #6b7280;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.dark .column-item {
+    background: #374151;
+    color: #9ca3af;
+}
+
+.column-item:hover {
+    background: #e5e7eb;
+}
+
+.dark .column-item:hover {
+    background: #4b5563;
+}
+
+.query-result-table {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+}
+
+.dark .query-result-table {
+    border-color: #4b5563;
+}

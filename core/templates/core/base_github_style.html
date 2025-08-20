@@ -1,0 +1,452 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es" class="h-full" :class="{ 'dark': darkMode }">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block page_title %}Grove{% endblock %} - Grove</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{% static 'core/img/logos/grove_icon.svg' %}">
+    
+    <!-- Prevent FOUC in dark mode -->
+    <script>
+      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    </script>
+    
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{% static 'css/output.css' %}">
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/3.0.2/css/responsive.dataTables.css" />
+    
+    <!-- Alpine.js x-cloak utility -->
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+    
+    <!-- AG Grid CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.1.1/styles/ag-grid.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.1.1/styles/ag-theme-quartz.css">
+    
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Sentry Browser SDK -->
+    {% if SENTRY_DSN %}
+    <script src="https://browser.sentry-cdn.com/8.38.0/bundle.tracing.min.js" crossorigin="anonymous"></script>
+    <script>
+        window.__SENTRY_DSN__ = "{{ SENTRY_DSN }}";
+    </script>
+    {% endif %}
+    <!-- Alpine.js Modular Components -->
+    <script src="{% static 'js/alpine/app-store.js' %}"></script>
+    <script src="{% static 'js/alpine/workspace-selector.js' %}"></script>
+    <script src="{% static 'js/alpine/datasource-workspace-selector.js' %}"></script>
+    <script src="{% static 'js/app.js' %}"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="h-full bg-white dark:bg-gray-900 font-sans antialiased" x-data="hydroMLApp" x-init="init()">
+
+    <!-- Upload Data Panel -->
+    <div x-show="isUploadPanelOpen" 
+         @close-upload-panel.window="isUploadPanelOpen = false"
+         class="fixed inset-0 z-50"
+         x-cloak>
+        <div class="fixed inset-0 bg-gray-600/75" @click="isUploadPanelOpen = false"></div>
+        <div class="fixed inset-y-0 right-0 flex max-w-full pl-10 sm:pl-16">
+            <div class="w-screen max-w-2xl">
+                <div class="flex h-full flex-col bg-white dark:bg-gray-800 shadow-xl border-l border-gray-200 dark:border-gray-700">
+                    <div class="flex min-h-0 flex-1 flex-col">
+                        <div class="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-6 sm:px-6">
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                    Upload Data Source
+                                </h2>
+                                <button type="button" @click="isUploadPanelOpen = false"
+                                        class="rounded-md bg-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="relative flex-1 px-4 py-6 sm:px-6 overflow-y-auto">
+                            <div id="upload-form-container" class="space-y-6">
+                                <div class="flex items-center justify-center h-32">
+                                    <div class="text-center">
+                                        <svg class="mx-auto h-8 w-8 text-gray-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <p class="mt-2 text-sm text-gray-500">Loading form...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Experiment Panel -->
+    <div x-show="isNewExperimentPanelOpen" 
+         @close-new-experiment-panel.window="isNewExperimentPanelOpen = false"
+         class="fixed inset-0 z-50"
+         x-cloak>
+        <div class="fixed inset-0 bg-gray-600/75" @click="isNewExperimentPanelOpen = false"></div>
+        <div class="fixed inset-y-0 right-0 flex max-w-full pl-10 sm:pl-16">
+            <div class="w-screen max-w-4xl">
+                <div class="flex h-full flex-col bg-white dark:bg-gray-800 shadow-xl border-l border-gray-200 dark:border-gray-700">
+                    <div class="flex min-h-0 flex-1 flex-col">
+                        <div class="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-6 sm:px-6">
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                    Create New ML Experiment
+                                </h2>
+                                <button type="button" @click="isNewExperimentPanelOpen = false"
+                                        class="rounded-md bg-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="relative flex-1 px-4 py-6 sm:px-6 overflow-y-auto">
+                            <div id="experiment-form-container" class="space-y-6">
+                                <div class="flex items-center justify-center h-32">
+                                    <div class="text-center">
+                                        <svg class="mx-auto h-8 w-8 text-gray-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <p class="mt-2 text-sm text-gray-500">Loading form...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Layout - GitHub Style -->
+    <div class="min-h-full">
+        <!-- Primary Header - Row 1: Logo + Username + User Controls -->
+        <header class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700">
+            <div class="px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <!-- Left: Mobile Menu + Logo + Username -->
+                    <div class="flex items-center space-x-3">
+                        <!-- Mobile menu button -->
+                        <button @click="sidebarOpen = !sidebarOpen" 
+                                class="md:hidden p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-800">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </button>
+                        
+                        <!-- Grove Logo (1.5x larger, no text) -->
+                        <a href="{% url 'core:dashboard' %}" class="flex items-center">
+                            <img src="{% static 'core/img/logos/grove_icon.svg' %}" alt="Grove" class="w-12 h-12">
+                        </a>
+                        
+                        <!-- Breadcrumb Navigation -->
+                        {% block breadcrumb_nav %}
+                        {% endblock %}
+                        
+                        <!-- Username with better visibility -->
+                        {% if user.is_authenticated %}
+                            <span class="text-sm text-gray-700 dark:text-gray-300 font-medium">@{{ user.username }}</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Right: Search + Quick Actions + User Controls -->
+                    <div class="flex items-center space-x-4">
+                        <!-- Search Bar (GitHub style) -->
+                        <div class="hidden md:block">
+                            <div class="relative">
+                                <input type="text" 
+                                       placeholder="Search workspaces..."
+                                       class="w-64 px-3 py-1.5 pl-8 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <svg class="absolute left-2.5 top-2 w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions Dropdown -->
+                        <div class="relative" x-data="{ quickActionsOpen: false }">
+                            <button @click="quickActionsOpen = !quickActionsOpen" 
+                                    class="flex items-center p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-800 rounded-md transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                            </button>
+                            
+                            <!-- Quick Actions Dropdown -->
+                            <div x-show="quickActionsOpen" @click.away="quickActionsOpen = false"
+                                 class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50"
+                                 x-cloak>
+                                <div class="py-1">
+                                    <a href="{% url 'projects:project_create' %}" 
+                                       class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-2m-2 0H7m14 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2z"></path>
+                                        </svg>
+                                        New Workspace
+                                    </a>
+                                    <button @click="openUploadPanel(true); quickActionsOpen = false" 
+                                       class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left">
+                                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                                        </svg>
+                                        New Data Source
+                                    </button>
+                                    <button @click="openNewExperimentPanel(); quickActionsOpen = false" 
+                                       class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left">
+                                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                        </svg>
+                                        New Experiment
+                                    </button>
+                                    <div class="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                                    <span class="px-4 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Advanced</span>
+                                    <a href="{% url 'projects:project_list' %}" 
+                                       class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012 2v2M7 7h10"></path>
+                                        </svg>
+                                        New Experiment Suite
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Theme Toggle -->
+                        <button @click="toggleTheme()" 
+                                class="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-800 rounded-md transition-colors"
+                                title="Toggle theme">
+                            <svg x-show="!darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                            </svg>
+                            <svg x-show="darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                            </svg>
+                        </button>
+
+                        {% if user.is_authenticated %}
+                            <!-- Notifications -->
+                            <button class="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-800 rounded-md transition-colors relative">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-3.5-3.5a50 50 0 01-7.5 0L6 17h5m4 0v1a3 3 0 01-6 0v-1m6 0a3 3 0 01-6 0"></path>
+                                </svg>
+                            </button>
+
+                            <!-- User Avatar/Menu -->
+                            <div class="relative" x-data="{ userMenuOpen: false }">
+                                <button @click="userMenuOpen = !userMenuOpen" 
+                                        class="flex items-center p-1 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-md transition-colors">
+                                    <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                        <span class="text-white font-medium text-sm">{{ user.username|first|upper }}</span>
+                                    </div>
+                                    <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                                
+                                <!-- User Dropdown -->
+                                <div x-show="userMenuOpen" @click.away="userMenuOpen = false"
+                                     class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50"
+                                     x-cloak>
+                                    <div class="py-1">
+                                        <div class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700">
+                                            Signed in as <strong>{{ user.username }}</strong>
+                                        </div>
+                                        <a href="{% url 'accounts:logout' %}" 
+                                           class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                            Sign out
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <!-- Auth Links -->
+                            <div class="flex items-center space-x-3">
+                                <a href="{% url 'accounts:login' %}" 
+                                   class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm font-medium transition-colors">
+                                    Sign in
+                                </a>
+                                <a href="{% url 'accounts:signup' %}" 
+                                   class="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-3 py-1.5 text-sm font-medium rounded-md hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors">
+                                    Sign up
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Secondary Header - Row 2: Main Navigation Tabs -->
+        <div class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+            <div class="px-4 sm:px-6 lg:px-8">
+                <nav class="flex space-x-8 h-12 items-end">
+                    <a href="{% url 'core:dashboard' %}" 
+                       class="flex items-center pb-3 text-sm font-medium border-b-2 transition-colors
+                              {% if request.resolver_match.url_name == 'dashboard' %}border-orange-500 text-gray-900 dark:text-gray-100{% else %}border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200{% endif %}">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2V7"></path>
+                        </svg>
+                        Dashboard
+                    </a>
+                    
+                    <a href="{% url 'projects:project_list' %}" 
+                       class="flex items-center pb-3 text-sm font-medium border-b-2 transition-colors
+                              {% if request.resolver_match.namespace == 'projects' and request.resolver_match.url_name == 'project_list' %}border-orange-500 text-gray-900 dark:text-gray-100{% else %}border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200{% endif %}">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-2m-2 0H7m14 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2z"></path>
+                        </svg>
+                        Workspaces
+                        {% if total_workspaces_count %}
+                            <span class="ml-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-2 py-1 rounded-full">{{ total_workspaces_count }}</span>
+                        {% endif %}
+                    </a>
+                    
+                    <a href="{% url 'core:data_sources_list' %}" 
+                       class="flex items-center pb-3 text-sm font-medium border-b-2 transition-colors
+                              {% if request.resolver_match.url_name == 'data_sources_list' %}border-orange-500 text-gray-900 dark:text-gray-100{% else %}border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200{% endif %}">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                        </svg>
+                        Data Sources
+                        {% if total_datasources_count %}
+                            <span class="ml-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-2 py-1 rounded-full">{{ total_datasources_count }}</span>
+                        {% endif %}
+                    </a>
+                    
+                    <a href="{% url 'experiments:public_experiment_list' %}" 
+                       class="flex items-center pb-3 text-sm font-medium border-b-2 transition-colors
+                              {% if request.resolver_match.namespace == 'experiments' %}border-orange-500 text-gray-900 dark:text-gray-100{% else %}border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200{% endif %}">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                        Experiments
+                        {% if total_experiments_count %}
+                            <span class="ml-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-2 py-1 rounded-full">{{ total_experiments_count }}</span>
+                        {% endif %}
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu -->
+        <div x-show="sidebarOpen" class="md:hidden fixed inset-0 z-40" x-cloak>
+            <div class="fixed inset-0 bg-gray-600/75" @click="sidebarOpen = false"></div>
+            <div class="fixed inset-y-0 left-0 w-72 bg-white dark:bg-gray-800 shadow-lg">
+                <div class="flex flex-col h-full">
+                    <div class="flex items-center justify-between px-4 py-4 border-b border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center space-x-3">
+                            <img src="{% static 'core/img/logos/grove_icon.svg' %}" alt="Grove" class="w-8 h-8">
+                            <div>
+                                <span class="text-lg font-bold text-gray-900 dark:text-gray-100">Grove</span>
+                                {% if user.is_authenticated %}
+                                    <div class="text-sm text-gray-600 dark:text-gray-400">@{{ user.username }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <button @click="sidebarOpen = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <nav class="flex-1 px-4 py-6 space-y-2">
+                        <a href="{% url 'core:dashboard' %}" 
+                           class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2V7"></path>
+                            </svg>
+                            Dashboard
+                        </a>
+                        <a href="{% url 'projects:project_list' %}" 
+                           class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-2m-2 0H7m14 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2z"></path>
+                            </svg>
+                            Workspaces
+                            {% if total_workspaces_count %}
+                                <span class="ml-auto bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-2 py-1 rounded-full">{{ total_workspaces_count }}</span>
+                            {% endif %}
+                        </a>
+                        <a href="{% url 'core:data_sources_list' %}" 
+                           class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                            </svg>
+                            Data Sources
+                            {% if total_datasources_count %}
+                                <span class="ml-auto bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-2 py-1 rounded-full">{{ total_datasources_count }}</span>
+                            {% endif %}
+                        </a>
+                        <a href="{% url 'experiments:public_experiment_list' %}" 
+                           class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                            </svg>
+                            Experiments
+                            {% if total_experiments_count %}
+                                <span class="ml-auto bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-2 py-1 rounded-full">{{ total_experiments_count }}</span>
+                            {% endif %}
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <main class="min-h-screen bg-white dark:bg-gray-900">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Page Actions Header -->
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                            {% block page_heading %}Grove{% endblock %}
+                        </h1>
+                        {% block page_subtitle %}{% endblock %}
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        {% block header_actions %}{% endblock %}
+                    </div>
+                </div>
+
+                <!-- Page Content -->
+                {% block content %}
+                {% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Global Loading Overlay -->
+    {% include 'core/_loading_overlay.html' %}
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/responsive/3.0.2/js/dataTables.responsive.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.1.1/dist/ag-grid-community.min.js"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

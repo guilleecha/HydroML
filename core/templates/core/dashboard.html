@@ -1,4 +1,4 @@
-{% extends "core/base.html" %}
+{% extends "core/base_github_style.html" %}
 {% load static %}
 
 {% block page_title %}Dashboard - HydroML{% endblock %}
@@ -22,26 +22,21 @@
 </style>
 {% endblock %}
 
+{% block page_heading %}{% endblock %}
+
 {% block content %}
 <div class="flex-1 bg-background-primary">
-    <!-- Header Section -->
-    <div class="bg-gradient-to-r from-brand-50 to-brand-100 dark:from-darcula-background-lighter dark:to-darcula-background border-b border-border-default">
-        <div class="px-8 py-8">
-            <div class="max-w-7xl mx-auto">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h1 class="text-3xl font-bold text-foreground-default dark:text-darcula-foreground">
-                            ¡Bienvenido de vuelta, {{ user.get_full_name|default:user.username }}!
-                        </h1>
-                        <p class="mt-2 text-lg text-foreground-muted dark:text-darcula-foreground-muted">
-                            Aquí tienes un resumen de tu workspace de machine learning
-                        </p>
-                    </div>
-                    <div class="hidden md:block">
-                        <svg class="w-16 h-16 text-brand-400 dark:text-darcula-accent pulse-animation" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
-                    </div>
+    <!-- Header Section - Minimal Design -->
+    <div class="border-b border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background">
+        <div class="max-w-7xl mx-auto px-8 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-semibold text-foreground-default dark:text-darcula-foreground">
+                        Dashboard
+                    </h1>
+                    <p class="mt-1 text-sm text-foreground-muted dark:text-darcula-foreground-muted">
+                        Resumen de tu actividad de machine learning
+                    </p>
                 </div>
             </div>
         </div>
@@ -110,7 +105,7 @@
             <div class="px-6 py-4 border-b border-border-default">
                 <div class="flex items-center justify-between">
                     <h3 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">
-                        Mis Workspaces
+                        Workspaces
                     </h3>
                     <a href="{% url 'projects:project_list' %}" 
                        class="text-sm text-brand-600 dark:text-darcula-accent hover:text-brand-700 dark:hover:text-darcula-accent/80 font-medium">

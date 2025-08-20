@@ -8,8 +8,11 @@ urlpatterns = [
     path('', project_views.project_list, name='project_list'),
     path('create/', project_views.project_create, name='project_create'),
     
+    # Central Data Sources page
+    path('datasources/', datasource_views.datasources_list, name='datasources_list'),
+    
     # Partial form for AJAX loading
-    path('create-form-partial/', 
+    path('create-partial/', 
          project_views.project_create_partial, 
          name='project_create_partial'),
 
@@ -23,10 +26,23 @@ urlpatterns = [
     # CAMBIO AQUÍ: de <int:project_id> a <uuid:project_id>
     path('<uuid:project_id>/upload/', datasource_views.datasource_upload, name='datasource_upload'),
     
+    # Add existing DataSource to Project
+    path('<uuid:project_pk>/add-datasource/', datasource_views.add_datasource_to_project, name='add_datasource'),
+    
     # Partial form for AJAX loading
     path('datasource/upload-form-partial/', 
          datasource_views.datasource_upload_form_partial, 
          name='datasource_upload_form_partial'),
+    
+    # Iframe view for datasource creation
+    path('datasource/create-iframe/', 
+         datasource_views.datasource_create_iframe, 
+         name='datasource_create_iframe'),
+    
+    # Iframe view for project creation
+    path('create-iframe/', 
+         project_views.project_create_iframe, 
+         name='project_create_iframe'),
 
     # API endpoint to get project datasources
     path('<uuid:project_id>/datasources/api/', 

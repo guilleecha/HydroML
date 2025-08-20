@@ -1,0 +1,289 @@
+{% extends "core/base_github_style.html" %}
+{% load static %}
+{% load dict_extras %}
+
+{% block page_title %}Data Studio - {{ datasource.name }}{% endblock %}
+
+{% block page_heading %}Data Studio{% endblock %}
+
+{% block header_actions %}
+<!-- Session Controls -->
+<div class="flex items-center space-x-2">
+    <div class="flex items-center space-x-2 mr-4">
+        <span id="session-status-indicator" class="w-3 h-3 rounded-full bg-gray-400"></span>
+        <span id="session-status-text" class="text-sm text-gray-600 dark:text-gray-400">No session</span>
+    </div>
+    
+    <button id="initialize-session-btn" 
+            class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium transition-colors flex items-center space-x-1"
+            onclick="initializeSession()">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        <span>Start</span>
+    </button>
+    
+    <button id="undo-btn" 
+            class="px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md text-sm font-medium transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+            onclick="undoOperation()" disabled>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+        </svg>
+    </button>
+    
+    <button id="redo-btn" 
+            class="px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md text-sm font-medium transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+            onclick="redoOperation()" disabled>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6"></path>
+        </svg>
+    </button>
+    
+    <button id="save-session-btn" 
+            class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+            onclick="saveSession()" disabled>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12"></path>
+        </svg>
+    </button>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+
+<style>
+    /* Enhanced AG Grid theming with AG Grid best practices */
+    .ag-theme-quartz .ag-header-cell,
+    .ag-theme-quartz-dark .ag-header-cell {
+        background: var(--ag-background-color);
+        border-bottom: 1px solid var(--ag-border-color);
+        padding: 8px 12px;
+    }
+
+    .ag-theme-quartz .ag-header-cell-text,
+    .ag-theme-quartz-dark .ag-header-cell-text {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--ag-header-foreground-color);
+    }
+
+    .ag-theme-quartz .ag-floating-filter-input,
+    .ag-theme-quartz-dark .ag-floating-filter-input {
+        background: var(--ag-background-color);
+        border: 1px solid var(--ag-border-color);
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+
+    .ag-theme-quartz .ag-floating-filter-input:focus,
+    .ag-theme-quartz-dark .ag-floating-filter-input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        outline: none;
+    }
+
+    .ag-theme-quartz .ag-paging-panel,
+    .ag-theme-quartz-dark .ag-paging-panel {
+        background: var(--ag-background-color);
+        border-top: 1px solid var(--ag-border-color);
+        padding: 10px 16px;
+    }
+
+    .ag-theme-quartz .ag-paging-button,
+    .ag-theme-quartz-dark .ag-paging-button {
+        background: transparent;
+        border: 1px solid var(--ag-border-color);
+        border-radius: 4px;
+        margin: 0 2px;
+    }
+
+    .ag-theme-quartz .ag-paging-button:hover,
+    .ag-theme-quartz-dark .ag-paging-button:hover {
+        background: var(--ag-row-hover-color);
+        border-color: #3b82f6;
+    }
+
+    /* Dark theme optimizations */
+    .dark .ag-theme-quartz-dark {
+        --ag-background-color: rgb(31 41 55);
+        --ag-foreground-color: rgb(243 244 246);
+        --ag-border-color: rgb(75 85 99);
+        --ag-header-background-color: rgb(17 24 39);
+        --ag-header-foreground-color: rgb(243 244 246);
+        --ag-row-hover-color: rgb(55 65 81);
+        --ag-selected-row-background-color: rgb(219 234 254);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex h-full" x-data="dataStudioApp()" x-init="init(); checkSessionStatus()">
+    <!-- Data Studio Sidebar -->
+    {% include 'data_tools/_data_studio_sidebar.html' %}
+    
+    <!-- Main Content Area -->
+    <div class="flex-1 min-w-0 pl-6">
+        <!-- Session Info Display -->
+    <div id="session-info" class="mb-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700 hidden">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+            <div>
+                <span class="font-medium text-gray-900 dark:text-gray-100">History: </span>
+                <span id="history-info" class="text-gray-600 dark:text-gray-400">0 operations</span>
+            </div>
+            <div>
+                <span class="font-medium text-gray-900 dark:text-gray-100">Position: </span>
+                <span id="position-info" class="text-gray-600 dark:text-gray-400">0/0</span>
+            </div>
+            <div>
+                <span class="font-medium text-gray-900 dark:text-gray-100">Rows: </span>
+                <span id="rows-info" class="text-gray-600 dark:text-gray-400">0</span>
+            </div>
+            <div>
+                <span class="font-medium text-gray-900 dark:text-gray-100">Columns: </span>
+                <span id="columns-info" class="text-gray-600 dark:text-gray-400">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dataset Overview KPIs -->
+    {% if automated_analysis %}
+    <div class="mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <!-- Total Rows -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Rows</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ automated_analysis.basic_info.total_rows|floatformat:0 }}</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Columns -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Columns</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ automated_analysis.basic_info.total_columns }}</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Missing Values -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Missing Values</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ automated_analysis.missing_data.total_missing_values|floatformat:0 }}</p>
+                        <p class="text-xs text-gray-600 dark:text-gray-400">{{ automated_analysis.missing_data.missing_percentage|floatformat:1 }}%</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Types -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Data Types</p>
+                        <div class="space-y-1">
+                            <p class="text-sm text-gray-900 dark:text-gray-100">Numeric: {{ automated_analysis.basic_info.numeric_columns }}</p>
+                            <p class="text-sm text-gray-900 dark:text-gray-100">Text: {{ automated_analysis.basic_info.categorical_columns }}</p>
+                        </div>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Memory Usage -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Memory Usage</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ automated_analysis.basic_info.memory_usage_mb|floatformat:1 }}</p>
+                        <p class="text-xs text-gray-600 dark:text-gray-400">MB</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Duplicate Rows -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Duplicates</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ automated_analysis.basic_info.duplicate_rows|default:0 }}</p>
+                        <p class="text-xs text-gray-600 dark:text-gray-400">rows</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Data Grid Section -->
+    <div class="mb-8">
+        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Data Preview</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ grid_data|length }} rows displayed</p>
+            </div>
+            <div class="p-4">
+                <div id="data-preview-grid" 
+                     class="h-full w-full ag-theme-quartz" 
+                     style="height: 600px;">
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<script src="{% static 'data_tools/js/data_studio_clean.js' %}"></script>
+<script src="{% static 'data_tools/js/data_studio_ui_utils.js' %}"></script>
+<script src="{% static 'data_tools/js/data_studio_api.js' %}"></script>
+<script src="{% static 'data_tools/js/data_studio_sidebar.js' %}"></script>
+
+<script>
+// Make data available to JavaScript
+window.gridRowData = {{ grid_data_json|safe }};
+window.columnDefsData = {{ column_defs_json|safe }};
+window.columnListData = {{ column_list|default:'[]'|safe }};
+window.datasourceId = "{{ datasource.id }}";
+window.datasourceName = "{{ datasource.name }}";
+window.datasourceFilename = "{{ datasource.file.name }}";
+window.datasourceFileType = "{{ datasource.source_type|default:'file' }}";
+</script>
+{% endblock %}

@@ -30,11 +30,13 @@ def generate_shap_plots(experiment, model, X_test, artifacts_dir):
     """
     try:
         import shap
-        import matplotlib
-        matplotlib.use('Agg')  # Use non-interactive backend for server environment
-        import matplotlib.pyplot as plt
+        import plotly.graph_objects as go
+        import plotly.express as px
+        import plotly.io as pio
         import numpy as np
+        import pandas as pd
         import os
+        import json
         
         print(f"Generating SHAP plots for experiment {experiment.id}")
         
@@ -86,25 +88,62 @@ def generate_shap_plots(experiment, model, X_test, artifacts_dir):
             # For multi-output models (e.g., classification), use first output
             shap_values = shap_values[0]
         
-        # Create summary plot
-        print("Generating SHAP summary plot...")
-        plt.figure(figsize=(10, 8))
+        # Create interactive SHAP summary plot with Plotly
+        print("Generating interactive SHAP summary plot...")
         
-        # Generate summary plot with show=False to prevent GUI display
-        shap.summary_plot(
-            shap_values, 
-            X_test_sample if not 'Kernel' in str(type(explainer)) else X_for_analysis,
-            feature_names=X_test.columns.tolist(),
-            show=False,
-            max_display=min(20, len(X_test.columns))  # Limit features for readability
+        # Calculate feature importance (mean absolute SHAP values)
+        feature_importance = np.abs(shap_values).mean(0)
+        feature_names = X_test.columns.tolist()
+        
+        # Limit to top 20 features for readability
+        max_features = min(20, len(feature_names))
+        top_indices = np.argsort(feature_importance)[-max_features:]
+        
+        # Create feature importance bar chart
+        fig = go.Figure()
+        
+        fig.add_trace(go.Bar(
+            x=feature_importance[top_indices],
+            y=[feature_names[i] for i in top_indices],
+            orientation='h',
+            marker=dict(color='rgba(55, 128, 191, 0.7)', line=dict(color='rgba(55, 128, 191, 1.0)', width=1)),
+            hovertemplate='<b>%{y}</b><br>Importance: %{x:.4f}<extra></extra>'
+        ))
+        
+        fig.update_layout(
+            title='SHAP Feature Importance Summary',
+            xaxis_title='Mean |SHAP Value| (Feature Importance)',
+            yaxis_title='Features',
+            height=max(400, max_features * 25),
+            template='plotly_white',
+            margin=dict(l=200)  # Extra margin for feature names
         )
         
-        # Save the plot
-        shap_plot_filename = 'shap_summary.png'
+        # Save as interactive HTML and static image
+        shap_plot_filename = 'shap_summary.html'
         shap_plot_path = os.path.join(artifacts_dir, shap_plot_filename)
-        plt.tight_layout()
-        plt.savefig(shap_plot_path, dpi=300, bbox_inches='tight', facecolor='white')
-        plt.close()  # Important: close the figure to free memory
+        
+        # Save as HTML for interactive viewing
+        pio.write_html(fig, shap_plot_path, include_plotlyjs='cdn')
+        
+        # Also save as PNG for static viewing
+        static_filename = 'shap_summary.png'
+        static_path = os.path.join(artifacts_dir, static_filename)
+        try:
+            pio.write_image(fig, static_path, width=800, height=600, scale=2)
+        except Exception as img_error:
+            print(f"Warning: Could not save static image: {img_error}")
+        
+        # Save SHAP values data as JSON for additional analysis
+        shap_data = {
+            'feature_names': feature_names,
+            'feature_importance': feature_importance.tolist(),
+            'shap_values_sample': shap_values[:min(100, len(shap_values))].tolist()  # Save sample for analysis
+        }
+        
+        shap_data_path = os.path.join(artifacts_dir, 'shap_data.json')
+        with open(shap_data_path, 'w') as f:
+            json.dump(shap_data, f, indent=2)
         
         # Return relative path for storage in artifact_paths
         relative_path = f'experiments/{experiment.id}/{shap_plot_filename}'

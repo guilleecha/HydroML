@@ -44,9 +44,21 @@ class ChartGenerationAPIView(BaseAPIView, View):
         }
     }
     
+    def get(self, request):
+        """
+        Generate a chart based on the provided configuration (GET method for backward compatibility).
+        
+        Args:
+            request: HTTP request with chart configuration
+            
+        Returns:
+            JsonResponse: Chart HTML or error message
+        """
+        return self._handle_chart_request(request, request.GET)
+        
     def post(self, request):
         """
-        Generate a chart based on the provided configuration.
+        Generate a chart based on the provided configuration (POST method).
         
         Args:
             request: HTTP request with chart configuration
@@ -54,45 +66,95 @@ class ChartGenerationAPIView(BaseAPIView, View):
         Returns:
             JsonResponse: Chart data in Plotly format
         """
+        return self._handle_chart_request(request, request.POST)
+        
+    def _handle_chart_request(self, request, params):
+        """
+        Handle chart generation request with parameters from GET or POST.
+        
+        Args:
+            request: HTTP request object
+            params: GET or POST parameters
+            
+        Returns:
+            JsonResponse: Chart response
+        """
         try:
             # Extract parameters
-            datasource_id = request.POST.get('datasource_id')
-            chart_type = request.POST.get('chart_type', '').lower()
+            datasource_id = params.get('datasource_id')
+            chart_type = params.get('chart_type', 'histogram').lower()
+            column_name = params.get('column_name')
+            x_column = params.get('x_column')
+            y_column = params.get('y_column')
             
-            if not datasource_id:
-                return self.error_response('ID del DataSource es requerido')
+            # Parameter validation based on chart type
+            if chart_type == 'scatter':
+                if not datasource_id or not x_column or not y_column:
+                    return JsonResponse({
+                        'error': 'Para gráficos de dispersión se requieren: datasource_id, x_column y y_column'
+                    }, status=400)
+            else:
+                if not datasource_id or not column_name:
+                    return JsonResponse({
+                        'error': 'Se requieren los parámetros: datasource_id y column_name'
+                    }, status=400)
             
-            if chart_type not in self.SUPPORTED_CHART_TYPES:
-                return self.error_response(
-                    f'Tipo de gráfico no soportado: {chart_type}. '
-                    f'Tipos disponibles: {", ".join(self.SUPPORTED_CHART_TYPES.keys())}'
-                )
+            # Validate UUID format
+            from uuid import UUID
+            try:
+                UUID(datasource_id)
+            except ValueError:
+                return JsonResponse({
+                    'error': 'datasource_id debe ser un UUID válido'
+                }, status=400)
             
-            # Get and validate DataSource
-            datasource = self.get_datasource(datasource_id)
+            # Get and validate DataSource with user permission check
+            try:
+                from projects.models.datasource import DataSource
+                datasource = DataSource.objects.get(id=datasource_id, project__owner=request.user)
+            except DataSource.DoesNotExist:
+                return JsonResponse({
+                    'error': f'DataSource con ID {datasource_id} no existe o no tienes acceso'
+                }, status=404)
             
-            validation_error = self.validate_datasource_status(datasource)
-            if validation_error:
-                return self.error_response(validation_error['error'])
+            # Verify DataSource is ready
+            if datasource.status != DataSource.Status.READY:
+                return JsonResponse({
+                    'error': f'DataSource "{datasource.name}" no está listo (estado: {datasource.status})'
+                }, status=400)
             
-            # Load data
-            df = self._load_dataframe(datasource)
+            # Load data with multiple format support
+            df = self._read_dataframe_multi_format(datasource.file.path)
             
-            # Validate chart parameters
-            chart_config = self._validate_chart_parameters(request.POST, chart_type)
+            # Generate chart based on type (simplified approach for backward compatibility)
+            chart_html = self._generate_simple_chart(df, chart_type, column_name, x_column, y_column)
             
-            # Generate chart
-            chart_data = self._generate_chart(df, chart_type, chart_config)
-            
-            return self.success_response({
-                'chart': chart_data,
+            # Prepare response data
+            response_data = {
+                'success': True,
+                'chart_html': chart_html,
                 'chart_type': chart_type,
-                'datasource_name': datasource.name,
-                'data_points': len(df)
-            })
+            }
+            
+            # Add appropriate metadata based on chart type
+            if chart_type == 'scatter':
+                response_data.update({
+                    'x_column': x_column,
+                    'y_column': y_column,
+                    'data_points': len(df)
+                })
+            else:
+                response_data.update({
+                    'column_name': column_name,
+                    'data_points': len(df)
+                })
+            
+            return JsonResponse(response_data)
             
         except Exception as e:
-            return self.error_response(f'Error generando gráfico: {str(e)}')
+            return JsonResponse({
+                'error': f'Error inesperado: {str(e)}'
+            }, status=500)
     
     def _load_dataframe(self, datasource):
         """
@@ -264,36 +326,137 @@ class ChartGenerationAPIView(BaseAPIView, View):
             aspect='auto'
         )
     
-    def _apply_common_styling(self, fig, config):
+    def _read_dataframe_multi_format(self, file_path):
         """
-        Apply common styling to all chart types.
+        Read DataFrame with multiple format support (backward compatibility).
         
         Args:
-            fig: Plotly figure object
-            config: Chart configuration
+            file_path: Path to the file
+            
+        Returns:
+            pandas.DataFrame: Loaded DataFrame
         """
-        fig.update_layout(
-            plot_bgcolor='white',
-            paper_bgcolor='white',
-            font=dict(size=12),
-            margin=dict(l=50, r=50, t=80, b=50)
-        )
+        import pandas as pd
         
-        # Update axes
-        fig.update_xaxes(
-            showgrid=True,
-            gridwidth=1,
-            gridcolor='lightgray',
-            showline=True,
-            linewidth=1,
-            linecolor='black'
-        )
+        if file_path.endswith('.parquet'):
+            return pd.read_parquet(file_path)
+        elif file_path.endswith('.csv'):
+            # Try different CSV configurations like original
+            try:
+                return pd.read_csv(file_path, delimiter=',', encoding='latin-1')
+            except pd.errors.ParserError:
+                try:
+                    return pd.read_csv(file_path, delimiter=';', encoding='latin-1')
+                except pd.errors.ParserError:
+                    try:
+                        return pd.read_csv(file_path, delimiter='\t', encoding='latin-1')
+                    except pd.errors.ParserError as e:
+                        raise Exception(f'Error al analizar el archivo CSV: {str(e)}')
+        elif file_path.endswith(('.xls', '.xlsx')):
+            return pd.read_excel(file_path)
+        else:
+            try:
+                return pd.read_parquet(file_path)
+            except Exception as e:
+                raise Exception(f'Error reading file: {str(e)}')
+    
+    def _generate_simple_chart(self, df, chart_type, column_name, x_column, y_column):
+        """
+        Generate simple chart HTML (backward compatibility).
         
-        fig.update_yaxes(
-            showgrid=True,
-            gridwidth=1,
-            gridcolor='lightgray',
-            showline=True,
-            linewidth=1,
-            linecolor='black'
+        Args:
+            df: pandas.DataFrame with data
+            chart_type: Type of chart
+            column_name: Column for single-column charts
+            x_column: X-axis column for scatter plots
+            y_column: Y-axis column for scatter plots
+            
+        Returns:
+            str: Chart HTML
+        """
+        import plotly.express as px
+        
+        # Handle column validation based on chart type
+        if chart_type == 'scatter':
+            # Validate both X and Y columns for scatter plots
+            if x_column not in df.columns:
+                raise Exception(f'La columna X "{x_column}" no existe en el dataset')
+            
+            if y_column not in df.columns:
+                raise Exception(f'La columna Y "{y_column}" no existe en el dataset')
+            
+            # Check if both columns are numeric
+            if not pd.api.types.is_numeric_dtype(df[x_column]):
+                raise Exception(f'La columna X "{x_column}" no es numérica')
+            
+            if not pd.api.types.is_numeric_dtype(df[y_column]):
+                raise Exception(f'La columna Y "{y_column}" no es numérica')
+            
+            # Remove rows with null values in either column
+            plot_data = df[[x_column, y_column]].dropna()
+            
+            if len(plot_data) == 0:
+                raise Exception(f'No hay datos válidos para las columnas "{x_column}" y "{y_column}"')
+            
+            fig = px.scatter(
+                x=plot_data[x_column],
+                y=plot_data[y_column],
+                title=f'Diagrama de Dispersión: {x_column} vs {y_column}',
+                labels={'x': x_column, 'y': y_column}
+            )
+            fig.update_layout(
+                xaxis_title=x_column,
+                yaxis_title=y_column,
+                template='plotly_white',
+                height=400
+            )
+                
+        else:
+            # Single column validation for histogram and boxplot
+            if column_name not in df.columns:
+                raise Exception(f'La columna "{column_name}" no existe en el dataset')
+            
+            # Check if column is numeric
+            if not pd.api.types.is_numeric_dtype(df[column_name]):
+                raise Exception(f'La columna "{column_name}" no es numérica')
+            
+            # Remove null values for plotting
+            column_data = df[column_name].dropna()
+            
+            if len(column_data) == 0:
+                raise Exception(f'La columna "{column_name}" no tiene datos válidos')
+
+            # Generate chart based on type
+            if chart_type == 'histogram':
+                fig = px.histogram(
+                    x=column_data,
+                    nbins=30,
+                    title=f'Distribución de {column_name}',
+                    labels={'x': column_name, 'y': 'Frecuencia'}
+                )
+                fig.update_layout(
+                    xaxis_title=column_name,
+                    yaxis_title='Frecuencia',
+                    template='plotly_white',
+                    height=400
+                )
+            elif chart_type == 'boxplot':
+                fig = px.box(
+                    y=column_data,
+                    title=f'Diagrama de Caja de {column_name}',
+                    labels={'y': column_name}
+                )
+                fig.update_layout(
+                    yaxis_title=column_name,
+                    template='plotly_white',
+                    height=400
+                )
+            else:
+                raise Exception(f'Tipo de gráfico no soportado: {chart_type}')
+        
+        # Convert to HTML
+        return fig.to_html(
+            include_plotlyjs=False,  # Don't include plotly.js since it's already loaded
+            div_id="plotly-chart",
+            config={'responsive': True, 'displayModeBar': True}
         )

@@ -13,10 +13,21 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 import warnings
 from pathlib import Path
-import dj_database_url # Añade esta importación al principio del archivo
-from dotenv import load_dotenv  # Importamos dotenv para cargar variables de entorno
+import dj_database_url
+from dotenv import load_dotenv
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.celery import CeleryIntegration
+
+# Configure Plotly as primary graphics library for web applications
+# Plotly is optimized for web, interactive, and Docker environments
+try:
+    from core.plotly_config import configure_plotly
+    configure_plotly()
+except ImportError:
+    # Fallback configuration if core.plotly_config is not available
+    import plotly.io as pio
+    pio.templates.default = "plotly_white"
 
 # Configure warning filters to suppress known deprecation warnings from third-party libraries
 warnings.filterwarnings(
@@ -57,7 +68,7 @@ warnings.filterwarnings(
 )
 
 
-# Cargar variables de entorno desde un archivo .env
+# Load environment variables from .env file
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -137,6 +148,8 @@ TEMPLATES = [
                 # Custom context processors for navigation
                 'core.context_processors.navigation_context',
                 'core.context_processors.breadcrumb_context',
+                'core.context_processors.navigation_counts',
+                'core.context_processors.sentry_dsn',
             ],
         },
     },
@@ -233,27 +246,35 @@ CELERY_RESULT_SERIALIZER = 'json'
 LOGIN_REDIRECT_URL = '/projects/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
+# Security settings for production
 if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False') == 'True'
 
 
 
 # Configuración de Sentry (unificada)
 SENTRY_DSN = os.getenv("SENTRY_DSN", None)
-if SENTRY_DSN and not DEBUG:  # Solo inicializar en producción y si existe un DSN
+# Initialize Sentry only when a DSN is provided. In development you may want
+# to set traces_sample_rate=1.0 for full performance traces; here we use
+# 1.0 for development when DEBUG is True and still allow configuration by env.
+if SENTRY_DSN:
     sentry_sdk.init(
         dsn=SENTRY_DSN,
-        integrations=[DjangoIntegration()],
-        # Activa el monitoreo de rendimiento
-        enable_tracing=True,
-        # Establece un ratio de muestreo para el rendimiento
-        traces_sample_rate=0.25,
-        # Enviar información personal identificable (si es necesario para depurar)
+        integrations=[DjangoIntegration(), CeleryIntegration()],
+        # Enable performance monitoring
+        traces_sample_rate=float(os.getenv('SENTRY_TRACES_SAMPLE_RATE', '1.0')),
+        # Send PII (useful for debugging, ensure policy compliance in prod)
         send_default_pii=True,
+        # Respect environment
+        environment=os.getenv('SENTRY_ENVIRONMENT', 'development' if DEBUG else 'production'),
     )
 
 # --- Configuración de Crispy Forms ---

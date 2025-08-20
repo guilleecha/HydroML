@@ -68,6 +68,13 @@ class DataSource(models.Model):
         blank=True,
         help_text="Path to the Great Expectations HTML quality report"
     )
+    
+    # Flags de calidad por columna para validaciones ML
+    column_flags = models.JSONField(
+        null=True, blank=True,
+        help_text="Flags de calidad por columna para validaciones ML",
+        default=dict
+    )
 
     # AJUSTE 2: Relación de Linaje (ManyToManyField)
     # Esta relación es poderosa. Significa que un DataSource puede ser el resultado
@@ -130,6 +137,26 @@ class DataSource(models.Model):
             else:
                 df = pd.read_parquet(file_path)  # Fallback
             return len(df)
+        except Exception:
+            return 0
+
+    @property
+    def total_columns(self):
+        """Returns the total number of columns in the dataset."""
+        if not self.file:
+            return 0
+        try:
+            import pandas as pd
+            file_path = self.file.path
+            if file_path.endswith('.parquet'):
+                df = pd.read_parquet(file_path)
+            elif file_path.endswith('.csv'):
+                df = pd.read_csv(file_path, encoding='latin-1')
+            elif file_path.endswith(('.xls', '.xlsx')):
+                df = pd.read_excel(file_path)
+            else:
+                df = pd.read_parquet(file_path)  # Fallback
+            return len(df.columns)
         except Exception:
             return 0
 

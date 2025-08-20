@@ -1,0 +1,34 @@
+<!-- Resultados (Gráficos) Card -->
+<div class="bg-white dark:bg-darcula-background-lighter rounded-xl border border-border-default shadow-card p-6 hover:shadow-lg transition-shadow">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-foreground-default dark:text-darcula-foreground">Resultados (Gráficos)</h3>
+        <svg class="w-5 h-5 text-blue-600 dark:text-darcula-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+        </svg>
+    </div>
+    
+    {% if experiment.status == 'FINISHED' and experiment.results %}
+        {% if experiment.results.prediction_data %}
+            <div class="relative" style="height: 300px;">
+                <canvas id="predictionScatterChart"></canvas>
+            </div>
+            <p class="text-xs text-foreground-muted dark:text-darcula-foreground-muted mt-2 text-center">
+                Predicciones vs. Valores Reales
+            </p>
+        {% else %}
+            <div class="text-center py-12">
+                <svg class="mx-auto h-8 w-8 text-foreground-muted dark:text-darcula-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                </svg>
+                <p class="mt-2 text-sm text-foreground-muted dark:text-darcula-foreground-muted">No hay datos de predicción disponibles</p>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="text-center py-12">
+            <svg class="mx-auto h-8 w-8 text-foreground-muted dark:text-darcula-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <p class="mt-2 text-sm text-foreground-muted dark:text-darcula-foreground-muted">Gráficos disponibles tras completar el experimento</p>
+        </div>
+    {% endif %}
+</div>

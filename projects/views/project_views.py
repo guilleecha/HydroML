@@ -204,3 +204,35 @@ def project_delete(request, pk):
         'success': True,
         'message': 'Proyecto eliminado exitosamente'
     })
+
+
+@login_required
+def project_create_iframe(request):
+    """
+    Simplified iframe view for project creation without layout overhead.
+    This view provides a streamlined interface for embedding in modals.
+    """
+    if request.method == 'POST':
+        form = ProjectForm(request.POST)
+        if form.is_valid():
+            project = form.save(commit=False)
+            project.owner = request.user
+            project.save()
+            
+            return JsonResponse({
+                'success': True,
+                'project_id': str(project.id),
+                'message': 'Project created successfully'
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors
+            })
+    else:
+        form = ProjectForm()
+    
+    return render(request, 'projects/project_form_partial.html', {
+        'form': form,
+        'is_iframe': True
+    })

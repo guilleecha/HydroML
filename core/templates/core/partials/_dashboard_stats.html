@@ -1,0 +1,55 @@
+<!-- Dashboard Statistics Cards Component -->
+<div class="mb-8">
+    <h2 class="text-xl font-semibold text-foreground-default dark:text-darcula-foreground mb-6">
+        Resumen de tu Workspace
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- DataSources Card -->
+        <div class="stat-card bg-white dark:bg-darcula-background-lighter rounded-xl border border-border-default p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-foreground-muted dark:text-onedark-accent1">Fuentes de Datos</p>
+                    <p class="text-3xl font-bold text-foreground-default dark:text-darcula-foreground mt-1">{{ total_datasources }}</p>
+                    <p class="text-xs text-foreground-muted dark:text-onedark-accent1 mt-1">Datasets disponibles</p>
+                </div>
+                <div class="bg-blue-100 dark:bg-darcula-accent/20 rounded-full p-3">
+                    <svg class="w-6 h-6 text-blue-600 dark:text-darcula-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Experiments Card -->
+        <div class="stat-card bg-white dark:bg-darcula-background-lighter rounded-xl border border-border-default p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-foreground-muted dark:text-onedark-accent1">Experimentos</p>
+                    <p class="text-3xl font-bold text-foreground-default dark:text-darcula-foreground mt-1">{{ total_experiments }}</p>
+                    <p class="text-xs text-foreground-muted dark:text-onedark-accent1 mt-1">Modelos entrenados</p>
+                </div>
+                <div class="bg-green-100 dark:bg-darcula-string/20 rounded-full p-3">
+                    <svg class="w-6 h-6 text-green-600 dark:text-darcula-string" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Experiment Suites Card -->
+        <div class="stat-card bg-white dark:bg-darcula-background-lighter rounded-xl border border-border-default p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-foreground-muted dark:text-onedark-accent1">Suites de Experimentos</p>
+                    <p class="text-3xl font-bold text-foreground-default dark:text-darcula-foreground mt-1">{{ total_suites }}</p>
+                    <p class="text-xs text-foreground-muted dark:text-onedark-accent1 mt-1">Experimentos batch</p>
+                </div>
+                <div class="bg-purple-100 dark:bg-darcula-keyword/20 rounded-full p-3">
+                    <svg class="w-6 h-6 text-purple-600 dark:text-darcula-keyword" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

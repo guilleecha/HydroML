@@ -41,8 +41,8 @@ def apply_missing_data_imputation(request, datasource_id):
     """
     try:
         # Get session manager and current DataFrame
-        session_manager = get_session_manager(request.session.session_key)
-        df = session_manager.get_dataframe()
+        session_manager = get_session_manager(request.user.id, datasource_id)
+        df = session_manager.get_current_dataframe()
         
         if df is None:
             return JsonResponse({
@@ -91,8 +91,9 @@ def apply_missing_data_imputation(request, datasource_id):
             )
             df_transformed = imputer.fit_transform(df_transformed)
         
-        # Store transformed DataFrame
-        session_manager.store_dataframe(df_transformed)
+        # Store transformed DataFrame using apply_transformation for proper history tracking
+        operation_params = data  # Store the request parameters for history
+        session_manager.apply_transformation(df_transformed, f"missing_data_imputation_{method}", operation_params)
         
         return JsonResponse({
             'success': True,
@@ -118,8 +119,8 @@ def apply_feature_encoding(request, datasource_id):
     """
     try:
         # Get session manager and current DataFrame
-        session_manager = get_session_manager(request.session.session_key)
-        df = session_manager.get_dataframe()
+        session_manager = get_session_manager(request.user.id, datasource_id)
+        df = session_manager.get_current_dataframe()
         
         if df is None:
             return JsonResponse({
@@ -168,8 +169,9 @@ def apply_feature_encoding(request, datasource_id):
             )
             df_transformed = encoder.fit_transform(df_transformed)
         
-        # Store transformed DataFrame
-        session_manager.store_dataframe(df_transformed)
+        # Store transformed DataFrame using apply_transformation for proper history tracking
+        operation_params = data  # Store the request parameters for history
+        session_manager.apply_transformation(df_transformed, f"feature_encoding_{method}", operation_params)
         
         return JsonResponse({
             'success': True,
@@ -195,8 +197,8 @@ def apply_feature_scaling(request, datasource_id):
     """
     try:
         # Get session manager and current DataFrame
-        session_manager = get_session_manager(request.session.session_key)
-        df = session_manager.get_dataframe()
+        session_manager = get_session_manager(request.user.id, datasource_id)
+        df = session_manager.get_current_dataframe()
         
         if df is None:
             return JsonResponse({
@@ -243,8 +245,9 @@ def apply_feature_scaling(request, datasource_id):
         
         df_transformed = scaler.fit_transform(df_transformed)
         
-        # Store transformed DataFrame
-        session_manager.store_dataframe(df_transformed)
+        # Store transformed DataFrame using apply_transformation for proper history tracking
+        operation_params = data  # Store the request parameters for history
+        session_manager.apply_transformation(df_transformed, f"feature_scaling_{method}", operation_params)
         
         return JsonResponse({
             'success': True,
@@ -270,8 +273,8 @@ def apply_outlier_treatment(request, datasource_id):
     """
     try:
         # Get session manager and current DataFrame
-        session_manager = get_session_manager(request.session.session_key)
-        df = session_manager.get_dataframe()
+        session_manager = get_session_manager(request.user.id, datasource_id)
+        df = session_manager.get_current_dataframe()
         
         if df is None:
             return JsonResponse({
@@ -315,8 +318,9 @@ def apply_outlier_treatment(request, datasource_id):
         
         df_transformed = outlier_handler.fit_transform(df_transformed)
         
-        # Store transformed DataFrame
-        session_manager.store_dataframe(df_transformed)
+        # Store transformed DataFrame using apply_transformation for proper history tracking
+        operation_params = data  # Store the request parameters for history
+        session_manager.apply_transformation(df_transformed, f"outlier_treatment_{method}", operation_params)
         
         return JsonResponse({
             'success': True,
@@ -342,8 +346,8 @@ def apply_feature_engineering(request, datasource_id):
     """
     try:
         # Get session manager and current DataFrame
-        session_manager = get_session_manager(request.session.session_key)
-        df = session_manager.get_dataframe()
+        session_manager = get_session_manager(request.user.id, datasource_id)
+        df = session_manager.get_current_dataframe()
         
         if df is None:
             return JsonResponse({
@@ -392,8 +396,9 @@ def apply_feature_engineering(request, datasource_id):
         
         df_transformed = feature_creator.fit_transform(df_transformed)
         
-        # Store transformed DataFrame
-        session_manager.store_dataframe(df_transformed)
+        # Store transformed DataFrame using apply_transformation for proper history tracking
+        operation_params = data  # Store the request parameters for history
+        session_manager.apply_transformation(df_transformed, f"feature_engineering_{method}_{operation}", operation_params)
         
         return JsonResponse({
             'success': True,
@@ -419,8 +424,8 @@ def apply_column_operations(request, datasource_id):
     """
     try:
         # Get session manager and current DataFrame
-        session_manager = get_session_manager(request.session.session_key)
-        df = session_manager.get_dataframe()
+        session_manager = get_session_manager(request.user.id, datasource_id)
+        df = session_manager.get_current_dataframe()
         
         if df is None:
             return JsonResponse({
@@ -461,8 +466,9 @@ def apply_column_operations(request, datasource_id):
                 new_col_name = f"{col}_copy"
                 df_transformed[new_col_name] = df_transformed[col]
         
-        # Store transformed DataFrame
-        session_manager.store_dataframe(df_transformed)
+        # Store transformed DataFrame using apply_transformation for proper history tracking
+        operation_params = data  # Store the request parameters for history
+        session_manager.apply_transformation(df_transformed, f"column_operation_{operation}", operation_params)
         
         return JsonResponse({
             'success': True,

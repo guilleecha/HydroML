@@ -25,11 +25,15 @@
   },
   "homepage": "https://github.com/guilleecha/HydroML#readme",
   "devDependencies": {
+    "@playwright/test": "^1.54.2",
     "@tailwindcss/forms": "^0.5.10",
     "autoprefixer": "^10.4.19",
     "find-python-packages": "^2019.5.17",
     "postcss": "^8.4.38",
     "supabase": "^2.34.3",
     "tailwindcss": "^3.4.17"
+  },
+  "dependencies": {
+    "task-master-ai": "^0.24.0"
   }
 }

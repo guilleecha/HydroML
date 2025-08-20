@@ -28,6 +28,7 @@ from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from core.utils.breadcrumbs import create_project_breadcrumbs
 import logging
+import sentry_sdk
 
 from projects.models import Project
 from ..models import MLExperiment
@@ -38,104 +39,6 @@ from ..tasks import (
 )
 
 logger = logging.getLogger(__name__)
-
-@login_required
-def ml_experiment_create(request, project_id):
-    """
-    Handle the creation of a new Machine Learning experiment.
-    
-    This view manages both GET and POST requests for creating ML experiments.
-    For GET requests, it displays an empty form. For POST requests, it validates
-    the form data, builds hyperparameters based on the selected model, and saves
-    the experiment to the database.
-    
-    The view includes comprehensive error handling and logging throughout the
-    creation process, ensuring that any issues are properly captured and
-    communicated to the user.
-    
-    Args:
-        request (HttpRequest): The Django HTTP request object.
-        project_id (int): The ID of the project to which this experiment belongs.
-        
-    Returns:
-        HttpResponse: Rendered form page for GET requests or redirect to project
-                     detail page upon successful creation.
-                     
-    Raises:
-        Http404: If the project doesn't exist or the user doesn't own it.
-    """
-    project = get_object_or_404(Project, id=project_id, owner=request.user)
-    logger.info(f"Creating experiment for project {project_id} by user {request.user}")
-
-    if request.method == 'POST':
-        logger.info("Processing POST request for experiment creation")
-        form = MLExperimentForm(project=project, data=request.POST, user=request.user)
-        
-        # Debug: Log form validation result
-        is_valid = form.is_valid()
-        logger.info(f"Form validation result: {is_valid}")
-        
-        if not is_valid:
-            logger.error(f"Form validation failed. Errors: {form.errors}")
-            logger.error(f"Non-field errors: {form.non_field_errors()}")
-        else:
-            logger.info(f"Form cleaned data: {form.cleaned_data}")
-        
-        if is_valid:
-            try:
-                # Create experiment object without saving
-                experiment = form.save(commit=False)
-                experiment.project = project
-                experiment.status = MLExperiment.Status.DRAFT  # ✅ FIXED: Use enum instead of string
-                logger.info(f"Created experiment object: {experiment.name}")
-                
-                # Lógica para construir el diccionario de hiperparámetros
-                hyperparams = {}
-                model_name = form.cleaned_data.get('model_name')
-                logger.info(f"Building hyperparameters for model: {model_name}")
-                
-                if model_name == 'RandomForestRegressor':
-                    if form.cleaned_data.get('rf_n_estimators'):
-                        hyperparams['n_estimators'] = form.cleaned_data['rf_n_estimators']
-                    if form.cleaned_data.get('rf_max_depth'):
-                        hyperparams['max_depth'] = form.cleaned_data['rf_max_depth']
-                elif model_name == 'GradientBoostingRegressor':
-                    if form.cleaned_data.get('gb_n_estimators'):
-                        hyperparams['n_estimators'] = form.cleaned_data['gb_n_estimators']
-                    if form.cleaned_data.get('gb_learning_rate'):
-                        hyperparams['learning_rate'] = form.cleaned_data['gb_learning_rate']
-                
-                experiment.hyperparameters = hyperparams
-                logger.info(f"Set hyperparameters: {hyperparams}")
-                
-                # Save the experiment
-                experiment.save()
-                logger.info(f"Successfully saved experiment {experiment.id}: {experiment.name}")
-                
-                messages.success(request, f"Experimento '{experiment.name}' creado con éxito.")
-                return redirect('projects:project_detail', pk=project.id)
-                
-            except Exception as e:
-                logger.error(f"Error saving experiment: {str(e)}", exc_info=True)
-                messages.error(request, f"Error al guardar el experimento: {str(e)}")
-                # Continue to render the form with errors
-        
-        # Si el formulario NO es válido o hubo error, renderizar con errores
-        logger.info("Rendering form with errors")
-    else:
-        logger.info("Rendering empty form for GET request")
-        form = MLExperimentForm(project=project, user=request.user)
-
-    # Create breadcrumbs for navigation
-    breadcrumbs = create_project_breadcrumbs(project, 'Nuevo Experimento')
-
-    context = {
-        'form': form,
-        'project': project,
-        'view_title': 'Crear Nuevo Experimento de ML',
-        'breadcrumbs': breadcrumbs,
-    }
-    return render(request, 'experiments/ml_experiment_form.html', context)
 
 
 @login_required
@@ -211,7 +114,18 @@ def ml_experiment_form_partial(request, project_id=None):
                 })
                 
             except Exception as e:
+                # Enhanced error handling with Sentry context
+                with sentry_sdk.configure_scope() as scope:
+                    scope.set_tag("error_type", "experiment_save")
+                    scope.set_context("experiment_data", {
+                        "project_id": project.id if project else None,
+                        "model_name": form.cleaned_data.get('model_name', 'unknown'),
+                        "user": request.user.username
+                    })
+                
                 logger.error(f"Error saving experiment: {str(e)}", exc_info=True)
+                sentry_sdk.capture_exception(e)
+                
                 return JsonResponse({
                     'success': False,
                     'message': f"Error al guardar el experimento: {str(e)}"
@@ -254,7 +168,7 @@ class MLExperimentUpdateView(UpdateView):
     """
     model = MLExperiment
     form_class = MLExperimentForm
-    template_name = 'experiments/ml_experiment_form.html'
+    template_name = 'experiments/ml_experiment_edit.html'
 
     def get_context_data(self, **kwargs):
         """

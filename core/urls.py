@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views, api
 from .views import dashboard_views, preset_views
+from .views_sentry_test import sentry_test_error
 
 
 app_name = 'core'
@@ -8,6 +9,9 @@ app_name = 'core'
 urlpatterns = [
     # Dashboard
     path('dashboard/', dashboard_views.DashboardView.as_view(), name='dashboard'),
+    
+    # Unified Data Sources List
+    path('data-sources/', dashboard_views.DataSourcesListView.as_view(), name='data_sources_list'),
     
     # Help/FAQ page
     path('help/', dashboard_views.HelpPageView.as_view(), name='help'),
@@ -29,4 +33,6 @@ urlpatterns = [
     # API endpoints for notifications (commented out until Notification model is implemented)
     # path('api/notifications/', views.NotificationAPIView.as_view(), name='notifications_api'),
     # path('api/notifications/count/', views.get_unread_count, name='notifications_count'),
+    # Sentry test endpoint (deliberate error)
+    path('__sentry_test__/', sentry_test_error, name='sentry_test_error'),
 ]

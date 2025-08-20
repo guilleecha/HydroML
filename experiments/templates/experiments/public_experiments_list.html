@@ -1,22 +1,13 @@
-{% extends 'core/base.html' %}
+{% extends 'core/base_github_style.html' %}
 {% load static %}
 
 {% block page_title %}Galería de Experimentos Públicos{% endblock %}
 
+{% block page_heading %}Experiments{% endblock %}
+
 {% block title %}Galería de Experimentos Públicos - HydroML{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
-<div class="mb-8">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-foreground-default">🧪 Galería de Experimentos Públicos</h1>
-            <p class="mt-2 text-foreground-muted">
-                Explora experimentos de machine learning compartidos por la comunidad de HydroML
-            </p>
-        </div>
-    </div>
-</div>
 
 <!-- Experiments Grid -->
 {% if public_experiments %}

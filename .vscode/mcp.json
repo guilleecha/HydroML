@@ -22,7 +22,21 @@
         "SUPABASE_ACCESS_TOKEN": "${input:supabase-access-token}"
       }
     },
+
+    "context7": {
+      "httpUrl": "https://mcp.context7.com/mcp"
+    },
+
+    "Sentry": {
+      "url": "https://mcp.sentry.dev/mcp"
+    },
     
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ]
+    }
     // --- BLOQUE AÑADIDO ---
     "MCP_DOCKER": {
       "command": "docker",

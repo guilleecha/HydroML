@@ -26,3 +26,6 @@ Thumbs.db
 
 # Archivos de entorno
 .env
+
+.claude/worktrees/
+.claude/settings.local.json

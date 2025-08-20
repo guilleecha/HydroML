@@ -1,0 +1,434 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Quality Report - DataSource test_datasource_compat</title>
+    
+<style>
+    :root {
+        --primary-color: #2563eb;
+        --success-color: #059669;
+        --warning-color: #d97706;
+        --error-color: #dc2626;
+        --bg-color: #f8fafc;
+        --card-bg: #ffffff;
+        --text-primary: #1f2937;
+        --text-secondary: #6b7280;
+        --border-color: #e5e7eb;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-primary);
+        line-height: 1.6;
+    }
+    
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .header {
+        background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+        color: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .header p {
+        opacity: 0.9;
+        font-size: 1.1rem;
+    }
+    
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .summary-card {
+        background: var(--card-bg);
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .summary-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+    
+    .card-icon {
+        width: 3rem;
+        height: 3rem;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    
+    .icon-success { background-color: #d1fae5; color: var(--success-color); }
+    .icon-warning { background-color: #fef3c7; color: var(--warning-color); }
+    .icon-error { background-color: #fee2e2; color: var(--error-color); }
+    .icon-info { background-color: #dbeafe; color: var(--primary-color); }
+    
+    .card-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    
+    .card-label {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .section {
+        background: var(--card-bg);
+        padding: 2rem;
+        border-radius: 0.75rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+        margin-bottom: 2rem;
+    }
+    
+    .section h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: var(--text-primary);
+        border-bottom: 2px solid var(--primary-color);
+        padding-bottom: 0.5rem;
+    }
+    
+    .table-container {
+        overflow-x: auto;
+        margin-top: 1rem;
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+    }
+    
+    th, td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    th {
+        background-color: var(--bg-color);
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .status-success {
+        background-color: #d1fae5;
+        color: var(--success-color);
+    }
+    
+    .status-error {
+        background-color: #fee2e2;
+        color: var(--error-color);
+    }
+    
+    .status-warning {
+        background-color: #fef3c7;
+        color: var(--warning-color);
+    }
+    
+    .progress-bar {
+        width: 100%;
+        height: 0.5rem;
+        background-color: var(--border-color);
+        border-radius: 9999px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--success-color), #34d399);
+        transition: width 0.3s ease;
+    }
+    
+    .chart-container {
+        height: 300px;
+        margin: 1rem 0;
+    }
+    
+    .recommendation {
+        background: #f0f9ff;
+        border: 1px solid #0ea5e9;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin: 0.5rem 0;
+    }
+    
+    .recommendation-icon {
+        color: var(--primary-color);
+        margin-right: 0.5rem;
+    }
+    
+    @media (max-width: 768px) {
+        .container {
+            padding: 1rem;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+        }
+        
+        .summary-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+        
+    
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+        
+</head>
+<body>
+    <div class="container">
+        
+<div class="header">
+    <h1>🔍 Data Quality Report</h1>
+    <p>DataSource ID: <strong>test_datasource_compat</strong></p>
+    <p>Generated: 2025-08-19 22:22:31</p>
+</div>
+        
+        
+<div class="summary-grid">
+    <div class="summary-card">
+        <div class="card-header">
+            <div class="card-icon icon-success">✓</div>
+        </div>
+        <div class="card-value">75.0%</div>
+        <div class="card-label">Validation Success</div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 75.0%"></div>
+        </div>
+    </div>
+    
+    <div class="summary-card">
+        <div class="card-header">
+            <div class="card-icon icon-info">📊</div>
+        </div>
+        <div class="card-value">10</div>
+        <div class="card-label">Total Rows</div>
+    </div>
+    
+    <div class="summary-card">
+        <div class="card-header">
+            <div class="card-icon icon-info">📋</div>
+        </div>
+        <div class="card-value">8</div>
+        <div class="card-label">Total Columns</div>
+    </div>
+    
+    <div class="summary-card">
+        <div class="card-header">
+            <div class="card-icon icon-warning">⚠️</div>
+        </div>
+        <div class="card-value">2</div>
+        <div class="card-label">Anomalies Detected</div>
+    </div>
+</div>
+        
+        
+<div class="section">
+    <h2>📋 Validation Results</h2>
+    <div class="table-container">
+        <table>
+            <tr><th>Metric</th><th>Value</th></tr>
+            <tr>
+                <td>Overall Status</td>
+                <td>
+                    <span class="status-badge status-error">
+                        FAILED
+                    </span>
+                </td>
+            </tr>
+            <tr><td>Success Rate</td><td>75.0%</td></tr>
+            <tr><td>Expectations Evaluated</td><td>0</td></tr>
+            <tr><td>Successful Expectations</td><td>0</td></tr>
+            <tr><td>Failed Expectations</td><td>0</td></tr>
+        </table>
+    </div>
+</div>
+        
+        
+<div class="section">
+    <h2>🧹 Data Cleaning Operations</h2>
+    <div class="table-container">
+        <table>
+            <tr><th>Operation</th><th>Details</th></tr>
+            
+            <tr>
+                <td>remove_duplicates</td>
+                <td>Removed 2 duplicates (20.0%)</td>
+            </tr>
+            
+            <tr>
+                <td>type_conversions</td>
+                <td>Converted 1 columns</td>
+            </tr>
+            
+            <tr>
+                <td>handle_missing_values</td>
+                <td>Strategy: auto</td>
+            </tr>
+            
+            <tr>
+                <td>anomaly_detection</td>
+                <td>{'operation': 'anomaly_detection', 'anomalies': [{'column': 'age', 'outlier_count': 1, 'outlier_percentage': 12.5, 'bounds': {'lower': 17.875, 'upper': 42.875}}, {'column': 'bonus', 'outlier_count': 1, 'outlier_percentage': 12.5, 'bounds': {'lower': 756.25, 'upper': 1506.25}}]}</td>
+            </tr>
+            
+        </table>
+    </div>
+</div>
+        
+        
+<div class="section">
+    <h2>📈 Data Profile</h2>
+    <div class="table-container">
+        <table>
+            <tr><th>Metric</th><th>Value</th></tr>
+            <tr><td>Total Rows</td><td>10</td></tr>
+            <tr><td>Total Columns</td><td>8</td></tr>
+            <tr><td>Memory Usage</td><td>0.00 MB</td></tr>
+            <tr><td>Duplicate Rows</td><td>2</td></tr>
+            <tr><td>Numeric Columns</td><td>2</td></tr>
+            <tr><td>Categorical Columns</td><td>6</td></tr>
+            <tr><td>DateTime Columns</td><td>0</td></tr>
+        </table>
+    </div>
+    <div class="chart-container">
+        <canvas id="dataTypesChart"></canvas>
+    </div>
+</div>
+        
+        
+<div class="section">
+    <h2>⚠️ Anomalies Detected</h2>
+    <div class="table-container">
+        <table>
+            <tr><th>Column</th><th>Outlier Count</th><th>Percentage</th><th>Normal Range</th></tr>
+            
+            <tr>
+                <td>age</td>
+                <td>1</td>
+                <td>12.50%</td>
+                <td>17.88 - 42.88</td>
+            </tr>
+            
+            <tr>
+                <td>bonus</td>
+                <td>1</td>
+                <td>12.50%</td>
+                <td>756.25 - 1506.25</td>
+            </tr>
+            
+        </table>
+    </div>
+</div>
+        
+        
+<div class="section">
+    <h2>💡 Recommendations</h2>
+    
+            <div class="recommendation">
+                <span class="recommendation-icon">💡</span>
+                <strong>Improve Data Quality</strong>: Validation success rate is below 80%. Consider reviewing and fixing data quality issues.
+            </div>
+            
+            <div class="recommendation">
+                <span class="recommendation-icon">💡</span>
+                <strong>Handle Missing Data</strong>: Consider imputation strategies for columns with missing values: age, hire_date, active
+            </div>
+            
+            <div class="recommendation">
+                <span class="recommendation-icon">💡</span>
+                <strong>Review Anomalies</strong>: Found 2 columns with outliers. Consider data cleaning or validation rules.
+            </div>
+            
+</div>
+        
+    </div>
+    
+<script>
+// Data types chart
+const ctx = document.getElementById('dataTypesChart');
+if (ctx) {
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Numeric', 'Categorical', 'DateTime', 'Other'],
+            datasets: [{
+                data: [3, 2, 1, 1], // Example data
+                backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+</script>
+        
+</body>
+</html>
+        

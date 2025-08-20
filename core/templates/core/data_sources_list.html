@@ -1,0 +1,207 @@
+{% extends "core/base_github_style.html" %}
+{% load static %}
+
+{% block page_title %}Data Sources{% endblock %}
+
+{% block header_actions %}
+<div class="flex items-center space-x-2">
+    <button @click="openUploadPanel()" 
+           class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+        </svg>
+        Upload File
+    </button>
+    <a href="{% url 'connectors:database_connection_create' %}" 
+       class="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-md hover:bg-blue-700 transition-colors">
+        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+        </svg>
+        Connect Database
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Summary Stats -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Uploaded Files</h3>
+                <p class="text-3xl font-bold text-blue-600">{{ total_uploaded }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                </svg>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Database Connections</h3>
+                <p class="text-3xl font-bold text-green-600">{{ total_connections }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Uploaded Data Sources Section -->
+{% if uploaded_datasources %}
+<div class="mb-8">
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Uploaded Files</h2>
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-800">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Workspace</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rows</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Uploaded</th>
+                    <th class="relative px-4 py-3"><span class="sr-only">Actions</span></th>
+                </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {% for ds in uploaded_datasources %}
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <td class="px-4 py-4">
+                        <div class="flex items-center">
+                            <svg class="w-4 h-4 text-blue-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            <div>
+                                <a href="{% url 'data_tools:data_studio_page' pk=ds.pk %}" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
+                                    {{ ds.name }}
+                                </a>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ ds.filename }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-4">
+                        <a href="{% url 'projects:project_detail' pk=ds.project.pk %}" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                            {{ ds.project.name }}
+                        </a>
+                    </td>
+                    <td class="px-4 py-4">
+                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full
+                            {% if ds.status == 'READY' %}bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400
+                            {% elif ds.status == 'PROCESSING' %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400
+                            {% elif ds.status == 'ERROR' %}bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400
+                            {% else %}bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400{% endif %}">
+                            {% if ds.status == 'READY' %}Ready{% elif ds.status == 'PROCESSING' %}Processing{% elif ds.status == 'ERROR' %}Error{% else %}{{ ds.get_status_display }}{% endif %}
+                        </span>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-gray-900 dark:text-gray-100">
+                        {% if ds.total_rows %}{{ ds.total_rows|floatformat:0 }}{% else %}-{% endif %}
+                    </td>
+                    <td class="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        {{ ds.uploaded_at|date:"M d, Y" }}
+                    </td>
+                    <td class="px-4 py-4 text-right text-sm">
+                        <a href="{% url 'data_tools:data_studio_page' pk=ds.pk %}" 
+                           class="text-blue-600 dark:text-blue-400 hover:underline">
+                            Open
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Database Connections Section -->
+{% if database_connections %}
+<div class="mb-8">
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Database Connections</h2>
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-800">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Host</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created</th>
+                    <th class="relative px-4 py-3"><span class="sr-only">Actions</span></th>
+                </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {% for conn in database_connections %}
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <td class="px-4 py-4">
+                        <div class="flex items-center">
+                            <svg class="w-4 h-4 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                            </svg>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ conn.name }}</div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ conn.database_name }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-gray-900 dark:text-gray-100">
+                        {{ conn.get_db_type_display }}
+                    </td>
+                    <td class="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        {{ conn.host }}:{{ conn.port }}
+                    </td>
+                    <td class="px-4 py-4">
+                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                            Connected
+                        </span>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        {{ conn.created_at|date:"M d, Y" }}
+                    </td>
+                    <td class="px-4 py-4 text-right text-sm">
+                        <a href="{% url 'connectors:import_select_connection' %}" 
+                           class="text-blue-600 dark:text-blue-400 hover:underline">
+                            Import Data
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Empty State -->
+{% if not uploaded_datasources and not database_connections %}
+<div class="text-center py-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+    </svg>
+    <h3 class="mt-4 text-sm font-medium text-gray-900 dark:text-gray-100">No data sources</h3>
+    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Get started by uploading a file or connecting to a database.</p>
+    <div class="mt-6 flex justify-center space-x-3">
+        <button @click="openUploadPanel()" 
+               class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+            </svg>
+            Upload File
+        </button>
+        <a href="{% url 'connectors:database_connection_create' %}" 
+           class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+            </svg>
+            Connect Database
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -19,12 +19,9 @@ import joblib
 import traceback
 import pandas as pd
 import shap
-import matplotlib
-matplotlib.use('Agg')  # Use non-interactive backend
-import matplotlib.pyplot as plt
 import plotly.graph_objects as go
-import plotly.offline as pyo
-from plotly.io import to_html
+import plotly.express as px
+import plotly.io as pio
 
 logger = logging.getLogger(__name__)
 

@@ -3,8 +3,11 @@ Context processors for HydroML core application.
 Provides global template variables across all views.
 """
 
-from projects.models import Project
+from projects.models import Project, DataSource
+from connectors.models import DatabaseConnection
+from experiments.models import MLExperiment
 from django.shortcuts import get_object_or_404
+import os
 
 
 def navigation_context(request):
@@ -153,3 +156,48 @@ def breadcrumb_context(request):
     return {
         'breadcrumbs': breadcrumbs
     }
+
+
+def sentry_dsn(request):
+    """
+    Inject SENTRY_DSN from environment into all templates so the frontend
+    can initialize Sentry Browser SDK without hardcoding secrets.
+    """
+    return {
+        'SENTRY_DSN': os.getenv('SENTRY_DSN', '')
+    }
+
+
+def navigation_counts(request):
+    """
+    Provide counts for navigation badges (GitHub-style).
+    
+    Returns:
+        dict: Count variables for navigation items
+    """
+    context = {
+        'total_workspaces_count': 0,
+        'total_datasources_count': 0,
+        'total_experiments_count': 0,
+    }
+    
+    if request.user.is_authenticated:
+        try:
+            # Count workspaces owned by user
+            context['total_workspaces_count'] = Project.objects.filter(owner=request.user).count()
+            
+            # Count data sources (uploaded files + database connections)
+            datasources_count = DataSource.objects.filter(owner=request.user).count()
+            connections_count = DatabaseConnection.objects.filter(user=request.user).count()
+            context['total_datasources_count'] = datasources_count + connections_count
+            
+            # Count experiments owned by user
+            context['total_experiments_count'] = MLExperiment.objects.filter(
+                project__owner=request.user
+            ).count()
+            
+        except Exception:
+            # If any model doesn't exist or there's an error, just use defaults
+            pass
+    
+    return context

@@ -11,11 +11,16 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.offline import plot
+import logging
+import traceback
 
 from ..models import Project, DataSource
 from ..forms.datasource_forms import DataSourceUpdateForm, DataSourceUploadForm
 from data_tools.tasks import convert_file_to_parquet_task
 from core.utils.breadcrumbs import create_breadcrumb
+
+# Configure logger
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -113,48 +118,151 @@ def datasource_upload_form_partial(request):
             project = project or user_projects.first()  # Default selection
     
     if request.method == 'POST':
-        form = DataSourceUploadForm(
-            request.POST, 
-            request.FILES, 
-            user=request.user, 
-            project=project,
-            show_project_selection=show_project_selection
-        )
-        if form.is_valid():
-            datasource = form.save(commit=False)
+        logger.info(f"DataSource upload POST request initiated by user {request.user.id}")
+        print(f"[DEBUG] DataSource upload POST request initiated by user {request.user.id}")
+        
+        try:
+            # Log form data (excluding file content for security)
+            form_data = request.POST.copy()
+            file_info = {}
+            if request.FILES:
+                for key, file in request.FILES.items():
+                    file_info[key] = {
+                        'name': file.name,
+                        'size': file.size,
+                        'content_type': file.content_type
+                    }
             
-            # Set the owner to the current user
-            datasource.owner = request.user
-            datasource.save()
+            logger.info(f"Form data: {form_data}")
+            logger.info(f"File info: {file_info}")
+            print(f"[DEBUG] Form data: {form_data}")
+            print(f"[DEBUG] File info: {file_info}")
             
-            # Handle project associations
-            selected_projects = form.cleaned_data.get('projects', [])
-            if not selected_projects and project:
-                # If no projects selected but we have a context project, use it
-                selected_projects = [project]
+            # Create and validate form
+            form = DataSourceUploadForm(
+                request.POST, 
+                request.FILES, 
+                user=request.user, 
+                project=project,
+                show_project_selection=show_project_selection
+            )
+            
+            logger.info(f"Form created successfully")
+            print(f"[DEBUG] Form created successfully")
+            
+            if form.is_valid():
+                logger.info(f"Form validation passed")
+                print(f"[DEBUG] Form validation passed")
                 
-            # Associate the datasource with selected projects
-            for proj in selected_projects:
-                proj.datasources.add(datasource)
+                # Handle project associations FIRST
+                selected_projects = form.cleaned_data.get('projects', [])
+                if not selected_projects and project:
+                    # If no projects selected but we have a context project, use it
+                    selected_projects = [project]
+                    logger.info(f"Using context project: {project.id}")
+                    print(f"[DEBUG] Using context project: {project.id}")
+                    
+                logger.info(f"Selected projects: {[p.id for p in selected_projects]}")
+                print(f"[DEBUG] Selected projects: {[p.id for p in selected_projects]}")
+                
+                # Save datasource without committing to DB yet
+                datasource = form.save(commit=False)
+                logger.info(f"DataSource object created: {datasource.name}")
+                print(f"[DEBUG] DataSource object created: {datasource.name}")
+                
+                # Set the owner
+                datasource.owner = request.user
+                logger.info(f"Owner set to user {request.user.id}")
+                print(f"[DEBUG] Owner set to user {request.user.id}")
+                
+                # Handle project assignment
+                if selected_projects:
+                    # Set the required project field to first selected project
+                    datasource.project = selected_projects[0]
+                    logger.info(f"Project field set to: {datasource.project.id}")
+                    print(f"[DEBUG] Project field set to: {datasource.project.id}")
+                else:
+                    # No workspace selected - use first available project as temporary assignment
+                    # This allows "Sin asignar" UX while satisfying DB constraints
+                    fallback_project = Project.objects.filter(owner=request.user).first()
+                    if fallback_project:
+                        datasource.project = fallback_project
+                        logger.info(f"No workspace selected, using fallback project: {fallback_project.id}")
+                        print(f"[DEBUG] No workspace selected, using fallback project: {fallback_project.id}")
+                    else:
+                        logger.error("No project available for DataSource upload")
+                        return JsonResponse({
+                            'success': False,
+                            'error': 'No hay workspaces disponibles. Crea un workspace primero.'
+                        })
+                
+                # Save to database
+                datasource.save()
+                logger.info(f"DataSource saved to database with ID: {datasource.id}")
+                print(f"[DEBUG] DataSource saved to database with ID: {datasource.id}")
+                
+                # Associate the datasource with selected projects (many-to-many)
+                # Only if projects were explicitly selected
+                if selected_projects:
+                    for proj in selected_projects:
+                        proj.datasources.add(datasource)
+                        logger.info(f"DataSource {datasource.id} associated with project {proj.id}")
+                        print(f"[DEBUG] DataSource {datasource.id} associated with project {proj.id}")
+                
+                # Determine redirect URL based on selection
+                if selected_projects:
+                    # Projects were selected, redirect to first selected project
+                    redirect_project = selected_projects[0]
+                    redirect_url = f'/projects/{redirect_project.id}/'
+                else:
+                    # "Sin asignar" was selected, redirect to data sources list
+                    redirect_url = '/data-sources/'
+                logger.info(f"Redirect URL determined: {redirect_url}")
+                print(f"[DEBUG] Redirect URL determined: {redirect_url}")
+                
+                # Trigger the Parquet conversion task in the background
+                try:
+                    task_result = convert_file_to_parquet_task.delay(datasource.id)
+                    logger.info(f"Celery task triggered successfully: {task_result.id}")
+                    print(f"[DEBUG] Celery task triggered successfully: {task_result.id}")
+                except Exception as task_error:
+                    logger.error(f"Failed to trigger Celery task: {str(task_error)}")
+                    print(f"[ERROR] Failed to trigger Celery task: {str(task_error)}")
+                    # Continue anyway - the datasource is saved, task can be retried
+                
+                # Return JSON response for AJAX
+                response_data = {
+                    'success': True,
+                    'message': 'Fuente de datos creada exitosamente',
+                    'redirect_url': redirect_url
+                }
+                logger.info(f"Successful response being returned: {response_data}")
+                print(f"[DEBUG] Successful response being returned: {response_data}")
+                
+                return JsonResponse(response_data)
+            else:
+                # Form validation failed
+                logger.warning(f"Form validation failed. Errors: {form.errors}")
+                print(f"[DEBUG] Form validation failed. Errors: {form.errors}")
+                
+                # Return form with errors
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                })
+                
+        except Exception as e:
+            # Catch all other exceptions and log them
+            error_traceback = traceback.format_exc()
+            logger.error(f"Unexpected error in datasource upload: {str(e)}")
+            logger.error(f"Full traceback: {error_traceback}")
+            print(f"[ERROR] Unexpected error in datasource upload: {str(e)}")
+            print(f"[ERROR] Full traceback: {error_traceback}")
             
-            # Determine redirect URL - use the first project or the context project
-            redirect_project = project if project else (selected_projects[0] if selected_projects else None)
-            redirect_url = f'/projects/{redirect_project.id}/' if redirect_project else '/projects/'
-            
-            # Trigger the Parquet conversion task in the background
-            convert_file_to_parquet_task.delay(datasource.id)
-            
-            # Return JSON response for AJAX
-            return JsonResponse({
-                'success': True,
-                'message': 'Fuente de datos creada exitosamente',
-                'redirect_url': redirect_url
-            })
-        else:
-            # Return form with errors
             return JsonResponse({
                 'success': False,
-                'errors': form.errors
+                'error': f'Error del servidor: {str(e)}. Revisa los logs para más detalles.',
+                'debug_info': str(e) if hasattr(request.user, 'is_staff') and request.user.is_staff else None
             })
     else:
         form = DataSourceUploadForm(
@@ -440,3 +548,130 @@ def _generate_preview_charts(datasource):
     except Exception as e:
         print(f"Error generating preview charts: {e}")
         return None
+
+
+@login_required
+def datasources_list(request):
+    """
+    Central page for all user DataSources with AG Grid table.
+    """
+    # Get all datasources for the current user
+    datasources = DataSource.objects.filter(owner=request.user).select_related().prefetch_related('projects').order_by('-uploaded_at')
+    
+    # Build breadcrumbs
+    breadcrumbs = [
+        create_breadcrumb('Workspace', '/'),
+        create_breadcrumb('Fuentes de Datos')
+    ]
+    
+    # Statistics for the page
+    stats = {
+        'total': datasources.count(),
+        'ready': datasources.filter(status='READY').count(),
+        'processing': datasources.filter(status='PROCESSING').count(),
+        'failed': datasources.filter(status='FAILED').count(),
+    }
+    
+    context = {
+        'datasources': datasources,
+        'breadcrumbs': breadcrumbs,
+        'stats': stats,
+    }
+    
+    return render(request, 'projects/datasources_list.html', context)
+
+
+@login_required
+def add_datasource_to_project(request, project_pk):
+    """
+    Allows user to add existing DataSources to a specific project.
+    GET: Shows available DataSources (excluding those already in the project)
+    POST: Adds selected DataSources to the project using ManyToManyField.add()
+    """
+    # Get the project (ensure it belongs to the user)
+    project = get_object_or_404(Project, pk=project_pk, owner=request.user)
+    
+    if request.method == 'POST':
+        # Get selected DataSource IDs from the form
+        selected_datasource_ids = request.POST.getlist('datasources')
+        
+        if selected_datasource_ids:
+            # Get the DataSource objects (ensure they belong to the user)
+            selected_datasources = DataSource.objects.filter(
+                id__in=selected_datasource_ids,
+                owner=request.user
+            )
+            
+            # Use ManyToManyField.add() to create the relationships
+            project.datasources.add(*selected_datasources)
+            
+            # Success message could be added here with Django messages framework
+            return redirect('projects:project_detail', pk=project.pk)
+        else:
+            # Handle case where no DataSources were selected
+            # Could add error message here
+            pass
+    
+    # GET request: Show available DataSources
+    # Get all user's DataSources that are NOT already in this project
+    available_datasources = DataSource.objects.filter(
+        owner=request.user,
+        status='READY'  # Only show ready DataSources
+    ).exclude(
+        projects=project  # Exclude DataSources already in this project
+    ).order_by('-uploaded_at')
+    
+    # Build breadcrumbs
+    breadcrumbs = [
+        create_breadcrumb('Workspace', '/'),
+        create_breadcrumb('Workspaces', '/projects/'),
+        create_breadcrumb(project.name, f'/projects/{project.pk}/'),
+        create_breadcrumb('Añadir Fuentes de Datos')
+    ]
+    
+    context = {
+        'project': project,
+        'available_datasources': available_datasources,
+        'breadcrumbs': breadcrumbs,
+    }
+    
+    return render(request, 'projects/add_datasource_to_project.html', context)
+
+
+@login_required
+def datasource_create_iframe(request):
+    """
+    Simplified iframe view for datasource creation without layout overhead.
+    This view provides a streamlined interface for embedding in modals.
+    """
+    if request.method == 'POST':
+        form = DataSourceUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            datasource = form.save(commit=False)
+            datasource.owner = request.user
+            datasource.save()
+            
+            # Process the file in background
+            if datasource.file:
+                try:
+                    convert_file_to_parquet_task.delay(str(datasource.id))
+                except Exception as e:
+                    logger.error(f"Failed to queue parquet conversion: {e}")
+            
+            return JsonResponse({
+                'success': True,
+                'datasource_id': str(datasource.id),
+                'message': 'Datasource created successfully'
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors
+            })
+    else:
+        form = DataSourceUploadForm()
+    
+    return render(request, 'projects/datasource_form_partial.html', {
+        'form': form,
+        'is_iframe': True
+    })

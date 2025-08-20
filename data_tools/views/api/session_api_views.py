@@ -5,6 +5,7 @@ Data Studio Session API Views for stateful data transformations.
 import json
 import logging
 from typing import Dict, Any
+import numpy as np
 
 import pandas as pd
 from django.http import JsonResponse
@@ -20,6 +21,7 @@ from data_tools.services.data_loader import load_data_from_parquet
 logger = logging.getLogger(__name__)
 
 
+
 @csrf_exempt
 @login_required
 @require_http_methods(["POST"])
@@ -31,14 +33,35 @@ def initialize_session(request, datasource_id):
         datasource = get_object_or_404(DataSource, id=datasource_id, project__owner=request.user)
         session_manager = get_session_manager(request.user.id, datasource_id)
         
-        # Check if session already exists
+        # Check if session already exists and has data loaded
         session_info = session_manager.get_session_info()
         if session_info['session_exists']:
-            return JsonResponse({
-                'success': True,
-                'message': 'Session already exists',
-                'session_info': session_info
-            })
+            # Verify that the session actually has data loaded
+            current_df = session_manager.get_current_dataframe()
+            if current_df is not None:
+                # Session exists and has data, return existing session
+                data_preview = current_df.head(100).fillna('').to_dict('records')
+                column_info = [
+                    {
+                        'field': col,
+                        'headerName': col,
+                        'filter': True,
+                        'sortable': True,
+                        'resizable': True
+                    }
+                    for col in current_df.columns
+                ]
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Session already exists',
+                    'session_info': session_info,
+                    'data_preview': data_preview,
+                    'column_info': column_info
+                })
+            else:
+                # Session metadata exists but no data, clear and reinitialize
+                logger.warning(f"Session metadata exists but no data found for user {request.user.id}, datasource {datasource_id}. Clearing and reinitializing.")
+                session_manager.clear_session()
         
         # Load the original DataFrame
         df = load_data_from_parquet(datasource.file.path)
@@ -58,12 +81,11 @@ def initialize_session(request, datasource_id):
         
         # Get session info and data preview
         session_info = session_manager.get_session_info()
-        data_preview = df.head(100).to_dict('records')
+        data_preview = df.head(100).fillna('').to_dict('records')
         column_info = [
             {
                 'field': col,
                 'headerName': col,
-                'type': str(df[col].dtype),
                 'filter': True,
                 'sortable': True,
                 'resizable': True
@@ -107,12 +129,11 @@ def get_session_status(request, datasource_id):
         if session_info['session_exists']:
             current_df = session_manager.get_current_dataframe()
             if current_df is not None:
-                current_preview = current_df.head(100).to_dict('records')
+                current_preview = current_df.head(100).fillna('').to_dict('records')
                 column_info = [
                     {
                         'field': col,
                         'headerName': col,
-                        'type': str(current_df[col].dtype),
                         'filter': True,
                         'sortable': True,
                         'resizable': True
@@ -156,12 +177,11 @@ def undo_operation(request, datasource_id):
         
         # Return updated session info and data preview
         session_info = session_manager.get_session_info()
-        data_preview = df.head(100).to_dict('records')
+        data_preview = df.head(100).fillna('').to_dict('records')
         column_info = [
             {
                 'field': col,
                 'headerName': col,
-                'type': str(df[col].dtype),
                 'filter': True,
                 'sortable': True,
                 'resizable': True
@@ -206,12 +226,11 @@ def redo_operation(request, datasource_id):
         
         # Return updated session info and data preview
         session_info = session_manager.get_session_info()
-        data_preview = df.head(100).to_dict('records')
+        data_preview = df.head(100).fillna('').to_dict('records')
         column_info = [
             {
                 'field': col,
                 'headerName': col,
-                'type': str(df[col].dtype),
                 'filter': True,
                 'sortable': True,
                 'resizable': True

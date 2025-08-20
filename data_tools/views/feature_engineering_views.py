@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from projects.models.datasource import DataSource
-from data_tools.services import perform_feature_engineering
+# Import moved inside function to avoid circular import (Django best practice)
 from ..forms import FeatureEngineeringForm
 import pandas as pd
 
@@ -13,6 +13,18 @@ def feature_engineering_page(request, datasource_id):
     if request.method == 'POST':
         form = FeatureEngineeringForm(request.POST)
         if form.is_valid():
+            # Import inside function to avoid circular import (Django best practice)
+            try:
+                from data_tools.services import perform_feature_engineering
+            except ImportError:
+                # Fallback if services module has issues
+                messages.error(request, "Feature engineering service is temporarily unavailable.")
+                return render(request, 'data_tools/feature_engineering.html', {
+                    'form': form,
+                    'datasource': parent_datasource,
+                    "columns": [],
+                })
+            
             new_column_name = form.cleaned_data['new_column_name']
             formula_string = form.cleaned_data['formula_string']
             result = perform_feature_engineering(datasource_id, new_column_name, formula_string)

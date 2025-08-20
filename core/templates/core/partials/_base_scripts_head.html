@@ -1,0 +1,23 @@
+{% load static %}
+<!-- Base Scripts - JavaScript libraries loaded in head -->
+
+<!-- Sentry Browser SDK (loaded via CDN) -->
+{% if SENTRY_DSN %}
+<script src="https://browser.sentry-cdn.com/8.38.0/bundle.tracing.min.js" crossorigin="anonymous"></script>
+<script>
+    // Expose DSN to frontend JS in a safe way via template context
+    window.__SENTRY_DSN__ = "{{ SENTRY_DSN }}";
+</script>
+{% endif %}
+
+<!-- Load Alpine.js modular components -->
+<script src="{% static 'js/alpine/hydro-ml-app.js' %}"></script>
+<script src="{% static 'js/alpine/app-store.js' %}"></script>
+<script src="{% static 'js/alpine/workspace-selector.js' %}"></script>
+<script src="{% static 'js/alpine/datasource-workspace-selector.js' %}"></script>
+
+<!-- Load main app.js before Alpine.js -->
+<script src="{% static 'js/app.js' %}"></script>
+
+<!-- Alpine.js for interactivity -->
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>

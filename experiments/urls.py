@@ -15,11 +15,7 @@ urlpatterns = [
     # --- Public Experiments List ---
     path('public/', experiment_management_views.public_experiment_list_view, name='public_experiment_list'),
     # --- Vistas de Gestión ---
-    path('create/for-project/<uuid:project_id>/',
-         experiment_management_views.ml_experiment_create,
-         name='ml_experiment_create'),
-    
-    # Partial view for slide-over panel
+    # Partial view for slide-over panel (ONLY way to create experiments)
     path('ml-experiment-form-partial/',
          experiment_management_views.ml_experiment_form_partial,
          name='ml_experiment_form_partial'),

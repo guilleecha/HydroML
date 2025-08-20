@@ -28,9 +28,18 @@ class SQLExecutionAPIView(BaseAPIView, View):
             JsonResponse: Query results with execution metadata
         """
         try:
-            # Extract parameters
-            sql_query = request.POST.get('sql_query', '').strip()
-            datasource_id = request.POST.get('datasource_id')
+            # Extract parameters from POST body or form data
+            if request.content_type and 'application/json' in request.content_type:
+                import json
+                try:
+                    body = json.loads(request.body)
+                    sql_query = body.get('sql_query', '').strip()
+                    datasource_id = body.get('datasource_id')
+                except json.JSONDecodeError:
+                    return self.error_response('Formato JSON inválido')
+            else:
+                sql_query = request.POST.get('sql_query', '').strip()
+                datasource_id = request.POST.get('datasource_id')
             
             if not sql_query:
                 return self.error_response('Query SQL es requerido')

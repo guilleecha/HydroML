@@ -1,0 +1,70 @@
+<!-- Notifications Dropdown -->
+<div class="relative" x-data="{ open: false, notifications: [], unreadCount: 0 }" x-init="await fetchNotifications()">
+    <button @click="open = !open; if(open) markAllAsRead()" 
+            type="button" 
+            class="relative p-2 text-foreground-muted dark:text-darcula-foreground-muted hover:text-foreground-default dark:hover:text-darcula-foreground hover:bg-background-tertiary dark:hover:bg-darcula-background-lighter rounded-lg transition-colors"
+            aria-expanded="false">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM11 17H7a2 2 0 01-2-2V5a2 2 0 012-2h5.5l2 2.5V11"></path>
+        </svg>
+        
+        <!-- Notification Badge -->
+        <span x-show="unreadCount > 0" 
+              x-text="unreadCount > 99 ? '99+' : unreadCount" 
+              class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center min-w-[1.25rem]">
+        </span>
+    </button>
+
+    <!-- Notifications Panel -->
+    <div x-show="open" 
+         @click.away="open = false"
+         x-transition:enter="transition ease-out duration-100"
+         x-transition:enter-start="transform opacity-0 scale-95"
+         x-transition:enter-end="transform opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-75"
+         x-transition:leave-start="transform opacity-100 scale-100"
+         x-transition:leave-end="transform opacity-0 scale-95"
+         class="absolute right-0 mt-2 w-80 max-h-96 origin-top-right bg-background-primary dark:bg-darcula-background-darker border border-border-default dark:border-darcula-border rounded-lg shadow-lg z-50 overflow-hidden"
+         x-cloak>
+        <!-- Header -->
+        <div class="px-4 py-3 border-b border-border-muted dark:border-darcula-border-light bg-background-secondary dark:bg-darcula-background">
+            <h3 class="text-sm font-semibold text-foreground-default dark:text-darcula-foreground">Notificaciones</h3>
+        </div>
+
+        <!-- Notifications List -->
+        <div class="max-h-80 overflow-y-auto">
+            <template x-if="notifications.length === 0">
+                <div class="px-4 py-8 text-center text-foreground-muted dark:text-darcula-foreground-muted">
+                    <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM11 17H7a2 2 0 01-2-2V5a2 2 0 012-2h5.5l2 2.5V11"></path>
+                    </svg>
+                    <p class="text-sm">No tienes notificaciones</p>
+                </div>
+            </template>
+
+            <template x-for="notification in notifications" :key="notification.id">
+                <div @click="handleNotificationClick(notification)" 
+                     class="px-4 py-3 border-b border-border-muted dark:border-darcula-border-light hover:bg-background-tertiary dark:hover:bg-darcula-background-lighter cursor-pointer transition-colors">
+                    <div class="flex items-start space-x-3">
+                        <!-- Notification Icon -->
+                        <div class="flex-shrink-0 mt-1">
+                            <template x-if="notification.notification_type === 'experiment'">
+                                <div class="w-8 h-8 bg-blue-100 dark:bg-darcula-accent/20 rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-blue-600 dark:text-darcula-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                    </svg>
+                                </div>
+                            </template>
+                        </div>
+                        
+                        <!-- Notification Content -->
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm text-foreground-default dark:text-darcula-foreground" x-text="notification.message"></p>
+                            <p class="text-xs text-foreground-muted dark:text-darcula-foreground-muted mt-1" x-text="notification.time_ago"></p>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+</div>

@@ -1,88 +1,31 @@
-<!-- core/templates/core/_breadcrumbs.html -->
-<!-- 
-    Simplified Breadcrumb Navigation Component
-    GitHub-style simple breadcrumb with truncation and tooltips
-    Removed complex workspace switcher for cleaner UI
--->
-{% if breadcrumbs %}
-<nav class="flex items-center text-sm" aria-label="Breadcrumb">
-    <ol class="flex items-center">
-        {% for breadcrumb in breadcrumbs %}
-            <li class="flex items-center">
-                {% if not forloop.first %}
-                    <!-- Separator -->
-                    <svg class="w-3 h-3 mx-2 text-foreground-muted dark:text-darcula-foreground-muted flex-shrink-0" 
-                         fill="currentColor" 
-                         viewBox="0 0 20 20"
-                         aria-hidden="true">
-                        <path fill-rule="evenodd" 
-                              d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" 
-                              clip-rule="evenodd"></path>
-                    </svg>
-                {% endif %}
-                
-                {% if forloop.last or breadcrumb.active %}
-                    <!-- Current page (no link) -->
-                    <span class="text-foreground-default dark:text-darcula-foreground font-medium max-w-xs truncate" 
-                          title="{{ breadcrumb.name }}">
-                        {{ breadcrumb.name }}
-                    </span>
-                {% else %}
-                    <!-- Link to previous pages -->
-                    <a href="{{ breadcrumb.url }}" 
-                       class="text-foreground-muted dark:text-darcula-foreground-muted hover:text-foreground-default dark:hover:text-darcula-foreground transition-colors duration-200 max-w-xs truncate"
-                       title="{{ breadcrumb.name }}">
-                        {{ breadcrumb.name }}
-                    </a>
-                {% endif %}
-            </li>
-        {% endfor %}
+{% load static %}
+<nav class="flex items-center text-sm text-gray-600 dark:text-gray-400" aria-label="Breadcrumb">
+    <ol class="flex items-center space-x-1">
+        <!-- Grove Logo as first element -->
+        <li>
+            <a href="/" class="flex items-center hover:opacity-80 transition-opacity">
+                <img src="{% static 'core/img/logos/grove_icon.svg' %}" 
+                     alt="Grove" 
+                     class="w-5 h-5 flex-shrink-0">
+            </a>
+        </li>
+        
+        {% if breadcrumbs %}
+            {% for breadcrumb in breadcrumbs %}
+                <li class="text-gray-400 dark:text-gray-500">/</li>
+                <li>
+                    {% if forloop.last or breadcrumb.active %}
+                        <span class="text-gray-900 dark:text-gray-100 font-medium">
+                            {{ breadcrumb.name }}
+                        </span>
+                    {% else %}
+                        <a href="{{ breadcrumb.url }}" 
+                           class="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
+                            {{ breadcrumb.name }}
+                        </a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        {% endif %}
     </ol>
 </nav>
-
-<style>
-/* Breadcrumb truncation styles */
-.breadcrumb-item {
-    max-width: 200px;
-}
-
-@media (max-width: 768px) {
-    .breadcrumb-item {
-        max-width: 120px;
-    }
-}
-
-@media (max-width: 480px) {
-    .breadcrumb-item {
-        max-width: 80px;
-    }
-}
-
-/* Improved tooltip styling for truncated text */
-[title] {
-    position: relative;
-}
-
-[title]:hover::after {
-    content: attr(title);
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.9);
-    color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    white-space: nowrap;
-    z-index: 1000;
-    pointer-events: none;
-    margin-bottom: 4px;
-}
-
-.dark [title]:hover::after {
-    background: rgba(255, 255, 255, 0.9);
-    color: black;
-}
-</style>
-{% endif %}
