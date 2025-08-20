@@ -29,6 +29,15 @@ function dataStudioApp() {
             presets: []
         },
 
+        navigationState: {
+            currentSection: 'overview',
+            activeTab: null,
+            breadcrumbPath: [],
+            workflowStep: 0,
+            totalSteps: 0,
+            sidebarSections: ['overview', 'transformation', 'advanced-filters', 'visualization', 'export']
+        },
+
         init() {
             this.initializeGrid();
             this.checkSessionStatus();
@@ -73,6 +82,16 @@ function dataStudioApp() {
 
             document.addEventListener('remove-filter', (event) => {
                 this.removeFilter(event.detail);
+            });
+
+            // Listen for navigation events
+            document.addEventListener('set-active-section', (event) => {
+                this.setActiveSection(event.detail);
+            });
+
+            // Listen for workflow progress test
+            document.addEventListener('test-workflow-progress', () => {
+                this.testWorkflowProgress();
             });
         },
 
@@ -248,6 +267,7 @@ function dataStudioApp() {
                         this.updateRowCountDisplay(params);
                         this.updatePaginationState(params);
                         this.initializeFilterManager();
+                        this.initializeNavigation();
                     },
                     
                     onPaginationChanged: (params) => {
@@ -641,6 +661,149 @@ function dataStudioApp() {
                 if (this.filterManager && this.filterManager.deletePreset(presetId)) {
                     this.filterState.presets = this.filterManager.getPresets();
                 }
+            }
+        },
+
+        initializeNavigation() {
+            // Set up initial navigation state
+            this.updateNavigationUI();
+            console.log('Navigation system initialized');
+        },
+
+        setActiveSection(sectionName) {
+            this.navigationState.currentSection = sectionName;
+            this.updateNavigationUI();
+        },
+
+        updateNavigationUI() {
+            const sections = ['overview', 'transformation', 'advanced-filters', 'visualization', 'export'];
+            
+            sections.forEach(section => {
+                const element = document.querySelector(`[data-section="${section}"]`);
+                if (element) {
+                    const button = element.querySelector('button');
+                    const title = element.querySelector('.section-title') || button?.querySelector('span:not(.text-blue-600)');
+                    
+                    if (section === this.navigationState.currentSection) {
+                        // Active state
+                        button?.classList.add('sidebar-section-active', 'border-l-4', 'border-blue-500', 'bg-blue-50', 'dark:bg-blue-900/20');
+                        button?.classList.remove('sidebar-section-inactive', 'bg-white', 'dark:bg-gray-800');
+                        title?.classList.add('text-blue-800', 'dark:text-blue-300', 'font-semibold');
+                        title?.classList.remove('text-gray-900', 'dark:text-gray-100');
+                        
+                        // Add active indicator if not present
+                        if (!element.querySelector('.active-indicator')) {
+                            const indicator = document.createElement('div');
+                            indicator.className = 'w-2 h-2 bg-blue-500 rounded-full animate-pulse active-indicator';
+                            indicator.title = 'Active Section';
+                            button?.querySelector('div')?.appendChild(indicator);
+                        }
+                    } else {
+                        // Inactive state
+                        button?.classList.remove('sidebar-section-active', 'border-l-4', 'border-blue-500', 'bg-blue-50', 'dark:bg-blue-900/20');
+                        button?.classList.add('sidebar-section-inactive', 'bg-white', 'dark:bg-gray-800');
+                        title?.classList.remove('text-blue-800', 'dark:text-blue-300', 'font-semibold');
+                        title?.classList.add('text-gray-900', 'dark:text-gray-100');
+                        
+                        // Remove active indicator
+                        const indicator = element.querySelector('.active-indicator');
+                        if (indicator) {
+                            indicator.remove();
+                        }
+                    }
+                }
+            });
+        },
+
+        initializeWorkflowProgress(totalSteps, currentStep = 0) {
+            this.navigationState.totalSteps = totalSteps;
+            this.navigationState.workflowStep = currentStep;
+            this.renderWorkflowProgress();
+        },
+
+        updateWorkflowStep(step) {
+            if (step >= 0 && step <= this.navigationState.totalSteps) {
+                this.navigationState.workflowStep = step;
+                this.renderWorkflowProgress();
+            }
+        },
+
+        renderWorkflowProgress() {
+            const container = document.getElementById('workflow-progress-container');
+            if (!container) return;
+
+            const progress = (this.navigationState.workflowStep / this.navigationState.totalSteps) * 100;
+            
+            const html = `
+                <div class="workflow-progress-container">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            Progress: Step ${this.navigationState.workflowStep} of ${this.navigationState.totalSteps}
+                        </span>
+                        <span class="text-sm text-gray-600 dark:text-gray-400">${Math.round(progress)}%</span>
+                    </div>
+                    <div class="workflow-progress-bar">
+                        <div class="workflow-progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                    <div class="flex justify-between mt-3">
+                        ${Array.from({length: this.navigationState.totalSteps}, (_, i) => {
+                            const stepNum = i + 1;
+                            let stepClass = 'workflow-step ';
+                            
+                            if (stepNum < this.navigationState.workflowStep) {
+                                stepClass += 'workflow-step-completed';
+                            } else if (stepNum === this.navigationState.workflowStep) {
+                                stepClass += 'workflow-step-current';
+                            } else {
+                                stepClass += 'workflow-step-pending';
+                            }
+                            
+                            return `<div class="${stepClass}">${stepNum}</div>`;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        },
+
+        getBreadcrumbPath() {
+            const path = ['Data Studio'];
+            
+            if (this.navigationState.currentSection !== 'overview') {
+                const sectionNames = {
+                    'transformation': 'Data Transformation',
+                    'advanced-filters': 'Advanced Filters',
+                    'visualization': 'Visualization',
+                    'export': 'Export & Share'
+                };
+                path.push(sectionNames[this.navigationState.currentSection] || this.navigationState.currentSection);
+            }
+            
+            return path;
+        },
+
+        testWorkflowProgress() {
+            // Demo workflow progress functionality
+            const container = document.getElementById('workflow-progress-container');
+            if (container) {
+                container.style.display = 'block';
+                this.initializeWorkflowProgress(5, 1);
+                
+                // Simulate progress steps
+                let step = 1;
+                const progressInterval = setInterval(() => {
+                    step++;
+                    this.updateWorkflowStep(step);
+                    
+                    if (step >= 5) {
+                        clearInterval(progressInterval);
+                        // Hide after completion
+                        setTimeout(() => {
+                            container.style.display = 'none';
+                        }, 2000);
+                    }
+                }, 1500);
             }
         },
 

@@ -1,0 +1,177 @@
+/* Navigation Active State Indicators */
+/* Enhanced navigation styling for HydroML */
+
+/* Breadcrumb Active States */
+.breadcrumb-active {
+    @apply text-blue-600 dark:text-blue-400 font-semibold bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md border border-blue-200 dark:border-blue-800 shadow-sm;
+}
+
+.breadcrumb-inactive {
+    @apply hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800/50 px-2 py-1 rounded-md transition-all duration-200;
+}
+
+/* Sidebar Navigation Active States */
+.nav-item-active {
+    @apply bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 border-l-4 border-blue-600 shadow-sm;
+}
+
+.nav-item-active .nav-icon {
+    @apply text-blue-600 dark:text-blue-400;
+}
+
+.nav-item-inactive {
+    @apply text-gray-600 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800/50;
+}
+
+.nav-item-inactive .nav-icon {
+    @apply text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400;
+}
+
+/* Data Studio Sidebar Active States */
+.sidebar-section-active {
+    @apply bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500;
+}
+
+.sidebar-section-active .section-title {
+    @apply text-blue-800 dark:text-blue-300 font-semibold;
+}
+
+.sidebar-section-active .section-icon {
+    @apply text-blue-600 dark:text-blue-400;
+}
+
+.sidebar-section-inactive {
+    @apply bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700;
+}
+
+.sidebar-section-inactive .section-title {
+    @apply text-gray-900 dark:text-gray-100;
+}
+
+.sidebar-section-inactive .section-icon {
+    @apply text-gray-600 dark:text-gray-400;
+}
+
+/* Active State Indicators */
+.active-indicator {
+    @apply w-2 h-2 bg-blue-500 rounded-full animate-pulse;
+}
+
+.active-indicator-static {
+    @apply w-2 h-2 bg-blue-500 rounded-full;
+}
+
+/* Workflow Progress Indicators */
+.workflow-progress-container {
+    @apply bg-gray-100 dark:bg-gray-800 rounded-lg p-3 mb-4;
+}
+
+.workflow-progress-bar {
+    @apply bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden;
+}
+
+.workflow-progress-fill {
+    @apply bg-gradient-to-r from-blue-500 to-blue-600 h-full transition-all duration-500 ease-out rounded-full;
+}
+
+.workflow-step {
+    @apply flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-all duration-200;
+}
+
+.workflow-step-active {
+    @apply bg-blue-600 text-white ring-4 ring-blue-100 dark:ring-blue-900/50;
+}
+
+.workflow-step-completed {
+    @apply bg-green-500 text-white;
+}
+
+.workflow-step-pending {
+    @apply bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300;
+}
+
+.workflow-step-current {
+    @apply bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border-2 border-blue-500;
+}
+
+/* Mobile Navigation Active States */
+@media (max-width: 768px) {
+    .nav-item-active {
+        @apply border-l-0 border-b-2 border-blue-600;
+    }
+    
+    .sidebar-section-active {
+        @apply border-l-0 border-b-2 border-blue-500;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .breadcrumb-active {
+        @apply bg-blue-100 dark:bg-blue-800 border-2 border-blue-700 dark:border-blue-300;
+    }
+    
+    .nav-item-active {
+        @apply bg-blue-100 dark:bg-blue-800 border-l-8 border-blue-700 dark:border-blue-300;
+    }
+    
+    .active-indicator {
+        @apply bg-blue-700 dark:bg-blue-300 w-3 h-3;
+    }
+}
+
+/* Focus Indicators for Accessibility */
+.nav-item:focus-visible {
+    @apply outline-none ring-2 ring-blue-500 ring-offset-2 ring-offset-white dark:ring-offset-gray-900;
+}
+
+.breadcrumb-item:focus-visible {
+    @apply outline-none ring-2 ring-blue-500 ring-offset-1 ring-offset-white dark:ring-offset-gray-900;
+}
+
+/* Smooth Transitions */
+.nav-transition {
+    @apply transition-all duration-200 ease-in-out;
+}
+
+.nav-hover-scale:hover {
+    @apply scale-105;
+}
+
+/* Custom Animations */
+@keyframes pulse-blue {
+    0%, 100% {
+        @apply opacity-100;
+    }
+    50% {
+        @apply opacity-50;
+    }
+}
+
+.animate-pulse-blue {
+    animation: pulse-blue 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Section Dividers */
+.nav-section-divider {
+    @apply border-t border-gray-200 dark:border-gray-700 my-2 mx-3;
+}
+
+/* Notification Badges for Navigation Items */
+.nav-badge {
+    @apply absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center;
+}
+
+.nav-badge-dot {
+    @apply absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full;
+}
+
+/* Loading States */
+.nav-loading {
+    @apply opacity-50 pointer-events-none;
+}
+
+.nav-loading::after {
+    content: '';
+    @apply absolute inset-0 bg-white dark:bg-gray-900 bg-opacity-50 dark:bg-opacity-50;
+}
