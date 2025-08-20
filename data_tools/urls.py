@@ -1,7 +1,9 @@
 # data_tools/urls.py
 from django.urls import path
 # Importamos todos nuestros módulos de vistas
-from .views import visualization_views, preparation_views, fusion_views
+from .views import visualization_views, fusion_views
+from .views.preparation_controller import data_preparer_page
+from .views.api.pagination_api import data_studio_pagination_api
 from .views.feature_engineering_views import feature_engineering_page
 from .views.missing_data_views import run_deep_missing_analysis_api, missing_data_results_page
 # Import refactored API views
@@ -9,6 +11,7 @@ from .views.api import (
     get_columns_api, get_fusion_columns_api, generate_chart_api,
     execute_sql_api, get_query_history_api, get_datasource_columns
 )
+from .views.api.column_flags_api import get_column_flags_api
 # Import new session and transformation API views
 from .views.api.session_api_views import (
     initialize_session, get_session_status, undo_operation, redo_operation,
@@ -18,18 +21,22 @@ from .views.api.transformation_api_views import (
     apply_missing_data_imputation, apply_feature_encoding, apply_feature_scaling,
     apply_outlier_treatment, apply_feature_engineering, apply_column_operations
 )
+# Import NaN cleaning API views
+from .views.api.nan_cleaning_api import QuickNaNCleaningAPIView, NaNAnalysisAPIView
+# Import Export API views
+from .views.api.export_api_views import ExportJobAPIView, ExportJobActionAPIView, ExportTemplateAPIView
 
 app_name = 'data_tools'
 
 urlpatterns = [
     # --- Ruta para Data Studio (anteriormente Data Preparer) ---
     path('studio/<uuid:pk>/',
-         preparation_views.data_preparer_page,
+         data_preparer_page,
          name='data_studio_page'),
 
     # --- Data Studio Pagination API ---
     path('api/studio/<uuid:pk>/data/',
-         preparation_views.data_studio_pagination_api,
+         data_studio_pagination_api,
          name='data_studio_pagination_api'),
 
     path('api/get_data/<uuid:pk>/',
@@ -45,6 +52,11 @@ urlpatterns = [
     path('api/get-columns/<uuid:datasource_id>/',
          get_columns_api,
          name='get_columns_api'),
+
+    # Column flags API for ML validation
+    path('api/column-flags/<uuid:datasource_id>/',
+         get_column_flags_api,
+         name='get_column_flags_api'),
 
     path(
         "api/datasource-columns/<uuid:datasource_id>/",
@@ -137,4 +149,48 @@ urlpatterns = [
     path('api/studio/<uuid:datasource_id>/transform/columns/',
          apply_column_operations,
          name='apply_column_operations'),
+
+    # --- NaN Cleaning API ---
+    path('api/studio/<uuid:datasource_id>/nan/quick-clean/',
+         QuickNaNCleaningAPIView.as_view(),
+         name='quick_nan_cleaning'),
+
+    path('api/studio/<uuid:datasource_id>/nan/analysis/',
+         NaNAnalysisAPIView.as_view(),
+         name='nan_analysis'),
+    
+    # --- Export API ---
+    # Export Jobs API endpoints
+    path('api/v1/exports/',
+         ExportJobAPIView.as_view(),
+         name='export_jobs_api'),
+    
+    path('api/v1/exports/<uuid:pk>/',
+         ExportJobAPIView.as_view(),
+         name='export_job_detail_api'),
+    
+    # Export Job Actions
+    path('api/v1/exports/<uuid:pk>/cancel/',
+         ExportJobActionAPIView.as_view(),
+         {'action': 'cancel'},
+         name='export_job_cancel_api'),
+    
+    path('api/v1/exports/<uuid:pk>/download/',
+         ExportJobActionAPIView.as_view(),
+         {'action': 'download'},
+         name='export_job_download_api'),
+    
+    path('api/v1/exports/<uuid:pk>/retry/',
+         ExportJobActionAPIView.as_view(),
+         {'action': 'retry'},
+         name='export_job_retry_api'),
+    
+    # Export Templates API endpoints
+    path('api/v1/export-templates/',
+         ExportTemplateAPIView.as_view(),
+         name='export_templates_api'),
+    
+    path('api/v1/export-templates/<uuid:pk>/',
+         ExportTemplateAPIView.as_view(),
+         name='export_template_detail_api'),
 ]

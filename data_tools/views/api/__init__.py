@@ -15,6 +15,9 @@ from .transformation_api_views import (
     apply_missing_data_imputation, apply_feature_encoding, apply_feature_scaling,
     apply_outlier_treatment, apply_feature_engineering, apply_column_operations
 )
+from .export_api_views import (
+    ExportJobAPIView, ExportJobActionAPIView, ExportTemplateAPIView
+)
 
 # For backward compatibility with the old api_views.py imports
 get_columns_api = DataSourceColumnsAPIView.as_view()
@@ -30,6 +33,9 @@ __all__ = [
     'SQLExecutionAPIView',
     'QueryHistoryAPIView',
     'ChartGenerationAPIView',
+    'ExportJobAPIView',
+    'ExportJobActionAPIView',
+    'ExportTemplateAPIView',
     
     # Function-based views (for backward compatibility)
     'get_columns_api',
