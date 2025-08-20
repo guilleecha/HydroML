@@ -1,0 +1,473 @@
+<!-- Export History - Pines UI Cards Component -->
+<!-- Clean, minimal history display with actions -->
+<div x-data="exportHistoryComponent()" x-init="init()" class="export-history">
+    
+    <!-- Header Section -->
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            Export History
+        </h3>
+        <div class="flex items-center space-x-2">
+            <!-- Refresh Button -->
+            <button @click="loadHistory()" 
+                    :disabled="isLoading"
+                    class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-md transition-colors">
+                <svg class="w-4 h-4" :class="{'animate-spin': isLoading}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+            </button>
+            <!-- Filter Toggle -->
+            <button @click="showFilters = !showFilters"
+                    class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md transition-colors">
+                <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
+                </svg>
+                Filter
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div x-show="showFilters" 
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 scale-y-0"
+         x-transition:enter-end="opacity-100 scale-y-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 scale-y-100"
+         x-transition:leave-end="opacity-0 scale-y-0"
+         class="mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 origin-top">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <!-- Status Filter -->
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                <select x-model="filters.status" @change="loadHistory()"
+                        class="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                    <option value="">All</option>
+                    <option value="pending">Pending</option>
+                    <option value="processing">Processing</option>
+                    <option value="completed">Completed</option>
+                    <option value="failed">Failed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+            
+            <!-- Format Filter -->
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Format</label>
+                <select x-model="filters.format" @change="loadHistory()"
+                        class="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                    <option value="">All</option>
+                    <option value="csv">CSV</option>
+                    <option value="json">JSON</option>
+                    <option value="excel">Excel</option>
+                    <option value="parquet">Parquet</option>
+                </select>
+            </div>
+            
+            <!-- Date Range -->
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Period</label>
+                <select x-model="filters.period" @change="loadHistory()"
+                        class="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                    <option value="">All time</option>
+                    <option value="today">Today</option>
+                    <option value="week">This week</option>
+                    <option value="month">This month</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div x-show="isLoading && exports.length === 0" class="text-center py-8">
+        <svg class="w-8 h-8 text-gray-400 animate-spin mx-auto mb-2" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="text-gray-500 dark:text-gray-400">Loading export history...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div x-show="!isLoading && exports.length === 0" class="text-center py-8">
+        <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+            </svg>
+        </div>
+        <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No exports found</h4>
+        <p class="text-gray-500 dark:text-gray-400">Export some data to see your history here.</p>
+    </div>
+
+    <!-- Export Cards Grid -->
+    <div x-show="exports.length > 0" class="grid grid-cols-1 gap-3">
+        <template x-for="exportJob in exports" :key="exportJob.id">
+            <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow">
+                
+                <!-- Card Header -->
+                <div class="flex items-start justify-between mb-3">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center space-x-2 mb-1">
+                            <!-- Format Badge -->
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                                  :class="getFormatBadgeClass(exportJob.format)">
+                                <span x-text="exportJob.format.toUpperCase()"></span>
+                            </span>
+                            
+                            <!-- Status Badge -->
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                                  :class="getStatusBadgeClass(exportJob.status)">
+                                <span class="w-1.5 h-1.5 rounded-full mr-1"
+                                      :class="getStatusDotClass(exportJob.status)"></span>
+                                <span x-text="exportJob.status.charAt(0).toUpperCase() + exportJob.status.slice(1)"></span>
+                            </span>
+                        </div>
+                        
+                        <!-- Datasource Name -->
+                        <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" x-text="exportJob.datasource_name">
+                        </h4>
+                        
+                        <!-- Created Date -->
+                        <p class="text-xs text-gray-500 dark:text-gray-400" x-text="formatDate(exportJob.created_at)">
+                        </p>
+                    </div>
+                    
+                    <!-- Actions Menu -->
+                    <div class="flex items-center space-x-1 ml-2">
+                        <!-- Download Button -->
+                        <button x-show="exportJob.status === 'completed'" 
+                                @click="downloadExport(exportJob.id)"
+                                class="p-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 rounded transition-colors"
+                                title="Download file">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </button>
+                        
+                        <!-- Retry Button -->
+                        <button x-show="exportJob.status === 'failed'" 
+                                @click="retryExport(exportJob.id)"
+                                class="p-1 text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-200 rounded transition-colors"
+                                title="Retry export">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                        </button>
+                        
+                        <!-- Cancel Button -->
+                        <button x-show="exportJob.status === 'pending' || exportJob.status === 'processing'" 
+                                @click="cancelExport(exportJob.id)"
+                                class="p-1 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 rounded transition-colors"
+                                title="Cancel export">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                        
+                        <!-- Delete Button -->
+                        <button x-show="exportJob.status !== 'pending' && exportJob.status !== 'processing'" 
+                                @click="deleteExport(exportJob.id)"
+                                class="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded transition-colors"
+                                title="Delete export">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Progress Bar (for processing exports) -->
+                <div x-show="exportJob.status === 'processing' && exportJob.progress !== undefined" class="mb-3">
+                    <div class="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
+                        <span>Processing...</span>
+                        <span x-text="exportJob.progress + '%'"></span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                        <div class="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
+                             :style="'width: ' + (exportJob.progress || 0) + '%'"></div>
+                    </div>
+                </div>
+                
+                <!-- Error Message -->
+                <div x-show="exportJob.status === 'failed' && exportJob.error_message" 
+                     class="mt-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-xs text-red-700 dark:text-red-400">
+                    <span x-text="exportJob.error_message"></span>
+                </div>
+                
+                <!-- File Info -->
+                <div x-show="exportJob.status === 'completed'" class="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                    <div class="flex items-center space-x-2">
+                        <span x-show="exportJob.file_size">
+                            Size: <span x-text="formatFileSize(exportJob.file_size)"></span>
+                        </span>
+                        <span x-show="exportJob.row_count">
+                            Rows: <span x-text="exportJob.row_count.toLocaleString()"></span>
+                        </span>
+                    </div>
+                    <span x-text="'Completed ' + formatRelativeTime(exportJob.completed_at)"></span>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <!-- Load More Button -->
+    <div x-show="hasMore && !isLoading" class="text-center mt-4">
+        <button @click="loadMore()" 
+                class="px-4 py-2 text-sm text-blue-600 hover:text-blue-800 border border-blue-200 hover:border-blue-300 rounded-md transition-colors">
+            Load More
+        </button>
+    </div>
+</div>
+
+<script>
+function exportHistoryComponent() {
+    return {
+        exports: [],
+        isLoading: false,
+        showFilters: false,
+        hasMore: false,
+        currentPage: 1,
+        filters: {
+            status: '',
+            format: '',
+            period: 'week'  // Default to current week
+        },
+
+        init() {
+            this.loadHistory();
+            // Auto-refresh every 30 seconds for processing exports
+            setInterval(() => {
+                if (this.hasProcessingExports()) {
+                    this.refreshProcessingExports();
+                }
+            }, 30000);
+        },
+
+        async loadHistory(reset = true) {
+            if (reset) {
+                this.exports = [];
+                this.currentPage = 1;
+            }
+            
+            this.isLoading = true;
+            
+            try {
+                const params = new URLSearchParams({
+                    page: this.currentPage.toString(),
+                    page_size: '10',
+                    ...this.filters
+                });
+
+                const response = await fetch(`/tools/api/v1/exports/?${params}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    if (reset) {
+                        this.exports = result.data.export_jobs;
+                    } else {
+                        this.exports.push(...result.data.export_jobs);
+                    }
+                    this.hasMore = result.data.pagination.has_next;
+                } else {
+                    console.error('Failed to load export history:', result.message);
+                }
+            } catch (error) {
+                console.error('Error loading export history:', error);
+            } finally {
+                this.isLoading = false;
+            }
+        },
+
+        loadMore() {
+            this.currentPage++;
+            this.loadHistory(false);
+        },
+
+        hasProcessingExports() {
+            return this.exports.some(exp => exp.status === 'processing' || exp.status === 'pending');
+        },
+
+        async refreshProcessingExports() {
+            const processingExports = this.exports.filter(exp => 
+                exp.status === 'processing' || exp.status === 'pending'
+            );
+            
+            for (const exportJob of processingExports) {
+                try {
+                    const response = await fetch(`/tools/api/v1/exports/${exportJob.id}/`);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        const index = this.exports.findIndex(exp => exp.id === exportJob.id);
+                        if (index !== -1) {
+                            this.exports[index] = result.data;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error refreshing export status:', error);
+                }
+            }
+        },
+
+        async downloadExport(exportId) {
+            try {
+                const downloadUrl = `/tools/api/v1/exports/${exportId}/download/`;
+                window.open(downloadUrl, '_blank');
+            } catch (error) {
+                console.error('Error downloading export:', error);
+                this.showAlert('Download failed', 'error');
+            }
+        },
+
+        async retryExport(exportId) {
+            try {
+                const response = await fetch(`/tools/api/v1/exports/${exportId}/retry/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': this.getCSRFToken()
+                    }
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Update the export in our list
+                    const index = this.exports.findIndex(exp => exp.id === exportId);
+                    if (index !== -1) {
+                        this.exports[index] = result.data;
+                    }
+                    this.showAlert('Export retried successfully', 'success');
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error('Error retrying export:', error);
+                this.showAlert('Retry failed: ' + error.message, 'error');
+            }
+        },
+
+        async cancelExport(exportId) {
+            try {
+                const response = await fetch(`/tools/api/v1/exports/${exportId}/cancel/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': this.getCSRFToken()
+                    }
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Update the export in our list
+                    const index = this.exports.findIndex(exp => exp.id === exportId);
+                    if (index !== -1) {
+                        this.exports[index] = result.data;
+                    }
+                    this.showAlert('Export cancelled successfully', 'success');
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error('Error cancelling export:', error);
+                this.showAlert('Cancel failed: ' + error.message, 'error');
+            }
+        },
+
+        async deleteExport(exportId) {
+            if (!confirm('Are you sure you want to delete this export?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/tools/api/v1/exports/${exportId}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': this.getCSRFToken()
+                    }
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Remove from our list
+                    this.exports = this.exports.filter(exp => exp.id !== exportId);
+                    this.showAlert('Export deleted successfully', 'success');
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error('Error deleting export:', error);
+                this.showAlert('Delete failed: ' + error.message, 'error');
+            }
+        },
+
+        getFormatBadgeClass(format) {
+            const classes = {
+                csv: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+                json: 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
+                excel: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+                parquet: 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400'
+            };
+            return classes[format] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+        },
+
+        getStatusBadgeClass(status) {
+            const classes = {
+                pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+                processing: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+                completed: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+                failed: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
+                cancelled: 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
+            };
+            return classes[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+        },
+
+        getStatusDotClass(status) {
+            const classes = {
+                pending: 'bg-yellow-400',
+                processing: 'bg-blue-400 animate-pulse',
+                completed: 'bg-green-400',
+                failed: 'bg-red-400',
+                cancelled: 'bg-gray-400'
+            };
+            return classes[status] || 'bg-gray-400';
+        },
+
+        formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        },
+
+        formatRelativeTime(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = now - date;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+            
+            if (minutes < 1) return 'just now';
+            if (minutes < 60) return `${minutes}m ago`;
+            if (hours < 24) return `${hours}h ago`;
+            return `${days}d ago`;
+        },
+
+        formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        },
+
+        showAlert(message, type) {
+            if (window.dataStudioNotifications) {
+                window.dataStudioNotifications.show(message, type);
+            } else {
+                console.log(`${type.toUpperCase()}: ${message}`);
+            }
+        },
+
+        getCSRFToken() {
+            return document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                   document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '';
+        }
+    };
+}
+</script>
