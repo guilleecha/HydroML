@@ -1,0 +1,333 @@
+/**
+ * Grove Headbar - Professional navigation header with Grove design
+ * Part of HydroML Grove Component Library
+ * 
+ * Provides styling for the WaveHeadbar component with Grove monochromatic design.
+ */
+
+/* Grove Headbar Base Styles */
+.wave-headbar {
+  font-family: var(--grove-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif);
+  --grove-accent: #10b981;
+  --grove-border: #e5e7eb;
+  --grove-border-dark: #374151;
+  --grove-bg-primary: #ffffff;
+  --grove-bg-primary-dark: #111827;
+  --grove-text-primary: #1f2937;
+  --grove-text-primary-dark: #f9fafb;
+  --grove-text-secondary: #6b7280;
+  --grove-text-secondary-dark: #9ca3af;
+}
+
+/* Dark mode overrides */
+.dark .wave-headbar {
+  --grove-border: var(--grove-border-dark);
+  --grove-bg-primary: var(--grove-bg-primary-dark);
+  --grove-text-primary: var(--grove-text-primary-dark);
+  --grove-text-secondary: var(--grove-text-secondary-dark);
+}
+
+/* Headbar container */
+.wave-headbar {
+  background-color: var(--grove-bg-primary);
+  border-bottom: 1px solid var(--grove-border);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Logo styling */
+.wave-headbar-logo {
+  color: var(--grove-text-primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.wave-headbar-logo:hover {
+  color: var(--grove-accent);
+}
+
+.wave-headbar-logo img {
+  height: 2rem;
+  width: auto;
+}
+
+/* Search input styling */
+.wave-headbar-search input {
+  background-color: var(--grove-bg-primary);
+  border: 1px solid var(--grove-border);
+  color: var(--grove-text-primary);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.wave-headbar-search input:focus {
+  outline: none;
+  border-color: var(--grove-accent);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.wave-headbar-search input::placeholder {
+  color: var(--grove-text-secondary);
+}
+
+/* Action buttons (theme, notifications, user menu) */
+.wave-headbar button {
+  color: var(--grove-text-secondary);
+  transition: color 0.2s ease, background-color 0.2s ease;
+  border-radius: 0.375rem;
+}
+
+.wave-headbar button:hover {
+  color: var(--grove-text-primary);
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+.wave-headbar button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--grove-accent);
+}
+
+/* Notification badge */
+.wave-headbar-notifications .notification-badge {
+  background-color: #ef4444;
+  color: white;
+  font-size: 0.75rem;
+  line-height: 1;
+  border-radius: 9999px;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: -0.25rem;
+  right: -0.25rem;
+  transform: scale(1);
+  transition: transform 0.2s ease;
+}
+
+.wave-headbar-notifications:hover .notification-badge {
+  transform: scale(1.1);
+}
+
+/* User menu avatar */
+.wave-headbar-user-menu .user-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  background-color: var(--grove-text-secondary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.wave-headbar-user-menu.ring-2 .user-avatar {
+  box-shadow: 0 0 0 2px var(--grove-accent);
+}
+
+/* Dropdown menu styling */
+.wave-headbar .dropdown-menu {
+  background-color: var(--grove-bg-primary);
+  border: 1px solid var(--grove-border);
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: 0.5rem 0;
+  min-width: 12rem;
+}
+
+.wave-headbar .dropdown-menu a {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  color: var(--grove-text-primary);
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.wave-headbar .dropdown-menu a:hover {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--grove-accent);
+}
+
+.wave-headbar .dropdown-menu .divider {
+  height: 1px;
+  background-color: var(--grove-border);
+  margin: 0.25rem 0;
+}
+
+/* Mobile menu */
+.wave-headbar-mobile-menu {
+  background-color: var(--grove-bg-primary);
+  border-bottom: 1px solid var(--grove-border);
+  transform-origin: top;
+}
+
+.wave-headbar-mobile-menu a {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: var(--grove-text-primary);
+  text-decoration: none;
+  border-radius: 0.375rem;
+  margin: 0.25rem 1rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.wave-headbar-mobile-menu a:hover,
+.wave-headbar-mobile-menu a.active {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--grove-accent);
+}
+
+/* Mobile toggle button */
+.wave-headbar-mobile-toggle {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .wave-headbar-mobile-toggle {
+    display: inline-flex;
+  }
+}
+
+/* Navigation badge styling */
+.wave-headbar .nav-badge {
+  background-color: var(--grove-text-secondary);
+  color: white;
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  margin-left: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.wave-headbar a:hover .nav-badge {
+  background-color: var(--grove-accent);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .wave-headbar-search {
+    display: none;
+  }
+  
+  .wave-headbar .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Animation classes for mobile menu */
+.wave-headbar-mobile-menu.entering {
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+.wave-headbar-mobile-menu.leaving {
+  animation: slideUp 0.3s ease-in forwards;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-1rem);
+  }
+}
+
+/* Focus indicators for accessibility */
+.wave-headbar [tabindex]:focus,
+.wave-headbar button:focus,
+.wave-headbar a:focus {
+  outline: 2px solid var(--grove-accent);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .wave-headbar {
+    border-bottom-width: 2px;
+  }
+  
+  .wave-headbar button:focus,
+  .wave-headbar a:focus {
+    outline-width: 3px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .wave-headbar *,
+  .wave-headbar *:before,
+  .wave-headbar *:after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Theme switcher specific styles */
+.wave-headbar-theme-toggle {
+  position: relative;
+}
+
+.wave-headbar-theme-toggle svg {
+  transition: transform 0.2s ease;
+}
+
+.wave-headbar-theme-toggle:hover svg {
+  transform: scale(1.1);
+}
+
+/* Search icon positioning */
+.wave-headbar-search .search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--grove-text-secondary);
+  pointer-events: none;
+}
+
+/* Dropdown positioning utilities */
+.wave-headbar .dropdown-menu.top {
+  bottom: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.wave-headbar .dropdown-menu.bottom {
+  top: 100%;
+  margin-top: 0.5rem;
+}
+
+.wave-headbar .dropdown-menu.left {
+  right: 100%;
+  margin-right: 0.5rem;
+}
+
+.wave-headbar .dropdown-menu.right {
+  left: 100%;
+  margin-left: 0.5rem;
+}
+
+/* Print styles */
+@media print {
+  .wave-headbar {
+    display: none !important;
+  }
+}

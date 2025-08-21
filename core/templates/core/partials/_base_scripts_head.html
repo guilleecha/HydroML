@@ -10,6 +10,33 @@
 </script>
 {% endif %}
 
+<!-- HydroML Component System -->
+<script src="{% static 'core/js/components/core/BaseComponent.js' %}"></script>
+<script src="{% static 'core/js/components/core/FormComponent.js' %}"></script>
+<script src="{% static 'core/js/components/core/DataComponent.js' %}"></script>
+<script src="{% static 'core/js/components/registry/ComponentRegistry.js' %}"></script>
+<script src="{% static 'core/js/components/app.js' %}"></script>
+
+<!-- Advanced Theme System -->
+<script src="{% static 'core/js/theme/ThemeManager.js' %}"></script>
+<script src="{% static 'core/js/theme/ThemeController.js' %}"></script>
+
+<!-- Wave Components Library -->
+<script src="{% static 'core/js/components/wave/forms/WaveInput.js' %}"></script>
+<script src="{% static 'core/js/components/wave/forms/WaveButton.js' %}"></script>
+<script src="{% static 'core/js/components/wave/forms/WaveSelect.js' %}"></script>
+<script src="{% static 'core/js/components/wave/interactive/WaveBadge.js' %}"></script>
+<script src="{% static 'core/js/components/wave/interactive/WaveDropdown.js' %}"></script>
+<script src="{% static 'core/js/components/wave/data/WaveTable.js' %}"></script>
+<script src="{% static 'core/js/components/wave/navigation/WaveTabs.js' %}"></script>
+<script src="{% static 'core/js/components/wave/navigation/WaveHeadbar.js' %}"></script>
+<script src="{% static 'core/js/components/wave/feedback/WaveModal.js' %}"></script>
+<script src="{% static 'core/js/components/wave/feedback/WaveToast.js' %}"></script>
+<script src="{% static 'core/js/components/wave/wave-components.js' %}"></script>
+
+<!-- Legacy Theme Switcher (for backward compatibility) -->
+<script src="{% static 'core/js/theme-switcher.js' %}"></script>
+
 <!-- Load Alpine.js modular components -->
 <script src="{% static 'js/alpine/hydro-ml-app.js' %}"></script>
 <script src="{% static 'js/alpine/app-store.js' %}"></script>

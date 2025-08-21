@@ -99,8 +99,9 @@ This PRD outlines the implementation of Wave-inspired theme system and component
 - **F1.6**: Component documentation and usage examples
 
 #### F2: Theme Configuration System
-- **F2.1**: Centralized design tokens (colors, typography, spacing, shadows)
+- **F2.1**: Centralized design tokens (monochromatic color palette, typography, spacing, shadows)
 - **F2.2**: Dark/light theme support with seamless switching
+- **F2.3**: Monochromatic design system (white, black, grays with soft accent colors)
 - **F2.3**: Brand customization capabilities for different environments
 - **F2.4**: Responsive breakpoint standardization
 - **F2.5**: Animation and transition standards

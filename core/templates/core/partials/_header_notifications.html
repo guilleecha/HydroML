@@ -1,6 +1,6 @@
 <!-- Notifications Dropdown -->
-<div class="relative" x-data="{ open: false, notifications: [], unreadCount: 0 }" x-init="await fetchNotifications()">
-    <button @click="open = !open; if(open) markAllAsRead()" 
+<div class="relative" x-data="{ open: false, notifications: [], unreadCount: 0 }">
+    <button @click="open = !open" 
             type="button" 
             class="relative p-2 text-foreground-muted dark:text-darcula-foreground-muted hover:text-foreground-default dark:hover:text-darcula-foreground hover:bg-background-tertiary dark:hover:bg-darcula-background-lighter rounded-lg transition-colors"
             aria-expanded="false">
@@ -43,7 +43,7 @@
             </template>
 
             <template x-for="notification in notifications" :key="notification.id">
-                <div @click="handleNotificationClick(notification)" 
+                <div 
                      class="px-4 py-3 border-b border-border-muted dark:border-darcula-border-light hover:bg-background-tertiary dark:hover:bg-darcula-background-lighter cursor-pointer transition-colors">
                     <div class="flex items-start space-x-3">
                         <!-- Notification Icon -->

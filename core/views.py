@@ -13,6 +13,9 @@ from .views.dashboard_views import (
     home,
     DashboardView,
     HelpPageView,
+    ThemeTestView,
+    ComponentDemoView,
+    LayoutDemoView,
     # Legacy function-based views
     dashboard_view,
     help_page,

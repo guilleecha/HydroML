@@ -1,0 +1,431 @@
+/**
+ * Grove Design System - Design Tokens
+ * 
+ * Professional monochromatic design system for HydroML
+ * Inspired by machine learning trees and natural growth
+ * 
+ * Features:
+ * - Monochromatic primary palette with soft accent colors
+ * - Professional typography scale
+ * - Consistent spacing and sizing
+ * - Dark mode support
+ * - Component-specific semantic tokens
+ */
+
+:root {
+  /* ===== GROVE COLOR PALETTE ===== */
+  
+  /* Primary Monochromatic Scale */
+  --grove-black: #000000;
+  --grove-gray-950: #020617;
+  --grove-gray-900: #111827;
+  --grove-gray-800: #1f2937;
+  --grove-gray-700: #374151;
+  --grove-gray-600: #4b5563;
+  --grove-gray-500: #6b7280;
+  --grove-gray-400: #9ca3af;
+  --grove-gray-300: #d1d5db;
+  --grove-gray-200: #e5e7eb;
+  --grove-gray-100: #f3f4f6;
+  --grove-gray-50: #f9fafb;
+  --grove-white: #ffffff;
+  
+  /* Soft Accent Colors (for classification/badges only) */
+  --grove-green-50: #f0fdf4;
+  --grove-green-100: #dcfce7;
+  --grove-green-800: #166534;
+  
+  --grove-blue-50: #eff6ff;
+  --grove-blue-100: #dbeafe;
+  --grove-blue-800: #1e40af;
+  
+  --grove-yellow-50: #fefce8;
+  --grove-yellow-100: #fef3c7;
+  --grove-yellow-800: #92400e;
+  
+  --grove-red-50: #fef2f2;
+  --grove-red-100: #fee2e2;
+  --grove-red-800: #991b1b;
+  
+  --grove-purple-50: #faf5ff;
+  --grove-purple-100: #f3e8ff;
+  --grove-purple-800: #6b21a8;
+  
+  --grove-pink-50: #fdf2f8;
+  --grove-pink-100: #fce7f3;
+  --grove-pink-800: #be185d;
+  
+  /* Green Scale - Success */
+  --color-green-50: #f0fdf4;
+  --color-green-100: #dcfce7;
+  --color-green-200: #bbf7d0;
+  --color-green-300: #86efac;
+  --color-green-400: #4ade80;
+  --color-green-500: #22c55e;
+  --color-green-600: #16a34a;
+  --color-green-700: #15803d;
+  --color-green-800: #166534;
+  --color-green-900: #14532d;
+  --color-green-950: #052e16;
+  
+  /* Red Scale - Error/Danger */
+  --color-red-50: #fef2f2;
+  --color-red-100: #fee2e2;
+  --color-red-200: #fecaca;
+  --color-red-300: #fca5a5;
+  --color-red-400: #f87171;
+  --color-red-500: #ef4444;
+  --color-red-600: #dc2626;
+  --color-red-700: #b91c1c;
+  --color-red-800: #991b1b;
+  --color-red-900: #7f1d1d;
+  --color-red-950: #450a0a;
+  
+  /* Amber Scale - Warning */
+  --color-amber-50: #fffbeb;
+  --color-amber-100: #fef3c7;
+  --color-amber-200: #fde68a;
+  --color-amber-300: #fcd34d;
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+  --color-amber-700: #b45309;
+  --color-amber-800: #92400e;
+  --color-amber-900: #78350f;
+  --color-amber-950: #451a03;
+  
+  /* Cyan Scale - Info */
+  --color-cyan-50: #ecfeff;
+  --color-cyan-100: #cffafe;
+  --color-cyan-200: #a5f3fc;
+  --color-cyan-300: #67e8f9;
+  --color-cyan-400: #22d3ee;
+  --color-cyan-500: #06b6d4;
+  --color-cyan-600: #0891b2;
+  --color-cyan-700: #0e7490;
+  --color-cyan-800: #155e75;
+  --color-cyan-900: #164e63;
+  --color-cyan-950: #083344;
+  
+  /* Purple Scale - Accent */
+  --color-purple-50: #faf5ff;
+  --color-purple-100: #f3e8ff;
+  --color-purple-200: #e9d5ff;
+  --color-purple-300: #d8b4fe;
+  --color-purple-400: #c084fc;
+  --color-purple-500: #a855f7;
+  --color-purple-600: #9333ea;
+  --color-purple-700: #7c3aed;
+  --color-purple-800: #6b21a8;
+  --color-purple-900: #581c87;
+  --color-purple-950: #3b0764;
+  
+  /* ===== GROVE SEMANTIC TOKENS ===== */
+  
+  /* Background Colors */
+  --grove-bg-primary: var(--grove-white);
+  --grove-bg-secondary: var(--grove-gray-50);
+  --grove-bg-tertiary: var(--grove-gray-100);
+  --grove-bg-quaternary: var(--grove-gray-200);
+  --grove-bg-inverse: var(--grove-gray-900);
+  --grove-bg-surface: var(--grove-white);
+  --grove-bg-overlay: rgba(0, 0, 0, 0.5);
+  
+  /* Foreground Colors */
+  --grove-text-primary: var(--grove-gray-900);
+  --grove-text-secondary: var(--grove-gray-700);
+  --grove-text-tertiary: var(--grove-gray-600);
+  --grove-text-quaternary: var(--grove-gray-500);
+  --grove-text-disabled: var(--grove-gray-400);
+  --grove-text-placeholder: var(--grove-gray-400);
+  --grove-text-inverse: var(--grove-white);
+  
+  /* Border Colors */
+  --grove-border-primary: var(--grove-gray-200);
+  --grove-border-secondary: var(--grove-gray-300);
+  --grove-border-focus: var(--grove-gray-500);
+  --grove-border-error: var(--grove-red-800);
+  --grove-border-success: var(--grove-green-800);
+  --grove-border-warning: var(--grove-yellow-800);
+  
+  /* Grove Brand Colors */
+  --grove-brand-primary: var(--grove-gray-800);
+  --grove-brand-primary-hover: var(--grove-gray-900);
+  --grove-brand-primary-active: var(--grove-black);
+  --grove-brand-primary-subtle: var(--grove-gray-50);
+  --grove-brand-secondary: var(--grove-gray-600);
+  --grove-brand-secondary-hover: var(--grove-gray-700);
+  
+  /* Grove Semantic State Colors */
+  --grove-success: var(--grove-green-800);
+  --grove-success-hover: var(--grove-gray-700);
+  --grove-success-subtle: var(--grove-green-50);
+  --grove-success-muted: var(--grove-green-100);
+  
+  --grove-warning: var(--grove-yellow-800);
+  --grove-warning-hover: var(--grove-gray-700);
+  --grove-warning-subtle: var(--grove-yellow-50);
+  --grove-warning-muted: var(--grove-yellow-100);
+  
+  --grove-error: var(--grove-red-800);
+  --grove-error-hover: var(--grove-gray-700);
+  --grove-error-subtle: var(--grove-red-50);
+  --grove-error-muted: var(--grove-red-100);
+  
+  --grove-info: var(--grove-blue-800);
+  --grove-info-hover: var(--grove-gray-700);
+  --grove-info-subtle: var(--grove-blue-50);
+  --grove-info-muted: var(--grove-blue-100);
+  
+  /* ===== TYPOGRAPHY TOKENS ===== */
+  
+  /* Font Families */
+  --font-family-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  --font-family-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+  
+  /* Font Sizes */
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+  --font-size-3xl: 1.875rem;  /* 30px */
+  --font-size-4xl: 2.25rem;   /* 36px */
+  --font-size-5xl: 3rem;      /* 48px */
+  --font-size-6xl: 3.75rem;   /* 60px */
+  --font-size-7xl: 4.5rem;    /* 72px */
+  --font-size-8xl: 6rem;      /* 96px */
+  --font-size-9xl: 8rem;      /* 128px */
+  
+  /* Font Weights */
+  --font-weight-thin: 100;
+  --font-weight-extralight: 200;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
+  
+  /* Line Heights */
+  --line-height-none: 1;
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+  
+  /* Letter Spacing */
+  --letter-spacing-tighter: -0.05em;
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0em;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+  --letter-spacing-widest: 0.1em;
+  
+  /* ===== SPACING TOKENS ===== */
+  
+  --space-0: 0;
+  --space-px: 1px;
+  --space-0-5: 0.125rem;    /* 2px */
+  --space-1: 0.25rem;       /* 4px */
+  --space-1-5: 0.375rem;    /* 6px */
+  --space-2: 0.5rem;        /* 8px */
+  --space-2-5: 0.625rem;    /* 10px */
+  --space-3: 0.75rem;       /* 12px */
+  --space-3-5: 0.875rem;    /* 14px */
+  --space-4: 1rem;          /* 16px */
+  --space-5: 1.25rem;       /* 20px */
+  --space-6: 1.5rem;        /* 24px */
+  --space-7: 1.75rem;       /* 28px */
+  --space-8: 2rem;          /* 32px */
+  --space-9: 2.25rem;       /* 36px */
+  --space-10: 2.5rem;       /* 40px */
+  --space-11: 2.75rem;      /* 44px */
+  --space-12: 3rem;         /* 48px */
+  --space-14: 3.5rem;       /* 56px */
+  --space-16: 4rem;         /* 64px */
+  --space-18: 4.5rem;       /* 72px */
+  --space-20: 5rem;         /* 80px */
+  --space-24: 6rem;         /* 96px */
+  --space-28: 7rem;         /* 112px */
+  --space-32: 8rem;         /* 128px */
+  --space-36: 9rem;         /* 144px */
+  --space-40: 10rem;        /* 160px */
+  --space-44: 11rem;        /* 176px */
+  --space-48: 12rem;        /* 192px */
+  --space-52: 13rem;        /* 208px */
+  --space-56: 14rem;        /* 224px */
+  --space-60: 15rem;        /* 240px */
+  --space-64: 16rem;        /* 256px */
+  --space-72: 18rem;        /* 288px */
+  --space-80: 20rem;        /* 320px */
+  --space-96: 24rem;        /* 384px */
+  
+  /* ===== BORDER RADIUS TOKENS ===== */
+  
+  --radius-none: 0;
+  --radius-sm: 0.125rem;     /* 2px */
+  --radius-base: 0.25rem;    /* 4px */
+  --radius-md: 0.375rem;     /* 6px */
+  --radius-lg: 0.5rem;       /* 8px */
+  --radius-xl: 0.75rem;      /* 12px */
+  --radius-2xl: 1rem;        /* 16px */
+  --radius-3xl: 1.5rem;      /* 24px */
+  --radius-full: 9999px;
+  
+  /* ===== SHADOW TOKENS ===== */
+  
+  --shadow-none: none;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+  
+  /* Component-specific shadows */
+  --shadow-card: var(--shadow-sm);
+  --shadow-dropdown: var(--shadow-lg);
+  --shadow-modal: var(--shadow-2xl);
+  --shadow-tooltip: var(--shadow-md);
+  --shadow-focus: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  --shadow-focus-error: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  --shadow-focus-success: 0 0 0 3px rgba(34, 197, 94, 0.1);
+  
+  /* ===== Z-INDEX TOKENS ===== */
+  
+  --z-index-auto: auto;
+  --z-index-base: 0;
+  --z-index-above: 1;
+  --z-index-dropdown: 10;
+  --z-index-sticky: 20;
+  --z-index-header: 30;
+  --z-index-overlay: 40;
+  --z-index-modal: 50;
+  --z-index-popover: 60;
+  --z-index-tooltip: 70;
+  --z-index-toast: 80;
+  --z-index-max: 9999;
+  
+  /* ===== TRANSITION TOKENS ===== */
+  
+  --transition-none: none;
+  --transition-all: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-colors: color, background-color, border-color, text-decoration-color, fill, stroke 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-opacity: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-shadow: box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-transform: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Animation durations */
+  --duration-instant: 0ms;
+  --duration-fast: 100ms;
+  --duration-normal: 150ms;
+  --duration-slow: 300ms;
+  --duration-slower: 500ms;
+  
+  /* Animation easing */
+  --ease-linear: linear;
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== DARK THEME OVERRIDES ===== */
+
+[data-theme="dark"], .dark {
+  /* Grove Background Colors - Dark Theme */
+  --grove-bg-primary: var(--grove-gray-900);
+  --grove-bg-secondary: var(--grove-gray-800);
+  --grove-bg-tertiary: var(--grove-gray-700);
+  --grove-bg-quaternary: var(--grove-gray-600);
+  --grove-bg-inverse: var(--grove-gray-50);
+  --grove-bg-surface: var(--grove-gray-800);
+  --grove-bg-overlay: rgba(0, 0, 0, 0.8);
+  
+  /* Grove Foreground Colors - Dark Theme */
+  --grove-text-primary: var(--grove-gray-50);
+  --grove-text-secondary: var(--grove-gray-300);
+  --grove-text-tertiary: var(--grove-gray-400);
+  --grove-text-quaternary: var(--grove-gray-500);
+  --grove-text-disabled: var(--grove-gray-600);
+  --grove-text-placeholder: var(--grove-gray-500);
+  --grove-text-inverse: var(--grove-gray-900);
+  
+  /* Grove Border Colors - Dark Theme */
+  --grove-border-primary: var(--grove-gray-700);
+  --grove-border-secondary: var(--grove-gray-600);
+  
+  /* Adjust shadows for dark theme */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* ===== DARCULA THEME (PyCharm-inspired) ===== */
+
+[data-theme="darcula"] {
+  /* Darcula Background Colors */
+  --color-background-primary: #2B2B2B;
+  --color-background-secondary: #1E1E1E;
+  --color-background-tertiary: #3C3F41;
+  --color-background-quaternary: #404040;
+  --color-background-inverse: #FFFFFF;
+  --color-background-surface: #2B2B2B;
+  --color-background-overlay: rgba(0, 0, 0, 0.8);
+  
+  /* Darcula Foreground Colors */
+  --color-foreground-primary: #A9B7C6;
+  --color-foreground-secondary: #808080;
+  --color-foreground-tertiary: #5F5F5F;
+  --color-foreground-quaternary: #555555;
+  --color-foreground-disabled: #404040;
+  --color-foreground-placeholder: #5F5F5F;
+  --color-foreground-inverse: #2B2B2B;
+  
+  /* Darcula Accent Colors */
+  --color-brand-primary: #FFC66D;
+  --color-brand-primary-hover: #FFD485;
+  --color-brand-primary-active: #FFB855;
+  
+  /* Darcula Semantic Colors */
+  --color-success: #6A8759;
+  --color-warning: #CC7832;
+  --color-error: #BC3F3C;
+  --color-info: #214283;
+  
+  /* Darcula Borders */
+  --color-border-primary: #555555;
+  --color-border-secondary: #404040;
+  
+  /* Darcula specific shadows */
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-dropdown: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.6);
+}
+
+/* ===== GROVE UTILITY CLASSES ===== */
+
+.grove-bg-surface { background-color: var(--grove-bg-surface); }
+.grove-bg-primary { background-color: var(--grove-bg-primary); }
+.grove-bg-secondary { background-color: var(--grove-bg-secondary); }
+
+.grove-text-primary { color: var(--grove-text-primary); }
+.grove-text-secondary { color: var(--grove-text-secondary); }
+.grove-text-tertiary { color: var(--grove-text-tertiary); }
+
+.grove-border-primary { border-color: var(--grove-border-primary); }
+.grove-border-secondary { border-color: var(--grove-border-secondary); }
+
+.grove-shadow-card { box-shadow: var(--shadow-card); }
+.grove-shadow-dropdown { box-shadow: var(--shadow-dropdown); }
+.grove-shadow-modal { box-shadow: var(--shadow-modal); }
+
+.grove-transition { transition: var(--transition-colors), var(--transition-shadow); }

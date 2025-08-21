@@ -1,0 +1,546 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Component System Demo - HydroML{% endblock %}
+
+{% block extra_head %}
+<!-- Additional demo styles -->
+<style>
+  .component-demo {
+    border: 2px dashed var(--color-border-secondary);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin: var(--space-4) 0;
+    background: var(--color-background-tertiary);
+  }
+  
+  .component-demo h4 {
+    margin-top: 0;
+    color: var(--color-brand-primary);
+  }
+  
+  .demo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-6);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-primary transition-theme">
+  <!-- Header -->
+  <header class="bg-surface border-b border-primary shadow-card">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <h1 class="text-xl font-semibold text-primary">HydroML Component System Demo</h1>
+        {% include 'core/partials/_theme_switcher.html' %}
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Introduction -->
+    <div class="bg-surface rounded-lg border border-primary shadow-card p-6 mb-8">
+      <h2 class="text-lg font-medium text-primary mb-4">Component Architecture Overview</h2>
+      <p class="text-secondary mb-4">
+        This page demonstrates the new HydroML Component Architecture and Registration System. 
+        Each component below showcases different aspects of the system:
+      </p>
+      <ul class="list-disc list-inside text-secondary space-y-2">
+        <li><strong>BaseComponent</strong>: Foundation with lifecycle management and event system</li>
+        <li><strong>FormComponent</strong>: Specialized for form handling with validation</li>
+        <li><strong>DataComponent</strong>: Data display with filtering, sorting, and pagination</li>
+        <li><strong>ComponentRegistry</strong>: Centralized component management</li>
+      </ul>
+    </div>
+
+    <!-- Component Registry Status -->
+    <div class="component-demo">
+      <h4>Component Registry Status</h4>
+      <div x-data="registryStatus" x-init="init()">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div class="bg-surface rounded-lg p-4 border border-secondary">
+            <div class="text-2xl font-bold text-brand-primary" x-text="stats.registeredComponents"></div>
+            <div class="text-sm text-secondary">Registered Components</div>
+          </div>
+          <div class="bg-surface rounded-lg p-4 border border-secondary">
+            <div class="text-2xl font-bold text-brand-primary" x-text="stats.activeInstances"></div>
+            <div class="text-sm text-secondary">Active Instances</div>
+          </div>
+          <div class="bg-surface rounded-lg p-4 border border-secondary">
+            <div class="text-2xl font-bold text-brand-primary" x-text="stats.metrics.averageRegistrationTime.toFixed(2) + 'ms'"></div>
+            <div class="text-sm text-secondary">Avg Registration Time</div>
+          </div>
+        </div>
+        
+        <div class="bg-secondary rounded p-3">
+          <h5 class="font-medium text-primary mb-2">Registered Components:</h5>
+          <div class="flex flex-wrap gap-2">
+            <template x-for="component in componentList" :key="component">
+              <span class="px-2 py-1 bg-brand-primary-subtle text-brand-primary rounded text-sm" x-text="component"></span>
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Demo Grid -->
+    <div class="demo-grid">
+      
+      <!-- Form Component Demo -->
+      <div class="component-demo">
+        <h4>Form Component Demo</h4>
+        <form x-data="demoForm" @submit.prevent="handleSubmit" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-primary mb-2">Name (Required)</label>
+            <input 
+              type="text" 
+              name="name"
+              required
+              class="w-full px-3 py-2 border border-primary rounded-md bg-surface text-primary focus:border-focus transition-colors"
+              x-model="formData.name"
+            >
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-primary mb-2">Email</label>
+            <input 
+              type="email" 
+              name="email"
+              class="w-full px-3 py-2 border border-primary rounded-md bg-surface text-primary focus:border-focus transition-colors"
+              x-model="formData.email"
+            >
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-primary mb-2">Message</label>
+            <textarea 
+              name="message"
+              rows="3"
+              class="w-full px-3 py-2 border border-primary rounded-md bg-surface text-primary focus:border-focus transition-colors"
+              x-model="formData.message"
+            ></textarea>
+          </div>
+          
+          <div class="flex items-center justify-between">
+            <button 
+              type="submit"
+              class="px-4 py-2 bg-brand-primary hover:bg-brand-primary-hover text-white rounded-md transition-colors"
+              :disabled="isSubmitting"
+            >
+              <span x-show="!isSubmitting">Submit Form</span>
+              <span x-show="isSubmitting">Submitting...</span>
+            </button>
+            
+            <button 
+              type="button"
+              @click="resetForm"
+              class="px-4 py-2 bg-secondary hover:bg-tertiary text-primary rounded-md transition-colors"
+            >
+              Reset
+            </button>
+          </div>
+          
+          <div x-show="status.message" class="p-3 rounded-md" :class="status.type === 'success' ? 'bg-success-subtle text-success' : 'bg-error-subtle text-error'">
+            <span x-text="status.message"></span>
+          </div>
+        </form>
+      </div>
+
+      <!-- Data Component Demo -->
+      <div class="component-demo">
+        <h4>Data Component Demo</h4>
+        <div x-data="demoDataComponent" x-init="init()">
+          <!-- Search and Controls -->
+          <div class="mb-4 space-y-2">
+            <input 
+              type="text" 
+              placeholder="Search users..."
+              class="w-full px-3 py-2 border border-primary rounded-md bg-surface text-primary focus:border-focus transition-colors"
+              x-model="searchTerm"
+              @input="search($event.target.value)"
+            >
+            
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-secondary" x-text="`Showing ${filteredItems.length} of ${items.length} items`"></span>
+              <button 
+                @click="loadSampleData"
+                class="px-3 py-1 bg-brand-primary hover:bg-brand-primary-hover text-white rounded text-sm transition-colors"
+              >
+                Load Sample Data
+              </button>
+            </div>
+          </div>
+          
+          <!-- Data Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full border border-primary rounded-lg overflow-hidden">
+              <thead class="bg-secondary">
+                <tr>
+                  <th 
+                    class="px-4 py-2 text-left text-primary cursor-pointer hover:bg-tertiary transition-colors"
+                    @click="sortBy('name')"
+                  >
+                    Name 
+                    <span x-show="sortColumn === 'name'" x-text="sortDirection === 'asc' ? '↑' : '↓'"></span>
+                  </th>
+                  <th 
+                    class="px-4 py-2 text-left text-primary cursor-pointer hover:bg-tertiary transition-colors"
+                    @click="sortBy('email')"
+                  >
+                    Email
+                    <span x-show="sortColumn === 'email'" x-text="sortDirection === 'asc' ? '↑' : '↓'"></span>
+                  </th>
+                  <th 
+                    class="px-4 py-2 text-left text-primary cursor-pointer hover:bg-tertiary transition-colors"
+                    @click="sortBy('role')"
+                  >
+                    Role
+                    <span x-show="sortColumn === 'role'" x-text="sortDirection === 'asc' ? '↑' : '↓'"></span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="item in paginatedItems" :key="item.id">
+                  <tr class="border-t border-primary hover:bg-secondary transition-colors">
+                    <td class="px-4 py-2 text-primary" x-text="item.name"></td>
+                    <td class="px-4 py-2 text-secondary" x-text="item.email"></td>
+                    <td class="px-4 py-2">
+                      <span 
+                        class="px-2 py-1 rounded text-xs font-medium"
+                        :class="item.role === 'admin' ? 'bg-error-subtle text-error' : 'bg-info-subtle text-info'"
+                        x-text="item.role"
+                      ></span>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Pagination -->
+          <div class="flex items-center justify-between mt-4" x-show="totalPages > 1">
+            <button 
+              @click="prevPage"
+              :disabled="page === 1"
+              class="px-3 py-1 bg-secondary hover:bg-tertiary text-primary rounded transition-colors disabled:opacity-50"
+            >
+              Previous
+            </button>
+            
+            <span class="text-sm text-secondary" x-text="`Page ${page} of ${totalPages}`"></span>
+            
+            <button 
+              @click="nextPage"
+              :disabled="page === totalPages"
+              class="px-3 py-1 bg-secondary hover:bg-tertiary text-primary rounded transition-colors disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Component Demo -->
+      <div class="component-demo">
+        <h4>Modal Component Demo</h4>
+        <div x-data="{ modalOpen: false }">
+          <button 
+            @click="modalOpen = true"
+            class="px-4 py-2 bg-brand-primary hover:bg-brand-primary-hover text-white rounded-md transition-colors"
+          >
+            Open Modal
+          </button>
+          
+          <!-- Modal -->
+          <div 
+            x-show="modalOpen" 
+            x-data="modalComponent({ backdrop: true, keyboard: true })"
+            x-init="isOpen = modalOpen; $watch('modalOpen', value => isOpen = value); $watch('isOpen', value => modalOpen = value)"
+            class="fixed inset-0 z-50 overflow-y-auto"
+            x-cloak
+          >
+            <div class="flex items-center justify-center min-h-screen px-4">
+              <div class="fixed inset-0 bg-black opacity-50" @click="closeOnBackdrop($event)"></div>
+              
+              <div class="relative bg-surface rounded-lg shadow-modal max-w-md w-full p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-lg font-medium text-primary">Demo Modal</h3>
+                  <button 
+                    @click="close"
+                    class="text-secondary hover:text-primary transition-colors"
+                  >
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                  </button>
+                </div>
+                
+                <p class="text-secondary mb-4">
+                  This is a demo modal component built with the HydroML component system. 
+                  It supports keyboard navigation, backdrop clicks, and focus trapping.
+                </p>
+                
+                <div class="flex justify-end space-x-2">
+                  <button 
+                    @click="close"
+                    class="px-4 py-2 bg-secondary hover:bg-tertiary text-primary rounded-md transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    @click="close"
+                    class="px-4 py-2 bg-brand-primary hover:bg-brand-primary-hover text-white rounded-md transition-colors"
+                  >
+                    Confirm
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notification Demo -->
+      <div class="component-demo">
+        <h4>Notification System Demo</h4>
+        <div x-data="notificationDemo">
+          <div class="space-y-2">
+            <button 
+              @click="showNotification('success', 'Success!', 'Operation completed successfully.')"
+              class="w-full px-4 py-2 bg-success hover:bg-success-hover text-white rounded-md transition-colors"
+            >
+              Show Success
+            </button>
+            
+            <button 
+              @click="showNotification('error', 'Error!', 'Something went wrong.')"
+              class="w-full px-4 py-2 bg-error hover:bg-error-hover text-white rounded-md transition-colors"
+            >
+              Show Error
+            </button>
+            
+            <button 
+              @click="showNotification('warning', 'Warning!', 'Please check your input.')"
+              class="w-full px-4 py-2 bg-warning hover:bg-warning-hover text-white rounded-md transition-colors"
+            >
+              Show Warning
+            </button>
+            
+            <button 
+              @click="showNotification('info', 'Info', 'Here is some useful information.')"
+              class="w-full px-4 py-2 bg-info hover:bg-info-hover text-white rounded-md transition-colors"
+            >
+              Show Info
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Notifications Container -->
+    <div 
+      x-data="notificationComponent" 
+      x-init="init()"
+      class="fixed top-4 right-4 z-50 space-y-2"
+    >
+      <template x-for="notification in notifications" :key="notification.id">
+        <div 
+          class="max-w-sm bg-surface border border-primary rounded-lg shadow-lg p-4 transition-all transform"
+          :class="{
+            'border-success bg-success-subtle': notification.type === 'success',
+            'border-error bg-error-subtle': notification.type === 'error',
+            'border-warning bg-warning-subtle': notification.type === 'warning',
+            'border-info bg-info-subtle': notification.type === 'info'
+          }"
+          x-transition:enter="transition ease-out duration-300"
+          x-transition:enter-start="opacity-0 transform translate-x-full"
+          x-transition:enter-end="opacity-100 transform translate-x-0"
+          x-transition:leave="transition ease-in duration-200"
+          x-transition:leave-start="opacity-100 transform translate-x-0"
+          x-transition:leave-end="opacity-0 transform translate-x-full"
+        >
+          <div class="flex items-start">
+            <div class="text-lg mr-3" x-text="getIcon(notification.type)"></div>
+            <div class="flex-1">
+              <h4 class="font-medium text-primary" x-text="notification.title"></h4>
+              <p class="text-sm text-secondary mt-1" x-text="notification.message"></p>
+            </div>
+            <button 
+              @click="removeNotification(notification.id)"
+              class="ml-3 text-secondary hover:text-primary transition-colors"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </template>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// Demo Alpine.js components
+document.addEventListener('alpine:init', () => {
+  
+  // Registry Status Component
+  Alpine.data('registryStatus', () => ({
+    stats: {
+      registeredComponents: 0,
+      activeInstances: 0,
+      metrics: { averageRegistrationTime: 0 }
+    },
+    componentList: [],
+    
+    init() {
+      this.updateStats();
+      setInterval(() => this.updateStats(), 2000);
+    },
+    
+    updateStats() {
+      if (window.HydroML?.registry) {
+        this.stats = window.HydroML.registry.getStats();
+        this.componentList = window.HydroML.registry.list();
+      }
+    }
+  }));
+  
+  // Demo Form Component
+  Alpine.data('demoForm', () => ({
+    formData: { name: '', email: '', message: '' },
+    isSubmitting: false,
+    status: { message: '', type: '' },
+    
+    async handleSubmit() {
+      this.isSubmitting = true;
+      this.status = { message: '', type: '' };
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      this.status = {
+        message: 'Form submitted successfully!',
+        type: 'success'
+      };
+      
+      this.isSubmitting = false;
+      
+      setTimeout(() => {
+        this.status = { message: '', type: '' };
+      }, 3000);
+    },
+    
+    resetForm() {
+      this.formData = { name: '', email: '', message: '' };
+      this.status = { message: '', type: '' };
+    }
+  }));
+  
+  // Demo Data Component
+  Alpine.data('demoDataComponent', () => ({
+    items: [],
+    filteredItems: [],
+    searchTerm: '',
+    sortColumn: null,
+    sortDirection: 'asc',
+    page: 1,
+    perPage: 3,
+    
+    init() {
+      this.loadSampleData();
+    },
+    
+    loadSampleData() {
+      this.items = [
+        { id: 1, name: 'Alice Johnson', email: 'alice@example.com', role: 'admin' },
+        { id: 2, name: 'Bob Smith', email: 'bob@example.com', role: 'user' },
+        { id: 3, name: 'Carol Davis', email: 'carol@example.com', role: 'user' },
+        { id: 4, name: 'David Wilson', email: 'david@example.com', role: 'admin' },
+        { id: 5, name: 'Eve Brown', email: 'eve@example.com', role: 'user' },
+        { id: 6, name: 'Frank Miller', email: 'frank@example.com', role: 'user' }
+      ];
+      this.filterItems();
+    },
+    
+    search(term) {
+      this.searchTerm = term;
+      this.filterItems();
+      this.page = 1;
+    },
+    
+    filterItems() {
+      if (!this.searchTerm) {
+        this.filteredItems = [...this.items];
+      } else {
+        const term = this.searchTerm.toLowerCase();
+        this.filteredItems = this.items.filter(item =>
+          Object.values(item).some(value =>
+            String(value).toLowerCase().includes(term)
+          )
+        );
+      }
+      this.sortItems();
+    },
+    
+    sortBy(column) {
+      if (this.sortColumn === column) {
+        this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+      } else {
+        this.sortColumn = column;
+        this.sortDirection = 'asc';
+      }
+      this.sortItems();
+    },
+    
+    sortItems() {
+      if (!this.sortColumn) return;
+      
+      this.filteredItems.sort((a, b) => {
+        const aVal = a[this.sortColumn];
+        const bVal = b[this.sortColumn];
+        
+        if (aVal < bVal) return this.sortDirection === 'asc' ? -1 : 1;
+        if (aVal > bVal) return this.sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    },
+    
+    get paginatedItems() {
+      const start = (this.page - 1) * this.perPage;
+      const end = start + this.perPage;
+      return this.filteredItems.slice(start, end);
+    },
+    
+    get totalPages() {
+      return Math.ceil(this.filteredItems.length / this.perPage);
+    },
+    
+    nextPage() {
+      if (this.page < this.totalPages) this.page++;
+    },
+    
+    prevPage() {
+      if (this.page > 1) this.page--;
+    }
+  }));
+  
+  // Notification Demo
+  Alpine.data('notificationDemo', () => ({
+    showNotification(type, title, message) {
+      window.HydroML.notify({
+        type,
+        title,
+        message,
+        duration: 5000
+      });
+    }
+  }));
+  
+});
+</script>
+{% endblock %}

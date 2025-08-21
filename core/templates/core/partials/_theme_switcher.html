@@ -1,0 +1,84 @@
+<!-- Theme Switcher Component -->
+<div x-data="themeSwitcher" class="relative">
+  <!-- Theme Toggle Button -->
+  <button
+    @click="toggleTheme()"
+    class="flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-normal
+           bg-surface hover:bg-secondary border border-primary
+           text-secondary hover:text-primary
+           focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
+    :title="`Switch to ${getThemeLabel(availableThemes.find(t => !t.current)?.value || 'light')} theme`"
+    aria-label="Toggle theme"
+  >
+    <!-- Theme Icon -->
+    <span class="text-base leading-none" x-text="getThemeIcon(currentTheme)"></span>
+  </button>
+  
+  <!-- Dropdown Menu (Alternative) -->
+  <div 
+    x-show="false" 
+    x-data="{ open: false }"
+    class="relative"
+  >
+    <button
+      @click="open = !open"
+      @click.away="open = false"
+      class="flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-normal
+             bg-surface hover:bg-secondary border border-primary
+             text-secondary hover:text-primary
+             focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
+      aria-haspopup="true"
+      :aria-expanded="open"
+    >
+      <span class="text-base leading-none" x-text="getThemeIcon(currentTheme)"></span>
+    </button>
+    
+    <div
+      x-show="open"
+      x-transition:enter="transition ease-out duration-fast"
+      x-transition:enter-start="opacity-0 scale-95"
+      x-transition:enter-end="opacity-100 scale-100"
+      x-transition:leave="transition ease-in duration-fast"
+      x-transition:leave-start="opacity-100 scale-100"
+      x-transition:leave-end="opacity-0 scale-95"
+      class="absolute right-0 mt-2 w-36 rounded-lg bg-surface border border-primary shadow-dropdown z-50"
+    >
+      <div class="py-1">
+        <template x-for="theme in availableThemes" :key="theme.value">
+          <button
+            @click="setTheme(theme.value); open = false"
+            class="flex items-center w-full px-3 py-2 text-sm transition-colors duration-fast
+                   text-secondary hover:text-primary hover:bg-secondary
+                   focus:outline-none focus:bg-secondary focus:text-primary"
+            :class="{ 'bg-brand-primary-subtle text-brand-primary': theme.current }"
+          >
+            <span class="mr-2" x-text="getThemeIcon(theme.value)"></span>
+            <span x-text="theme.label"></span>
+            <span x-show="theme.current" class="ml-auto">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+          </button>
+        </template>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Theme Transition Helper -->
+<style>
+  .transition-theme * {
+    transition: background-color var(--duration-normal) var(--ease-out),
+                color var(--duration-normal) var(--ease-out),
+                border-color var(--duration-normal) var(--ease-out),
+                box-shadow var(--duration-normal) var(--ease-out) !important;
+  }
+  
+  /* Reduce motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    .transition-theme * {
+      transition: none !important;
+    }
+  }
+</style>

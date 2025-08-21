@@ -1,0 +1,295 @@
+{% extends 'core/layouts/base_layout.html' %}
+{% load static %}
+
+{# 
+  Dashboard Layout Template
+  Optimized for dashboard pages with metrics, cards, and data visualization
+  
+  Features:
+  - Full-width header
+  - Grid-based content area
+  - Card layouts for widgets
+  - Responsive design
+#}
+
+{% block layout_type %}full{% endblock %}
+{% block layout_class %}full{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'core/css/layouts/grid-system.css' %}">
+    <style>
+        /* Dashboard-specific styles */
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--color-brand-primary) 0%, var(--color-brand-secondary) 100%);
+            color: white;
+        }
+        
+        .dashboard-card {
+            background: var(--color-background-secondary);
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            transition: all 0.2s ease;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .metric-card {
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--color-brand-primary);
+            line-height: 1;
+        }
+        
+        .metric-label {
+            color: var(--color-foreground-muted);
+            font-size: 0.875rem;
+            margin-top: var(--space-1);
+        }
+        
+        .metric-change {
+            font-size: 0.75rem;
+            margin-top: var(--space-2);
+        }
+        
+        .metric-change.positive {
+            color: var(--color-success);
+        }
+        
+        .metric-change.negative {
+            color: var(--color-error);
+        }
+        
+        .chart-container {
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-background-tertiary);
+            border-radius: var(--radius-md);
+            color: var(--color-foreground-muted);
+        }
+    </style>
+{% endblock %}
+
+{% block page_header %}
+    <div class="dashboard-header py-8">
+        <div class="container">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2">
+                        {% block dashboard_title %}Dashboard{% endblock %}
+                    </h1>
+                    <p class="text-lg opacity-90">
+                        {% block dashboard_subtitle %}Welcome back, {{ user.get_full_name|default:user.username }}{% endblock %}
+                    </p>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    {% block dashboard_actions %}
+                        <button class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-white">
+                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            Refresh
+                        </button>
+                        <button class="px-4 py-2 bg-white text-brand-primary hover:bg-gray-50 rounded-lg transition-colors font-medium">
+                            Export Data
+                        </button>
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <!-- Metrics Grid -->
+    <section class="mb-8" aria-labelledby="metrics-heading">
+        <h2 id="metrics-heading" class="sr-only">Key Metrics</h2>
+        
+        {% block metrics %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- Sample metric cards - override in child templates -->
+                <div class="dashboard-card metric-card">
+                    <div class="metric-value">{{ total_projects|default:"0" }}</div>
+                    <div class="metric-label">Total Projects</div>
+                    <div class="metric-change positive">+12% from last month</div>
+                </div>
+                
+                <div class="dashboard-card metric-card">
+                    <div class="metric-value">{{ active_experiments|default:"0" }}</div>
+                    <div class="metric-label">Active Experiments</div>
+                    <div class="metric-change positive">+5% from last week</div>
+                </div>
+                
+                <div class="dashboard-card metric-card">
+                    <div class="metric-value">{{ data_sources|default:"0" }}</div>
+                    <div class="metric-label">Data Sources</div>
+                    <div class="metric-change negative">-2% from last month</div>
+                </div>
+                
+                <div class="dashboard-card metric-card">
+                    <div class="metric-value">{{ model_accuracy|default:"0%" }}</div>
+                    <div class="metric-label">Avg Model Accuracy</div>
+                    <div class="metric-change positive">+8% from last quarter</div>
+                </div>
+            </div>
+        {% endblock %}
+    </section>
+
+    <!-- Main Dashboard Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Primary Content Area -->
+        <div class="lg:col-span-2 space-y-6">
+            {% block primary_content %}
+                <!-- Recent Activity -->
+                <section class="dashboard-card" aria-labelledby="activity-heading">
+                    <h3 id="activity-heading" class="text-lg font-semibold mb-4 text-foreground-default">Recent Activity</h3>
+                    
+                    {% block recent_activity %}
+                        <div class="space-y-3">
+                            <div class="flex items-center space-x-3 p-3 bg-background-tertiary rounded-lg">
+                                <div class="w-8 h-8 bg-brand-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-foreground-default">New experiment created</p>
+                                    <p class="text-xs text-foreground-muted">2 hours ago</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-3 p-3 bg-background-tertiary rounded-lg">
+                                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-foreground-default">Model training completed</p>
+                                    <p class="text-xs text-foreground-muted">5 hours ago</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-3 p-3 bg-background-tertiary rounded-lg">
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-foreground-default">Data source updated</p>
+                                    <p class="text-xs text-foreground-muted">1 day ago</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endblock %}
+                </section>
+
+                <!-- Charts Section -->
+                <section class="dashboard-card" aria-labelledby="charts-heading">
+                    <h3 id="charts-heading" class="text-lg font-semibold mb-4 text-foreground-default">Performance Overview</h3>
+                    
+                    {% block charts %}
+                        <div class="chart-container">
+                            <div class="text-center">
+                                <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                </svg>
+                                <p class="text-sm">Chart component will be rendered here</p>
+                            </div>
+                        </div>
+                    {% endblock %}
+                </section>
+            {% endblock %}
+        </div>
+
+        <!-- Sidebar Content -->
+        <div class="space-y-6">
+            {% block sidebar_content %}
+                <!-- Quick Actions -->
+                <section class="dashboard-card" aria-labelledby="actions-heading">
+                    <h3 id="actions-heading" class="text-lg font-semibold mb-4 text-foreground-default">Quick Actions</h3>
+                    
+                    <div class="space-y-3">
+                        <a href="{% url 'projects:project_create' %}" 
+                           class="flex items-center space-x-3 p-3 hover:bg-background-tertiary rounded-lg transition-colors group">
+                            <div class="w-8 h-8 bg-brand-100 group-hover:bg-brand-200 rounded-lg flex items-center justify-center transition-colors">
+                                <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                            </div>
+                            <span class="text-sm font-medium text-foreground-default">Create Project</span>
+                        </a>
+                        
+                        <a href="{% url 'experiments:experiment_create' %}" 
+                           class="flex items-center space-x-3 p-3 hover:bg-background-tertiary rounded-lg transition-colors group">
+                            <div class="w-8 h-8 bg-purple-100 group-hover:bg-purple-200 rounded-lg flex items-center justify-center transition-colors">
+                                <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                </svg>
+                            </div>
+                            <span class="text-sm font-medium text-foreground-default">New Experiment</span>
+                        </a>
+                        
+                        <a href="{% url 'projects:datasource_create' %}" 
+                           class="flex items-center space-x-3 p-3 hover:bg-background-tertiary rounded-lg transition-colors group">
+                            <div class="w-8 h-8 bg-green-100 group-hover:bg-green-200 rounded-lg flex items-center justify-center transition-colors">
+                                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+                                </svg>
+                            </div>
+                            <span class="text-sm font-medium text-foreground-default">Upload Data</span>
+                        </a>
+                    </div>
+                </section>
+
+                <!-- System Status -->
+                <section class="dashboard-card" aria-labelledby="status-heading">
+                    <h3 id="status-heading" class="text-lg font-semibold mb-4 text-foreground-default">System Status</h3>
+                    
+                    {% block system_status %}
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-foreground-muted">Database</span>
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <div class="w-1.5 h-1.5 bg-green-400 rounded-full mr-1"></div>
+                                    Online
+                                </span>
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-foreground-muted">ML Services</span>
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <div class="w-1.5 h-1.5 bg-green-400 rounded-full mr-1"></div>
+                                    Running
+                                </span>
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-foreground-muted">Storage</span>
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    <div class="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-1"></div>
+                                    75% Used
+                                </span>
+                            </div>
+                        </div>
+                    {% endblock %}
+                </section>
+            {% endblock %}
+        </div>
+    </div>
+
+    <!-- Additional Dashboard Content -->
+    {% block additional_content %}{% endblock %}
+{% endblock %}

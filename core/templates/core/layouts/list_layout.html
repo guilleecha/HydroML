@@ -1,0 +1,290 @@
+{% extends 'core/layouts/base_layout.html' %}
+{% load static %}
+
+{# 
+  List Layout Template
+  Optimized for list/table views with filtering, searching, and pagination
+  
+  Features:
+  - Search and filter bar
+  - Table/card list views
+  - Pagination controls
+  - Bulk actions
+#}
+
+{% block layout_type %}full{% endblock %}
+{% block layout_class %}full{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'core/css/layouts/grid-system.css' %}">
+    <style>
+        /* List-specific styles */
+        .list-header {
+            background: var(--color-background-secondary);
+            border-bottom: 1px solid var(--color-border-default);
+            padding: var(--space-4) 0;
+        }
+        
+        .search-bar {
+            position: relative;
+        }
+        
+        .search-bar input {
+            padding-left: 2.5rem;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-foreground-muted);
+        }
+        
+        .filter-badge {
+            display: inline-flex;
+            items-center: center;
+            padding: 0.25rem 0.75rem;
+            background: var(--color-brand-100);
+            color: var(--color-brand-700);
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .list-item {
+            background: var(--color-background-primary);
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-md);
+            padding: var(--space-4);
+            transition: all 0.2s ease;
+        }
+        
+        .list-item:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--color-border-focus);
+        }
+        
+        .list-item.selected {
+            border-color: var(--color-brand-primary);
+            background: var(--color-brand-50);
+        }
+        
+        .pagination-info {
+            color: var(--color-foreground-muted);
+            font-size: 0.875rem;
+        }
+    </style>
+{% endblock %}
+
+{% block page_header %}
+    <div class="list-header">
+        <div class="container">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    {% block breadcrumbs %}
+                        {% include 'core/partials/_breadcrumbs.html' %}
+                    {% endblock %}
+                    
+                    <h1 class="text-2xl font-bold text-foreground-default dark:text-darcula-foreground mt-2">
+                        {% block list_title %}Items{% endblock %}
+                    </h1>
+                    
+                    {% block list_description %}
+                        <p class="text-foreground-muted dark:text-darcula-foreground-muted mt-1">
+                            Manage and view your items
+                        </p>
+                    {% endblock %}
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    {% block list_actions %}
+                        <button class="px-4 py-2 text-sm font-medium text-foreground-muted hover:text-foreground-default border border-border-default hover:border-border-focus rounded-lg transition-colors">
+                            Export
+                        </button>
+                        <button class="px-4 py-2 text-sm font-medium text-white bg-brand-primary hover:bg-brand-secondary rounded-lg transition-colors">
+                            Add New
+                        </button>
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <!-- Search and Filters -->
+    <section class="mb-6" aria-labelledby="search-heading">
+        <h2 id="search-heading" class="sr-only">Search and filter</h2>
+        
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+            <!-- Search Bar -->
+            <div class="flex-1 max-w-md">
+                {% block search_bar %}
+                    <div class="search-bar">
+                        <input type="text" 
+                               placeholder="Search items..." 
+                               class="w-full px-4 py-2 pl-10 border border-border-default focus:border-brand-primary focus:ring-1 focus:ring-brand-primary rounded-lg text-sm bg-background-primary dark:bg-darcula-background"
+                               x-data="{ search: '' }"
+                               x-model="search"
+                               @input.debounce.300ms="$dispatch('search', search)">
+                        <svg class="search-icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                {% endblock %}
+            </div>
+            
+            <!-- Filters -->
+            <div class="flex items-center space-x-3">
+                {% block filters %}
+                    <select class="px-3 py-2 border border-border-default focus:border-brand-primary focus:ring-1 focus:ring-brand-primary rounded-lg text-sm bg-background-primary dark:bg-darcula-background">
+                        <option>All Categories</option>
+                        <option>Category 1</option>
+                        <option>Category 2</option>
+                    </select>
+                    
+                    <select class="px-3 py-2 border border-border-default focus:border-brand-primary focus:ring-1 focus:ring-brand-primary rounded-lg text-sm bg-background-primary dark:bg-darcula-background">
+                        <option>All Status</option>
+                        <option>Active</option>
+                        <option>Inactive</option>
+                    </select>
+                {% endblock %}
+            </div>
+        </div>
+        
+        <!-- Active Filters -->
+        {% block active_filters %}
+            <div class="flex items-center space-x-2">
+                <span class="text-sm text-foreground-muted">Filters:</span>
+                <span class="filter-badge">
+                    Category: All
+                    <button class="ml-2 text-brand-600 hover:text-brand-800">×</button>
+                </span>
+                <span class="filter-badge">
+                    Status: Active
+                    <button class="ml-2 text-brand-600 hover:text-brand-800">×</button>
+                </span>
+                <button class="text-sm text-brand-primary hover:text-brand-secondary">Clear all</button>
+            </div>
+        {% endblock %}
+    </section>
+
+    <!-- View Toggle -->
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center space-x-2">
+            <span class="pagination-info">
+                {% block pagination_info %}
+                    Showing {{ items_start|default:"1" }}-{{ items_end|default:"10" }} of {{ total_items|default:"0" }} items
+                {% endblock %}
+            </span>
+        </div>
+        
+        {% block view_toggle %}
+            <div class="flex items-center space-x-1 bg-background-secondary rounded-lg p-1">
+                <button class="px-3 py-1 text-sm rounded bg-background-primary shadow-sm border border-border-default">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                    </svg>
+                </button>
+                <button class="px-3 py-1 text-sm rounded text-foreground-muted hover:text-foreground-default">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                    </svg>
+                </button>
+            </div>
+        {% endblock %}
+    </div>
+
+    <!-- List Content -->
+    <div class="space-y-4 mb-8">
+        {% block list_content %}
+            <!-- Sample list items -->
+            <div class="list-item">
+                <div class="flex items-center space-x-4">
+                    <input type="checkbox" class="w-4 h-4 text-brand-primary border-border-default rounded focus:ring-brand-primary">
+                    <div class="flex-1">
+                        <h3 class="font-medium text-foreground-default">Sample Item 1</h3>
+                        <p class="text-sm text-foreground-muted">Description of the first item</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Active
+                        </span>
+                        <button class="p-1 text-foreground-muted hover:text-foreground-default">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="list-item">
+                <div class="flex items-center space-x-4">
+                    <input type="checkbox" class="w-4 h-4 text-brand-primary border-border-default rounded focus:ring-brand-primary">
+                    <div class="flex-1">
+                        <h3 class="font-medium text-foreground-default">Sample Item 2</h3>
+                        <p class="text-sm text-foreground-muted">Description of the second item</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            Inactive
+                        </span>
+                        <button class="p-1 text-foreground-muted hover:text-foreground-default">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        {% endblock %}
+    </div>
+
+    <!-- Pagination -->
+    <nav class="flex items-center justify-between" aria-label="Pagination">
+        {% block pagination %}
+            <div class="flex-1 flex justify-between sm:hidden">
+                <a href="#" class="relative inline-flex items-center px-4 py-2 border border-border-default text-sm font-medium rounded-md text-foreground-muted bg-background-primary hover:bg-background-secondary">
+                    Previous
+                </a>
+                <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-border-default text-sm font-medium rounded-md text-foreground-muted bg-background-primary hover:bg-background-secondary">
+                    Next
+                </a>
+            </div>
+            
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <span class="pagination-info">
+                        Showing <span class="font-medium">1</span> to <span class="font-medium">10</span> of <span class="font-medium">97</span> results
+                    </span>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-border-default bg-background-primary text-sm font-medium text-foreground-muted hover:bg-background-secondary">
+                            <span class="sr-only">Previous</span>
+                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                        <a href="#" class="bg-brand-50 border-brand-500 text-brand-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">1</a>
+                        <a href="#" class="bg-background-primary border-border-default text-foreground-muted hover:bg-background-secondary relative inline-flex items-center px-4 py-2 border text-sm font-medium">2</a>
+                        <a href="#" class="bg-background-primary border-border-default text-foreground-muted hover:bg-background-secondary relative inline-flex items-center px-4 py-2 border text-sm font-medium">3</a>
+                        <span class="relative inline-flex items-center px-4 py-2 border border-border-default bg-background-primary text-sm font-medium text-foreground-muted">...</span>
+                        <a href="#" class="bg-background-primary border-border-default text-foreground-muted hover:bg-background-secondary relative inline-flex items-center px-4 py-2 border text-sm font-medium">8</a>
+                        <a href="#" class="bg-background-primary border-border-default text-foreground-muted hover:bg-background-secondary relative inline-flex items-center px-4 py-2 border text-sm font-medium">9</a>
+                        <a href="#" class="bg-background-primary border-border-default text-foreground-muted hover:bg-background-secondary relative inline-flex items-center px-4 py-2 border text-sm font-medium">10</a>
+                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-border-default bg-background-primary text-sm font-medium text-foreground-muted hover:bg-background-secondary">
+                            <span class="sr-only">Next</span>
+                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        {% endblock %}
+    </nav>
+{% endblock %}

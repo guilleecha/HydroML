@@ -1,0 +1,350 @@
+/**
+ * Wave Components CSS - Grove Platform
+ * Component-based CSS following Grove Design System
+ * Monochromatic palette with pastel accents
+ * Standard CSS (no @apply) for universal compatibility
+ */
+
+/* ==========================================================================
+   Card Components
+   ========================================================================== */
+
+.card {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 1.5rem 1.5rem 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+}
+
+.card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.card-content {
+  padding: 1.5rem;
+}
+
+/* ==========================================================================
+   Button Components
+   ========================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  text-decoration: none;
+  outline: none;
+}
+
+.btn:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.5);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: #1f2937;
+  color: #ffffff;
+  border-color: #1f2937;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #111827;
+  border-color: #111827;
+}
+
+.btn-secondary {
+  background-color: #e5e7eb;
+  color: #1f2937;
+  border-color: #d1d5db;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #d1d5db;
+  border-color: #9ca3af;
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: #4b5563;
+  border-color: transparent;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+/* ==========================================================================
+   Wave Input Components
+   ========================================================================== */
+
+.wave-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.wave-input-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.wave-input-field {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.wave-input-field:focus {
+  outline: none;
+  border-color: #9ca3af;
+  box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.2);
+}
+
+.wave-input-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.625rem;
+  pointer-events: none;
+  color: #9ca3af;
+}
+
+.wave-input-help {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* ==========================================================================
+   Wave Tab Components
+   ========================================================================== */
+
+.wave-tabs-container {
+  width: 100%;
+}
+
+.wave-tabs-list {
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+  overflow-x: auto;
+}
+
+.wave-tab {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4b5563;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.wave-tab:hover {
+  color: #111827;
+  border-bottom-color: #d1d5db;
+}
+
+.wave-tab:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.5);
+}
+
+.wave-tab.active {
+  border-bottom-color: #111827;
+  color: #111827;
+}
+
+.wave-tab-panels {
+  margin-top: 1.5rem;
+}
+
+.wave-tab-panel {
+  display: none;
+}
+
+.wave-tab-panel.active {
+  display: block;
+}
+
+/* ==========================================================================
+   Wave Table Components
+   ========================================================================== */
+
+.wave-table-container {
+  overflow-x: auto;
+}
+
+.wave-table {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-collapse: collapse;
+}
+
+.wave-table-header {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.wave-table-row {
+  border-bottom: 1px solid #e5e7eb;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.wave-table-row:hover {
+  background-color: #f9fafb;
+}
+
+.wave-table-cell {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #111827;
+}
+
+/* ==========================================================================
+   Wave Badge Components
+   ========================================================================== */
+
+.wave-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.wave-badge-default {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+.wave-badge-success {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.wave-badge-warning {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.wave-badge-error {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.wave-badge-purple {
+  background-color: #f3e8ff;
+  color: #7c3aed;
+}
+
+.wave-badge-pink {
+  background-color: #fce7f3;
+  color: #be185d;
+}
+
+.wave-badge-indigo {
+  background-color: #e0e7ff;
+  color: #3730a3;
+}
+
+.wave-badge-teal {
+  background-color: #ccfbf1;
+  color: #0f766e;
+}
+
+/* ==========================================================================
+   Layout Utilities
+   ========================================================================== */
+
+.container {
+  max-width: 80rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+.section {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .card-header {
+    padding: 1rem;
+  }
+  
+  .card-content {
+    padding: 1rem;
+  }
+  
+  .btn {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+  }
+  
+  .wave-tabs-list {
+    padding: 0 1rem;
+  }
+  
+  .wave-table-header,
+  .wave-table-cell {
+    padding: 0.5rem 0.75rem;
+  }
+}

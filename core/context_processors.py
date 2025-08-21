@@ -1,5 +1,5 @@
 """
-Context processors for HydroML core application.
+Context processors for Grove platform core application.
 Provides global template variables across all views.
 """
 
@@ -7,6 +7,7 @@ from projects.models import Project, DataSource
 from connectors.models import DatabaseConnection
 from experiments.models import MLExperiment
 from django.shortcuts import get_object_or_404
+from django.conf import settings
 import os
 
 
@@ -201,3 +202,25 @@ def navigation_counts(request):
             pass
     
     return context
+
+
+def grove_branding(request):
+    """
+    Adds Grove platform branding variables to all template contexts.
+    
+    Usage in templates:
+    - {{ SITE_NAME }} → "Grove"
+    - {{ SITE_FULL_NAME }} → "GroveLab" 
+    - {{ SITE_DESCRIPTION }} → "AI-powered machine learning platform..."
+    - {{ SITE_LOGO }} → "core/img/logos/grove_logo.svg"
+    - {{ SITE_ICON }} → "core/img/logos/grove_icon.svg"
+    - {{ ECO_CREDITS_NAME }} → "Trees"
+    """
+    return {
+        'SITE_NAME': getattr(settings, 'SITE_NAME', 'Grove'),
+        'SITE_FULL_NAME': getattr(settings, 'SITE_FULL_NAME', 'GroveLab'),
+        'SITE_DESCRIPTION': getattr(settings, 'SITE_DESCRIPTION', 'AI-powered ML platform'),
+        'SITE_LOGO': getattr(settings, 'SITE_LOGO', 'core/img/logos/grove_logo.svg'),
+        'SITE_ICON': getattr(settings, 'SITE_ICON', 'core/img/logos/grove_icon.svg'),
+        'ECO_CREDITS_NAME': getattr(settings, 'ECO_CREDITS_NAME', 'Trees'),
+    }

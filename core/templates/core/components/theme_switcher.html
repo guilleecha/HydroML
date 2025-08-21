@@ -1,0 +1,446 @@
+{% load static %}
+{# 
+  HydroML Advanced Theme Switcher Component
+  Comprehensive theme switching interface with preview and customization
+#}
+
+<div x-data="themeController" 
+     class="theme-switcher-container relative">
+  
+  <!-- Theme Toggle Button -->
+  <div class="theme-switcher-wrapper" data-theme-dropdown>
+    
+    <!-- Quick Toggle Button -->
+    <button @click="toggleTheme()" 
+            :disabled="isTransitioning"
+            class="theme-toggle-btn"
+            :class="{ 'transitioning': isTransitioning }"
+            title="Toggle theme (Ctrl+Shift+T)"
+            aria-label="Toggle theme">
+      
+      <!-- Theme Icon -->
+      <span class="theme-icon" x-text="getThemeIcon(currentTheme)"></span>
+      
+      <!-- Loading Spinner -->
+      <div x-show="isTransitioning" 
+           class="theme-spinner">
+        <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </div>
+    </button>
+
+    <!-- Dropdown Toggle -->
+    <button @click="dropdownOpen = !dropdownOpen"
+            class="theme-dropdown-toggle"
+            :class="{ 'active': dropdownOpen }"
+            aria-label="Open theme options"
+            title="Theme options">
+      <svg class="w-4 h-4 transition-transform" 
+           :class="{ 'rotate-180': dropdownOpen }" 
+           fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Theme Dropdown Menu -->
+  <div x-show="dropdownOpen"
+       x-transition:enter="transition ease-out duration-200"
+       x-transition:enter-start="opacity-0 scale-95"
+       x-transition:enter-end="opacity-100 scale-100"
+       x-transition:leave="transition ease-in duration-150" 
+       x-transition:leave-start="opacity-100 scale-100"
+       x-transition:leave-end="opacity-0 scale-95"
+       @click.away="dropdownOpen = false"
+       class="theme-dropdown-menu">
+    
+    <!-- Preview Mode Banner -->
+    <div x-show="isPreviewMode" 
+         class="theme-preview-banner">
+      <div class="flex items-center justify-between">
+        <span class="text-sm font-medium">Preview Mode</span>
+        <div class="flex gap-2">
+          <button @click="applyPreview()" 
+                  class="preview-apply-btn">
+            Apply
+          </button>
+          <button @click="cancelPreview()" 
+                  class="preview-cancel-btn">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Theme Options -->
+    <div class="theme-options">
+      <template x-for="theme in availableThemes" :key="theme.value">
+        <div class="theme-option"
+             :class="{ 
+               'current': theme.current && !isPreviewMode,
+               'preview': isPreviewMode 
+             }">
+          
+          <!-- Theme Preview/Select Button -->
+          <button @click="setTheme(theme.value)"
+                  @mouseenter="previewTheme(theme.value)"
+                  @mouseleave="!isPreviewMode && cancelPreview()"
+                  class="theme-option-btn"
+                  :class="{ 'selected': theme.current }"
+                  :aria-pressed="theme.current">
+            
+            <div class="theme-option-content">
+              <!-- Icon and Name -->
+              <div class="theme-option-header">
+                <span class="theme-option-icon" x-text="theme.icon"></span>
+                <span class="theme-option-name" x-text="theme.name"></span>
+              </div>
+              
+              <!-- Description -->
+              <p class="theme-option-description" x-text="theme.description"></p>
+              
+              <!-- Current Indicator -->
+              <div x-show="theme.current" class="theme-current-indicator">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                </svg>
+              </div>
+            </div>
+          </button>
+        </div>
+      </template>
+    </div>
+
+    <!-- Divider -->
+    <div class="theme-dropdown-divider"></div>
+
+    <!-- Advanced Options -->
+    <div class="theme-advanced-options">
+      
+      <!-- System Preference Toggle -->
+      <label class="theme-option-toggle">
+        <input type="checkbox" 
+               x-model="autoFollowSystem"
+               @change="toggleAutoFollowSystem()"
+               class="theme-checkbox">
+        <span class="theme-toggle-label">Follow system preference</span>
+      </label>
+
+      <!-- Customizer Button -->
+      <button @click="openCustomizer()" 
+              class="theme-action-btn">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
+        </svg>
+        Customize themes
+      </button>
+
+      <!-- Export/Import -->
+      <div class="theme-import-export">
+        <button @click="exportConfiguration()" 
+                class="theme-action-btn">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          Export config
+        </button>
+        
+        <label class="theme-action-btn">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+          </svg>
+          Import config
+          <input type="file" 
+                 accept=".json"
+                 @change="importConfiguration($event)"
+                 class="hidden">
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theme Customizer Modal -->
+  <div x-show="customizerOpen"
+       x-transition:enter="transition ease-out duration-300"
+       x-transition:enter-start="opacity-0"
+       x-transition:enter-end="opacity-100"
+       x-transition:leave="transition ease-in duration-200"
+       x-transition:leave-start="opacity-100"
+       x-transition:leave-end="opacity-0"
+       class="theme-customizer-overlay"
+       @click="closeCustomizer()">
+    
+    <div @click.stop 
+         class="theme-customizer-modal"
+         data-theme-customizer>
+      
+      <!-- Customizer Header -->
+      <div class="theme-customizer-header">
+        <h3 class="theme-customizer-title">Theme Customization</h3>
+        <button @click="closeCustomizer()" 
+                class="theme-customizer-close">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Customizer Content -->
+      <div class="theme-customizer-content">
+        <p class="text-sm text-foreground-muted mb-4">
+          Customize theme colors and appearance. Changes apply to the current theme.
+        </p>
+        
+        <!-- Color Customizations -->
+        <div class="theme-customizer-section">
+          <h4 class="theme-customizer-section-title">Colors</h4>
+          
+          <div class="theme-color-grid">
+            <!-- Primary Color -->
+            <div class="theme-color-item">
+              <label class="theme-color-label">Primary</label>
+              <input type="color" 
+                     x-model="tempCustomizations.colorPrimary"
+                     class="theme-color-input">
+            </div>
+            
+            <!-- Background Color -->
+            <div class="theme-color-item">
+              <label class="theme-color-label">Background</label>
+              <input type="color" 
+                     x-model="tempCustomizations.colorBackground"
+                     class="theme-color-input">
+            </div>
+            
+            <!-- Text Color -->
+            <div class="theme-color-item">
+              <label class="theme-color-label">Text</label>
+              <input type="color" 
+                     x-model="tempCustomizations.colorText"
+                     class="theme-color-input">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Customizer Actions -->
+      <div class="theme-customizer-actions">
+        <button @click="resetCustomizations()" 
+                class="theme-customizer-btn theme-customizer-btn-secondary">
+          Reset to defaults
+        </button>
+        <div class="flex gap-2">
+          <button @click="closeCustomizer()" 
+                  class="theme-customizer-btn theme-customizer-btn-secondary">
+            Cancel
+          </button>
+          <button @click="applyCustomizations()" 
+                  class="theme-customizer-btn theme-customizer-btn-primary">
+            Apply changes
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Theme Switcher Styles -->
+<style>
+  .theme-switcher-container {
+    @apply relative inline-flex;
+  }
+
+  .theme-switcher-wrapper {
+    @apply flex items-center bg-background-secondary border border-border-default rounded-lg overflow-hidden;
+  }
+
+  .theme-toggle-btn {
+    @apply flex items-center justify-center w-10 h-10 
+           text-foreground-default hover:bg-background-tertiary 
+           transition-colors duration-200 relative;
+  }
+
+  .theme-toggle-btn.transitioning {
+    @apply pointer-events-none;
+  }
+
+  .theme-icon {
+    @apply text-lg;
+  }
+
+  .theme-spinner {
+    @apply absolute inset-0 flex items-center justify-center;
+  }
+
+  .theme-dropdown-toggle {
+    @apply flex items-center justify-center w-8 h-10 
+           text-foreground-muted hover:text-foreground-default 
+           hover:bg-background-tertiary transition-colors duration-200;
+  }
+
+  .theme-dropdown-menu {
+    @apply absolute top-full right-0 mt-2 w-80 
+           bg-background-primary border border-border-default 
+           rounded-lg shadow-lg z-50 overflow-hidden;
+  }
+
+  .theme-preview-banner {
+    @apply bg-brand-primary text-white px-4 py-3;
+  }
+
+  .preview-apply-btn {
+    @apply px-3 py-1 bg-white/20 hover:bg-white/30 
+           rounded text-sm transition-colors;
+  }
+
+  .preview-cancel-btn {
+    @apply px-3 py-1 bg-transparent hover:bg-white/10 
+           rounded text-sm transition-colors;
+  }
+
+  .theme-options {
+    @apply p-2;
+  }
+
+  .theme-option {
+    @apply mb-1 last:mb-0;
+  }
+
+  .theme-option-btn {
+    @apply w-full p-3 text-left rounded-lg 
+           hover:bg-background-secondary transition-colors 
+           border-2 border-transparent;
+  }
+
+  .theme-option-btn.selected {
+    @apply border-brand-primary bg-background-secondary;
+  }
+
+  .theme-option-content {
+    @apply relative;
+  }
+
+  .theme-option-header {
+    @apply flex items-center gap-2 mb-1;
+  }
+
+  .theme-option-icon {
+    @apply text-lg;
+  }
+
+  .theme-option-name {
+    @apply font-medium text-foreground-default;
+  }
+
+  .theme-option-description {
+    @apply text-sm text-foreground-muted;
+  }
+
+  .theme-current-indicator {
+    @apply absolute top-0 right-0 text-brand-primary;
+  }
+
+  .theme-dropdown-divider {
+    @apply border-t border-border-default;
+  }
+
+  .theme-advanced-options {
+    @apply p-3 space-y-3;
+  }
+
+  .theme-option-toggle {
+    @apply flex items-center gap-2 cursor-pointer;
+  }
+
+  .theme-checkbox {
+    @apply rounded border-border-default;
+  }
+
+  .theme-toggle-label {
+    @apply text-sm text-foreground-default;
+  }
+
+  .theme-action-btn {
+    @apply flex items-center gap-2 w-full px-3 py-2 
+           text-sm text-foreground-default 
+           hover:bg-background-secondary rounded-lg 
+           transition-colors cursor-pointer;
+  }
+
+  .theme-import-export {
+    @apply flex gap-2;
+  }
+
+  .theme-customizer-overlay {
+    @apply fixed inset-0 bg-black/50 flex items-center justify-center z-50;
+  }
+
+  .theme-customizer-modal {
+    @apply bg-background-primary rounded-lg shadow-xl 
+           w-full max-w-md mx-4 max-h-[80vh] overflow-hidden;
+  }
+
+  .theme-customizer-header {
+    @apply flex items-center justify-between p-4 
+           border-b border-border-default;
+  }
+
+  .theme-customizer-title {
+    @apply text-lg font-semibold text-foreground-default;
+  }
+
+  .theme-customizer-close {
+    @apply text-foreground-muted hover:text-foreground-default;
+  }
+
+  .theme-customizer-content {
+    @apply p-4 overflow-y-auto;
+  }
+
+  .theme-customizer-section {
+    @apply mb-4;
+  }
+
+  .theme-customizer-section-title {
+    @apply font-medium text-foreground-default mb-2;
+  }
+
+  .theme-color-grid {
+    @apply grid grid-cols-3 gap-3;
+  }
+
+  .theme-color-item {
+    @apply space-y-1;
+  }
+
+  .theme-color-label {
+    @apply text-sm text-foreground-muted;
+  }
+
+  .theme-color-input {
+    @apply w-full h-8 rounded border border-border-default 
+           cursor-pointer;
+  }
+
+  .theme-customizer-actions {
+    @apply flex items-center justify-between p-4 
+           border-t border-border-default;
+  }
+
+  .theme-customizer-btn {
+    @apply px-4 py-2 rounded-lg text-sm font-medium 
+           transition-colors;
+  }
+
+  .theme-customizer-btn-primary {
+    @apply bg-brand-primary text-white 
+           hover:bg-brand-primary-hover;
+  }
+
+  .theme-customizer-btn-secondary {
+    @apply bg-background-secondary text-foreground-default 
+           hover:bg-background-tertiary;
+  }
+</style>

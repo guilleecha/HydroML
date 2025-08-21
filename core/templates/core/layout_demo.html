@@ -1,0 +1,357 @@
+{% extends 'core/layouts/base_layout.html' %}
+{% load static %}
+
+{% block title %}Layout System Demo - HydroML{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'core/css/layouts/grid-system.css' %}">
+    <style>
+        .demo-section {
+            background: var(--color-background-secondary);
+            border: 2px dashed var(--color-border-secondary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            margin: var(--space-6) 0;
+        }
+        
+        .demo-section h3 {
+            margin-top: 0;
+            color: var(--color-brand-primary);
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .layout-preview {
+            background: var(--color-background-primary);
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-md);
+            padding: var(--space-4);
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-foreground-muted);
+            font-style: italic;
+            margin: var(--space-4) 0;
+        }
+        
+        .layout-links {
+            display: flex;
+            gap: var(--space-3);
+            flex-wrap: wrap;
+        }
+        
+        .layout-link {
+            display: inline-flex;
+            align-items: center;
+            padding: var(--space-2) var(--space-4);
+            background: var(--color-brand-primary);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .layout-link:hover {
+            background: var(--color-brand-secondary);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .layout-link svg {
+            margin-right: var(--space-2);
+            width: 1rem;
+            height: 1rem;
+        }
+        
+        .grid-demo {
+            background: var(--color-background-tertiary);
+            border: 1px solid var(--color-border-muted);
+            border-radius: var(--radius-sm);
+            padding: var(--space-3);
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--color-foreground-muted);
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .responsive-demo {
+            display: grid;
+            gap: var(--space-4);
+            margin: var(--space-4) 0;
+        }
+        
+        @media (min-width: 640px) {
+            .responsive-demo {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .responsive-demo {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block page_heading %}{% endblock %}
+
+{% block page_description %}
+    <p class="text-foreground-muted mt-2">
+        Explore the HydroML Layout Patterns and Template System with responsive design patterns and theme integration.
+    </p>
+{% endblock %}
+
+{% block page_actions %}
+    <div class="flex items-center space-x-3">
+        <a href="{% url 'core:component_demo' %}" class="px-4 py-2 text-sm font-medium text-foreground-muted hover:text-foreground-default border border-border-default hover:border-border-focus rounded-lg transition-colors">
+            Component Demo
+        </a>
+        <a href="{% url 'core:theme_test' %}" class="px-4 py-2 text-sm font-medium text-white bg-brand-primary hover:bg-brand-secondary rounded-lg transition-colors">
+            Theme Test
+        </a>
+    </div>
+{% endblock %}
+
+{% block main_content %}
+    <!-- Layout System Overview -->
+    <div class="demo-section">
+        <h3>🏗️ Layout System Overview</h3>
+        <p class="mb-4">
+            The HydroML Layout System provides standardized page layouts and responsive design patterns 
+            for consistent UI/UX across the platform. Each layout is theme-aware and optimized for different content types.
+        </p>
+        
+        <div class="layout-links">
+            <a href="#dashboard-layout" class="layout-link">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                </svg>
+                Dashboard Layout
+            </a>
+            <a href="#list-layout" class="layout-link">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                </svg>
+                List Layout
+            </a>
+            <a href="#form-layout" class="layout-link">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Form Layout
+            </a>
+            <a href="#grid-system" class="layout-link">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+                </svg>
+                Grid System
+            </a>
+        </div>
+    </div>
+
+    <!-- Dashboard Layout Demo -->
+    <section id="dashboard-layout" class="demo-section">
+        <h3>📊 Dashboard Layout</h3>
+        <p class="mb-4">
+            Optimized for dashboard pages with metrics, cards, and data visualization. 
+            Features full-width header, grid-based content area, and responsive design.
+        </p>
+        
+        <div class="layout-preview">
+            <div class="text-center">
+                <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                <p>Dashboard layout would render here with metrics cards, charts, and activity feeds</p>
+            </div>
+        </div>
+        
+        <div class="layout-links">
+            <a href="/dashboard/" class="layout-link">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
+                View Live Dashboard
+            </a>
+        </div>
+    </section>
+
+    <!-- List Layout Demo -->
+    <section id="list-layout" class="demo-section">
+        <h3>📋 List Layout</h3>
+        <p class="mb-4">
+            Optimized for list/table views with filtering, searching, and pagination. 
+            Features search bar, filter controls, and responsive table/card views.
+        </p>
+        
+        <div class="layout-preview">
+            <div class="text-center">
+                <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                </svg>
+                <p>List layout would render here with search bar, filters, table/cards, and pagination</p>
+            </div>
+        </div>
+        
+        <div class="layout-links">
+            <a href="/projects/" class="layout-link">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
+                View Projects List
+            </a>
+            <a href="/experiments/public/" class="layout-link">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
+                View Experiments List
+            </a>
+        </div>
+    </section>
+
+    <!-- Form Layout Demo -->
+    <section id="form-layout" class="demo-section">
+        <h3>📝 Form Layout</h3>
+        <p class="mb-4">
+            Optimized for form pages with validation, multi-step forms, and responsive design. 
+            Features form sections, validation feedback, and progress indicators.
+        </p>
+        
+        <div class="layout-preview">
+            <div class="text-center">
+                <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <p>Form layout would render here with form sections, validation, and submit controls</p>
+            </div>
+        </div>
+        
+        <div class="layout-links">
+            <a href="/projects/create/" class="layout-link">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Create Project Form
+            </a>
+        </div>
+    </section>
+
+    <!-- Grid System Demo -->
+    <section id="grid-system" class="demo-section">
+        <h3>🎯 Responsive Grid System</h3>
+        <p class="mb-4">
+            Mobile-first responsive grid system with consistent breakpoints and flexible layouts. 
+            Based on CSS Grid with 12-column system and auto-fit capabilities.
+        </p>
+        
+        <!-- Grid Examples -->
+        <div class="space-y-6">
+            <!-- 12 Column Grid -->
+            <div>
+                <h4 class="font-medium mb-3">12-Column Grid System</h4>
+                <div class="grid grid-cols-12 gap-4">
+                    <div class="col-span-12 grid-demo">col-span-12</div>
+                    <div class="col-span-6 grid-demo">col-span-6</div>
+                    <div class="col-span-6 grid-demo">col-span-6</div>
+                    <div class="col-span-4 grid-demo">col-span-4</div>
+                    <div class="col-span-4 grid-demo">col-span-4</div>
+                    <div class="col-span-4 grid-demo">col-span-4</div>
+                    <div class="col-span-3 grid-demo">col-span-3</div>
+                    <div class="col-span-3 grid-demo">col-span-3</div>
+                    <div class="col-span-3 grid-demo">col-span-3</div>
+                    <div class="col-span-3 grid-demo">col-span-3</div>
+                </div>
+            </div>
+            
+            <!-- Responsive Grid -->
+            <div>
+                <h4 class="font-medium mb-3">Responsive Grid (1 → 2 → 4 columns)</h4>
+                <div class="responsive-demo">
+                    <div class="grid-demo">Item 1</div>
+                    <div class="grid-demo">Item 2</div>
+                    <div class="grid-demo">Item 3</div>
+                    <div class="grid-demo">Item 4</div>
+                </div>
+            </div>
+            
+            <!-- Auto-fit Grid -->
+            <div>
+                <h4 class="font-medium mb-3">Auto-fit Grid (min 250px)</h4>
+                <div class="grid grid-auto-fit gap-4">
+                    <div class="grid-demo">Auto-fit 1</div>
+                    <div class="grid-demo">Auto-fit 2</div>
+                    <div class="grid-demo">Auto-fit 3</div>
+                    <div class="grid-demo">Auto-fit 4</div>
+                    <div class="grid-demo">Auto-fit 5</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Container System Demo -->
+    <section class="demo-section">
+        <h3>📦 Container System</h3>
+        <p class="mb-4">
+            Responsive container system with max-width constraints and consistent padding. 
+            Automatically adapts to different screen sizes with proper spacing.
+        </p>
+        
+        <div class="space-y-4">
+            <div class="container-sm bg-background-tertiary border border-border-muted rounded-lg p-4 text-center">
+                <code>container-sm</code> (max-width: 640px)
+            </div>
+            <div class="container-md bg-background-tertiary border border-border-muted rounded-lg p-4 text-center">
+                <code>container-md</code> (max-width: 768px)
+            </div>
+            <div class="container-lg bg-background-tertiary border border-border-muted rounded-lg p-4 text-center">
+                <code>container-lg</code> (max-width: 1024px)
+            </div>
+            <div class="container-xl bg-background-tertiary border border-border-muted rounded-lg p-4 text-center">
+                <code>container-xl</code> (max-width: 1280px)
+            </div>
+        </div>
+    </section>
+
+    <!-- Implementation Guide -->
+    <section class="demo-section">
+        <h3>🛠️ Implementation Guide</h3>
+        <p class="mb-4">
+            To use the layout system in your templates, extend the appropriate layout template 
+            and override the necessary blocks.
+        </p>
+        
+        <div class="bg-background-primary border border-border-default rounded-lg p-4">
+            <h4 class="font-medium mb-3">Example Usage:</h4>
+            <pre class="text-sm text-foreground-muted overflow-x-auto"><code>{% verbatim %}{% extends 'core/layouts/dashboard_layout.html' %}
+
+{% block dashboard_title %}My Custom Dashboard{% endblock %}
+
+{% block metrics %}
+    <!-- Custom metrics cards -->
+{% endblock %}
+
+{% block primary_content %}
+    <!-- Main dashboard content -->
+{% endblock %}{% endverbatim %}</code></pre>
+        </div>
+        
+        <div class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <h4 class="font-medium text-blue-900 dark:text-blue-200 mb-2">🎯 Layout Features:</h4>
+            <ul class="text-sm text-blue-800 dark:text-blue-300 space-y-1">
+                <li>• Responsive design with mobile-first approach</li>
+                <li>• Theme-aware styling with dark mode support</li>
+                <li>• Accessibility features (skip links, ARIA labels)</li>
+                <li>• Consistent navigation and header patterns</li>
+                <li>• Built-in notification and modal systems</li>
+                <li>• Performance optimized with proper asset loading</li>
+            </ul>
+        </div>
+    </section>
+{% endblock %}

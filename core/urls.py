@@ -35,4 +35,19 @@ urlpatterns = [
     # path('api/notifications/count/', views.get_unread_count, name='notifications_count'),
     # Sentry test endpoint (deliberate error)
     path('__sentry_test__/', sentry_test_error, name='sentry_test_error'),
+    
+    # Theme testing page
+    path('theme-test/', dashboard_views.ThemeTestView.as_view(), name='theme_test'),
+    
+    # Component system demo
+    path('component-demo/', dashboard_views.ComponentDemoView.as_view(), name='component_demo'),
+    
+    # Layout system demo
+    path('layout-demo/', dashboard_views.LayoutDemoView.as_view(), name='layout_demo'),
+    
+    # Theme configuration system demo
+    path('theme-demo/', dashboard_views.ThemeDemoView.as_view(), name='theme_demo'),
+    
+    # Grove components library demo
+    path('grove-demo/', dashboard_views.GroveDemoView.as_view(), name='grove_demo'),
 ]

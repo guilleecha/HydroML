@@ -137,3 +137,98 @@ class DataSourcesListView(LoginRequiredMixin, TemplateView):
         })
         
         return context
+
+
+class ThemeTestView(TemplateView):
+    """
+    Theme testing and demonstration page for the HydroML design token system.
+    Shows all available themes and design token variations.
+    """
+    template_name = 'core/theme_test.html'
+
+
+class ComponentDemoView(TemplateView):
+    """
+    Component system demonstration page showing the HydroML component architecture.
+    Demonstrates BaseComponent, FormComponent, DataComponent, and ComponentRegistry.
+    """
+    template_name = 'core/component_demo.html'
+
+
+class LayoutDemoView(TemplateView):
+    """
+    Layout system demonstration page showing the HydroML layout patterns.
+    Demonstrates dashboard, list, form, and detail layout templates.
+    """
+    template_name = 'core/layout_demo.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Sample data for layout demos
+        context.update({
+            'page_title': 'Layout System Demo',
+            'total_projects': 12,
+            'active_experiments': 8,
+            'data_sources': 15,
+            'model_accuracy': '94.2%',
+            'items_start': 1,
+            'items_end': 10,
+            'total_items': 97,
+        })
+        
+        return context
+
+
+class ThemeDemoView(TemplateView):
+    """
+    Demonstration of the HydroML Runtime Theme Configuration System
+    """
+    template_name = 'core/theme_demo.html'
+
+
+class GroveDemoView(TemplateView):
+    """
+    Demonstration of the Grove Component Library
+    """
+    template_name = 'core/grove_demo.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Add Wave component demonstration data
+        context.update({
+            'page_title': 'Wave Components Demo',
+            'component_categories': [
+                {
+                    'name': 'Form Components',
+                    'components': ['WaveInput', 'WaveButton', 'WaveSelect', 'WaveCheckbox', 'WaveRadio', 'WaveTextarea', 'WaveToggle']
+                },
+                {
+                    'name': 'Data Display',
+                    'components': ['WaveTable', 'WaveCard', 'WaveList', 'WaveStats', 'WaveBadge', 'WaveProgress']
+                },
+                {
+                    'name': 'Navigation',
+                    'components': ['WaveTabs', 'WaveBreadcrumbs', 'WavePagination', 'WaveMenu', 'WaveSidebar']
+                },
+                {
+                    'name': 'Feedback',
+                    'components': ['WaveModal', 'WaveToast', 'WaveAlert', 'WaveLoader', 'WaveSpinner']
+                },
+                {
+                    'name': 'Interactive',
+                    'components': ['WaveDropdown', 'WaveTooltip', 'WaveAccordion', 'WaveDrawer']
+                }
+            ],
+            'design_principles': [
+                'Monochromatic color palette (whites, blacks, grays)',
+                'Pastel accent colors for tags and classifications',
+                'Professional enterprise appearance',
+                'Accessibility-first design approach',
+                'Smooth animations and transitions',
+                'Theme system integration'
+            ]
+        })
+        
+        return context

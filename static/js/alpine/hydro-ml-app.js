@@ -11,6 +11,7 @@ document.addEventListener('alpine:init', () => {
         
         // UI state management
         sidebarOpen: false,
+        mobileMenuOpen: false,
         isUploadPanelOpen: false,
         isProjectPanelOpen: false,
         isNewExperimentPanelOpen: false,

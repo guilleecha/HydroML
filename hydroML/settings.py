@@ -86,6 +86,14 @@ DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
+# Grove Platform Branding Configuration
+SITE_NAME = os.getenv("SITE_NAME", "Grove")
+SITE_FULL_NAME = os.getenv("SITE_FULL_NAME", "GroveLab")
+SITE_DESCRIPTION = os.getenv("SITE_DESCRIPTION", "AI-powered machine learning platform with environmental impact")
+SITE_LOGO = "core/img/logos/grove_logo.svg"
+SITE_ICON = "core/img/logos/grove_icon.svg"
+ECO_CREDITS_NAME = os.getenv("ECO_CREDITS_NAME", "Trees")
+
 
 # Application definition
 
@@ -150,6 +158,8 @@ TEMPLATES = [
                 'core.context_processors.breadcrumb_context',
                 'core.context_processors.navigation_counts',
                 'core.context_processors.sentry_dsn',
+                # Grove platform branding
+                'core.context_processors.grove_branding',
             ],
         },
     },
