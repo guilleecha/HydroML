@@ -1,0 +1,407 @@
+{% load static %}
+{% load tailwind_filters %}
+
+<!-- Step 5: Training Setup -->
+<div class="space-y-6">
+    <!-- Validation Strategy -->
+    <div x-data="validationStrategy()" x-init="init()">
+        <label class="block text-sm font-medium text-gray-900 dark:text-darcula-foreground mb-3">
+            Estrategia de Validación <span class="text-red-500">*</span>
+        </label>
+        
+        <!-- Strategy Selection -->
+        <div class="space-y-3">
+            <template x-for="strategy in availableStrategies" :key="strategy.value">
+                <label class="flex items-start p-4 border border-gray-200 dark:border-darcula-border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-darcula-background-lighter transition-colors"
+                       :class="{ 'border-blue-500 bg-blue-50 dark:border-darcula-accent dark:bg-darcula-accent/10': formData.split_strategy === strategy.value }">
+                    <input type="radio" 
+                           name="split_strategy" 
+                           :value="strategy.value" 
+                           x-model="formData.split_strategy"
+                           @change="onStrategyChange"
+                           class="mt-1 text-blue-600 dark:text-darcula-accent focus:ring-blue-500 dark:focus:ring-darcula-accent border-gray-300 dark:border-darcula-border">
+                    <div class="ml-3 flex-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-medium text-gray-900 dark:text-darcula-foreground" x-text="strategy.name"></span>
+                            <span x-show="strategy.recommended" 
+                                  class="text-xs bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 px-2 py-1 rounded-full">
+                                Recomendado
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-600 dark:text-darcula-foreground-muted mt-1" x-text="strategy.description"></p>
+                        <div class="mt-2 flex items-center space-x-4 text-xs text-gray-500 dark:text-darcula-foreground-muted">
+                            <span x-text="'Precisión: ' + strategy.accuracy"></span>
+                            <span x-text="'Tiempo: ' + strategy.time"></span>
+                            <span x-text="'Complejidad: ' + strategy.complexity"></span>
+                        </div>
+                    </div>
+                </label>
+            </template>
+        </div>
+    </div>
+    
+    <!-- Test Split Configuration -->
+    <div x-data="testSplitConfig()" x-init="init()">
+        <div x-show="formData.split_strategy === 'random' || formData.split_strategy === 'stratified'">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-darcula-foreground mb-3">Configuración de División</h3>
+            
+            <!-- Test Split Size Slider -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-900 dark:text-darcula-foreground mb-2">
+                    Tamaño del Conjunto de Prueba: 
+                    <span x-text="Math.round(formData.test_split_size * 100) + '%'" class="font-semibold text-blue-600 dark:text-blue-400"></span>
+                </label>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-500 dark:text-darcula-foreground-muted">10%</span>
+                    <input type="range" 
+                           x-model="formData.test_split_size"
+                           min="0.1" max="0.4" step="0.05"
+                           class="flex-1 h-2 bg-gray-200 dark:bg-darcula-background-lighter rounded-lg appearance-none cursor-pointer">
+                    <span class="text-sm text-gray-500 dark:text-darcula-foreground-muted">40%</span>
+                </div>
+                <div class="mt-2 text-xs text-gray-500 dark:text-darcula-foreground-muted">
+                    <span x-text="getDatasetSplitSummary()"></span>
+                </div>
+            </div>
+            
+            <!-- Random State -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-900 dark:text-darcula-foreground mb-2">
+                    Semilla Aleatoria
+                </label>
+                <div class="flex items-center space-x-3">
+                    <input type="number" 
+                           x-model="formData.split_random_state"
+                           min="1" max="10000"
+                           class="w-24 border-gray-300 dark:border-darcula-border bg-white dark:bg-darcula-background text-gray-900 dark:text-darcula-foreground rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-darcula-accent dark:focus:border-darcula-accent">
+                    <button type="button" 
+                            @click="generateRandomState()"
+                            class="px-3 py-2 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
+                        Generar nueva
+                    </button>
+                </div>
+                <p class="mt-1 text-xs text-gray-500 dark:text-darcula-foreground-muted">
+                    Para reproducibilidad de resultados
+                </p>
+            </div>
+        </div>
+        
+        <!-- Cross-Validation Configuration -->
+        <div x-show="formData.split_strategy === 'cross_validation'">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-darcula-foreground mb-3">Configuración de Validación Cruzada</h3>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-900 dark:text-darcula-foreground mb-2">
+                    Número de Folds: <span x-text="cvFolds" class="font-semibold text-blue-600 dark:text-blue-400"></span>
+                </label>
+                <input type="range" 
+                       x-model="cvFolds"
+                       min="3" max="10" step="1"
+                       class="w-full h-2 bg-gray-200 dark:bg-darcula-background-lighter rounded-lg appearance-none cursor-pointer">
+                <div class="flex justify-between text-xs text-gray-500 dark:text-darcula-foreground-muted mt-1">
+                    <span>3 folds</span>
+                    <span>10 folds</span>
+                </div>
+                <p class="mt-1 text-xs text-gray-500 dark:text-darcula-foreground-muted">
+                    Más folds = estimación más robusta pero más tiempo de entrenamiento
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Experiment Summary -->
+    <div class="bg-gray-50 dark:bg-darcula-background-lighter border border-gray-200 dark:border-darcula-border rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 dark:text-darcula-foreground mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+            </svg>
+            Resumen del Experimento
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Left Column -->
+            <div class="space-y-3">
+                <div class="flex justify-between">
+                    <span class="text-sm font-medium text-gray-600 dark:text-darcula-foreground-muted">Nombre:</span>
+                    <span class="text-sm text-gray-900 dark:text-darcula-foreground" x-text="formData.name || 'Sin nombre'"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-sm font-medium text-gray-600 dark:text-darcula-foreground-muted">Workspace:</span>
+                    <span class="text-sm text-gray-900 dark:text-darcula-foreground" x-text="getWorkspaceName()"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-sm font-medium text-gray-600 dark:text-darcula-foreground-muted">Dataset:</span>
+                    <span class="text-sm text-gray-900 dark:text-darcula-foreground" x-text="getDatasetName()"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-sm font-medium text-gray-600 dark:text-darcula-foreground-muted">Variable objetivo:</span>
+                    <span class="text-sm text-gray-900 dark:text-darcula-foreground" x-text="formData.target_column || 'No seleccionada'"></span>
+                </div>
+            </div>
+            
+            <!-- Right Column -->
+            <div class="space-y-3">
+                <div class="flex justify-between">
+                    <span class="text-sm font-medium text-gray-600 dark:text-darcula-foreground-muted">Variables predictoras:</span>
+                    <span class="text-sm text-gray-900 dark:text-darcula-foreground" x-text="(formData.feature_set || []).length + ' seleccionadas'"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-sm font-medium text-gray-600 dark:text-darcula-foreground-muted">Algoritmo:</span>
+                    <span class="text-sm text-gray-900 dark:text-darcula-foreground" x-text="getModelName()"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-sm font-medium text-gray-600 dark:text-darcula-foreground-muted">Validación:</span>
+                    <span class="text-sm text-gray-900 dark:text-darcula-foreground" x-text="getValidationStrategy()"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-sm font-medium text-gray-600 dark:text-darcula-foreground-muted">Tiempo estimado:</span>
+                    <span class="text-sm text-gray-900 dark:text-darcula-foreground" x-text="getEstimatedTime()"></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Progress Check -->
+        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-darcula-border">
+            <div class="flex items-center justify-between">
+                <span class="text-sm font-medium text-gray-600 dark:text-darcula-foreground-muted">Configuración completa:</span>
+                <div class="flex items-center space-x-2">
+                    <div class="w-full bg-gray-200 dark:bg-darcula-background rounded-full h-2 w-32">
+                        <div class="bg-green-500 h-2 rounded-full transition-all duration-300" 
+                             :style="`width: ${getCompletionPercentage()}%`"></div>
+                    </div>
+                    <span class="text-sm font-medium text-green-600 dark:text-green-400" x-text="getCompletionPercentage() + '%'"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Final Validation Messages -->
+    <div x-show="getCompletionPercentage() === 100" 
+         class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg p-4">
+        <div class="flex items-center">
+            <svg class="w-5 h-5 text-green-600 dark:text-green-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+            </svg>
+            <div>
+                <p class="text-sm font-medium text-green-800 dark:text-green-200">
+                    ✅ ¡Configuración completa! Tu experimento está listo para ejecutarse.
+                </p>
+                <p class="text-xs text-green-700 dark:text-green-300 mt-1">
+                    Haz clic en "Crear Experimento" para comenzar el entrenamiento.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Warnings or Issues -->
+    <div x-show="getValidationWarnings().length > 0" 
+         class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
+        <div class="flex items-start">
+            <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+            </svg>
+            <div>
+                <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200 mb-1">
+                    ⚠️ Advertencias de configuración:
+                </p>
+                <ul class="text-xs text-yellow-700 dark:text-yellow-300 space-y-1">
+                    <template x-for="warning in getValidationWarnings()" :key="warning">
+                        <li x-text="warning"></li>
+                    </template>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Training Tips -->
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+        <div class="flex items-start">
+            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM9 9a1 1 0 0 0 0 2v3a1 1 0 0 0 1 1h1a1 1 0 1 0 0-2v-3a1 1 0 0 0-1-1H9z" clip-rule="evenodd"></path>
+            </svg>
+            <div>
+                <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">🚀 Consejos para el entrenamiento:</h4>
+                <ul class="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                    <li>• El experimento se ejecutará en segundo plano, puedes seguir trabajando</li>
+                    <li>• Recibirás una notificación cuando el entrenamiento termine</li>
+                    <li>• Los resultados incluirán métricas de performance y visualizaciones</li>
+                    <li>• Podrás comparar este experimento con otros en tu workspace</li>
+                    <li>• Si no estás satisfecho con los resultados, puedes crear variaciones</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Validation Strategy Component
+function validationStrategy() {
+    return {
+        availableStrategies: [
+            {
+                value: 'random',
+                name: 'División Aleatoria',
+                description: 'Divide los datos aleatoriamente en entrenamiento y prueba. Rápido y simple.',
+                accuracy: 'Buena',
+                time: 'Rápido',
+                complexity: 'Simple',
+                recommended: true
+            },
+            {
+                value: 'stratified',
+                name: 'División Estratificada',
+                description: 'Mantiene la proporción de clases en entrenamiento y prueba. Ideal para clasificación.',
+                accuracy: 'Muy buena',
+                time: 'Rápido',
+                complexity: 'Simple',
+                recommended: false
+            },
+            {
+                value: 'cross_validation',
+                name: 'Validación Cruzada',
+                description: 'Entrena múltiples modelos para obtener una estimación más robusta. Más lento pero más confiable.',
+                accuracy: 'Excelente',
+                time: 'Lento',
+                complexity: 'Moderado',
+                recommended: false
+            },
+            {
+                value: 'time_series',
+                name: 'División Temporal',
+                description: 'Para datos de series de tiempo. Respeta el orden cronológico.',
+                accuracy: 'Buena',
+                time: 'Rápido',
+                complexity: 'Moderado',
+                recommended: false
+            }
+        ],
+        
+        init() {
+            // Set default if not already set
+            if (!this.formData.split_strategy) {
+                this.formData.split_strategy = 'random';
+            }
+        },
+        
+        onStrategyChange() {
+            // Update other related form fields based on strategy
+            if (this.formData.split_strategy === 'cross_validation') {
+                this.formData.test_split_size = 0; // No test split in CV
+            } else if (!this.formData.test_split_size) {
+                this.formData.test_split_size = 0.2; // Default 20%
+            }
+        }
+    };
+}
+
+// Test Split Configuration Component
+function testSplitConfig() {
+    return {
+        cvFolds: 5,
+        
+        init() {
+            // Initialize default values
+            if (!this.formData.test_split_size) {
+                this.formData.test_split_size = 0.2;
+            }
+            if (!this.formData.split_random_state) {
+                this.formData.split_random_state = 42;
+            }
+        },
+        
+        getDatasetSplitSummary() {
+            const totalRows = 10000; // This would come from actual dataset
+            const trainSize = Math.round(totalRows * (1 - this.formData.test_split_size));
+            const testSize = totalRows - trainSize;
+            
+            return `~${trainSize} filas para entrenamiento, ${testSize} para prueba`;
+        },
+        
+        generateRandomState() {
+            this.formData.split_random_state = Math.floor(Math.random() * 10000) + 1;
+        },
+        
+        // Summary helper functions
+        getWorkspaceName() {
+            // This would come from workspace data
+            return 'Análisis de Ventas'; // Mock data
+        },
+        
+        getDatasetName() {
+            // This would come from dataset data
+            return 'Sales Data 2023'; // Mock data
+        },
+        
+        getModelName() {
+            const modelNames = {
+                'random_forest': 'Random Forest',
+                'gradient_boosting': 'Gradient Boosting',
+                'linear_regression': 'Regresión Lineal',
+                'logistic_regression': 'Regresión Logística',
+                'svm': 'Support Vector Machine',
+                'neural_network': 'Red Neuronal'
+            };
+            
+            return modelNames[this.formData.model_name] || 'No seleccionado';
+        },
+        
+        getValidationStrategy() {
+            const strategyNames = {
+                'random': 'División aleatoria',
+                'stratified': 'División estratificada',
+                'cross_validation': `Validación cruzada (${this.cvFolds} folds)`,
+                'time_series': 'División temporal'
+            };
+            
+            return strategyNames[this.formData.split_strategy] || 'No seleccionada';
+        },
+        
+        getEstimatedTime() {
+            const model = this.formData.model_name;
+            const strategy = this.formData.split_strategy;
+            
+            let baseTime = 2; // minutes
+            
+            if (model === 'gradient_boosting') baseTime *= 2;
+            if (model === 'neural_network') baseTime *= 5;
+            if (strategy === 'cross_validation') baseTime *= this.cvFolds;
+            
+            if (baseTime < 1) return '< 1 minuto';
+            if (baseTime < 60) return `~${Math.round(baseTime)} minutos`;
+            return `~${Math.round(baseTime / 60)} horas`;
+        },
+        
+        getCompletionPercentage() {
+            let completed = 0;
+            const total = 5;
+            
+            if (this.formData.name) completed++;
+            if (this.formData.project) completed++;
+            if (this.formData.input_datasource && this.formData.target_column) completed++;
+            if (this.formData.feature_set && this.formData.feature_set.length > 0) completed++;
+            if (this.formData.model_name && this.formData.split_strategy) completed++;
+            
+            return Math.round((completed / total) * 100);
+        },
+        
+        getValidationWarnings() {
+            const warnings = [];
+            
+            // Check for potential issues
+            if (this.formData.feature_set && this.formData.feature_set.length < 3) {
+                warnings.push('Considera usar más de 2 variables predictoras para mejor performance');
+            }
+            
+            if (this.formData.test_split_size > 0.3) {
+                warnings.push('Un conjunto de prueba muy grande puede reducir la calidad del entrenamiento');
+            }
+            
+            if (this.formData.model_name === 'neural_network' && (!this.formData.feature_set || this.formData.feature_set.length < 5)) {
+                warnings.push('Las redes neuronales suelen necesitar más variables predictoras');
+            }
+            
+            return warnings;
+        }
+    };
+}
+</script>

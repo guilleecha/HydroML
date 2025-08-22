@@ -1,0 +1,187 @@
+/**
+ * TanStack Table Component Styles
+ * Grove Design System compatible
+ */
+
+.tanstack-table-container {
+    @apply bg-white border border-gray-200 rounded-lg shadow-sm;
+}
+
+.tanstack-table-header {
+    @apply px-6 py-4 border-b border-gray-200;
+}
+
+.tanstack-table-title {
+    @apply text-lg font-semibold text-gray-900;
+}
+
+.tanstack-table-subtitle {
+    @apply text-sm text-gray-600 mt-1;
+}
+
+.tanstack-table-controls {
+    @apply flex flex-col sm:flex-row gap-4 mb-4;
+}
+
+.tanstack-table-search {
+    @apply flex-1;
+}
+
+.tanstack-table-search input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+}
+
+.tanstack-table-page-size {
+    @apply flex items-center gap-2;
+}
+
+.tanstack-table-page-size label {
+    @apply text-sm text-gray-700;
+}
+
+.tanstack-table-page-size select {
+    @apply px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+.tanstack-table-wrapper {
+    @apply overflow-x-auto border border-gray-200 rounded-lg;
+}
+
+.tanstack-table {
+    @apply min-w-full divide-y divide-gray-200;
+}
+
+.tanstack-table thead {
+    @apply bg-gray-50;
+}
+
+.tanstack-table th {
+    @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors;
+}
+
+.tanstack-table th.sortable {
+    @apply cursor-pointer;
+}
+
+.tanstack-table th .sort-indicator {
+    @apply flex items-center space-x-1;
+}
+
+.tanstack-table th .sort-icon {
+    @apply text-gray-400 transition-colors;
+}
+
+.tanstack-table th .sort-icon.active {
+    @apply text-blue-600;
+}
+
+.tanstack-table tbody {
+    @apply bg-white divide-y divide-gray-200;
+}
+
+.tanstack-table tr {
+    @apply hover:bg-gray-50 transition-colors;
+}
+
+.tanstack-table td {
+    @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900;
+}
+
+.tanstack-table-pagination {
+    @apply flex flex-col sm:flex-row items-center justify-between gap-4 mt-4;
+}
+
+.tanstack-table-page-info {
+    @apply text-sm text-gray-700;
+}
+
+.tanstack-table-pagination-controls {
+    @apply flex items-center gap-2;
+}
+
+.tanstack-table-pagination-btn {
+    @apply px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+}
+
+.tanstack-table-page-input-group {
+    @apply flex items-center gap-2;
+}
+
+.tanstack-table-page-input {
+    @apply w-16 px-2 py-1 text-sm border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+.tanstack-table-loading {
+    @apply flex items-center justify-center py-8;
+}
+
+.tanstack-table-empty {
+    @apply text-center py-8 text-gray-500;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .dark .tanstack-table-container {
+        @apply bg-gray-800 border-gray-700;
+    }
+    
+    .dark .tanstack-table-header {
+        @apply border-gray-700;
+    }
+    
+    .dark .tanstack-table-title {
+        @apply text-gray-100;
+    }
+    
+    .dark .tanstack-table-subtitle {
+        @apply text-gray-400;
+    }
+    
+    .dark .tanstack-table-search input {
+        @apply bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400;
+    }
+    
+    .dark .tanstack-table-page-size label {
+        @apply text-gray-300;
+    }
+    
+    .dark .tanstack-table-page-size select {
+        @apply bg-gray-700 border-gray-600 text-gray-100;
+    }
+    
+    .dark .tanstack-table {
+        @apply divide-gray-700;
+    }
+    
+    .dark .tanstack-table thead {
+        @apply bg-gray-700;
+    }
+    
+    .dark .tanstack-table th {
+        @apply text-gray-300 hover:bg-gray-600;
+    }
+    
+    .dark .tanstack-table tbody {
+        @apply bg-gray-800 divide-gray-700;
+    }
+    
+    .dark .tanstack-table tr {
+        @apply hover:bg-gray-700;
+    }
+    
+    .dark .tanstack-table td {
+        @apply text-gray-100;
+    }
+    
+    .dark .tanstack-table-page-info {
+        @apply text-gray-300;
+    }
+    
+    .dark .tanstack-table-pagination-btn {
+        @apply border-gray-600 hover:bg-gray-700 text-gray-300;
+    }
+    
+    .dark .tanstack-table-page-input {
+        @apply bg-gray-700 border-gray-600 text-gray-100;
+    }
+}

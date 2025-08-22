@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="es" class="h-full" :class="{ 'dark': darkMode }">
+<html lang="es" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,14 +9,14 @@
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="{% static 'core/img/logos/grove_icon.svg' %}">
     
-    <!-- Prevent FOUC in dark mode -->
-    <script>
+    <!-- Prevent FOUC in dark mode - DISABLED temporarily to prevent flash -->
+    <!-- <script>
       if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');
       }
-    </script>
+    </script> -->
     
     <!-- Inter Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -164,25 +164,41 @@
                         </button>
                         
                         <!-- Grove Logo (1.5x larger, no text) -->
+                        {% block main_logo %}
                         <a href="{% url 'core:dashboard' %}" class="flex items-center">
                             <img src="{% static 'core/img/logos/grove_icon.svg' %}" alt="Grove" class="w-12 h-12">
                         </a>
-                        
-                        <!-- Dynamic Breadcrumb Navigation -->
-                        {% if breadcrumb_path %}
-                            <nav class="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
-                                <span>{{ breadcrumb_path }}</span>
-                            </nav>
-                        {% else %}
-                            <!-- Fallback: Username with better visibility -->
-                            {% if user.is_authenticated %}
-                                <span class="text-sm text-gray-700 dark:text-gray-300 font-medium">@{{ user.username }}</span>
-                            {% endif %}
-                        {% endif %}
-                        
-                        <!-- Breadcrumb Navigation Block for custom overrides -->
-                        {% block breadcrumb_nav %}
                         {% endblock %}
+                        
+                        <!-- Unified Breadcrumb Navigation -->
+                        {% block breadcrumb_nav %}
+                            {% if breadcrumb_path %}
+                                <nav class="flex items-center text-sm text-gray-600 dark:text-gray-400" aria-label="Breadcrumb">
+                                    <ol class="flex items-center space-x-1">
+                                        <!-- No Grove icon here - main logo is used instead -->
+                                        <li class="text-gray-400 dark:text-gray-500">/</li>
+                                        <li>
+                                            <span class="breadcrumb-active" aria-current="page">
+                                                {{ breadcrumb_path }}
+                                            </span>
+                                        </li>
+                                    </ol>
+                                </nav>
+                            {% else %}
+                                <!-- Fallback: Username only -->
+                                {% if user.is_authenticated %}
+                                    <nav class="flex items-center text-sm text-gray-600 dark:text-gray-400" aria-label="Breadcrumb">
+                                        <ol class="flex items-center space-x-1">
+                                            <!-- No Grove icon here - main logo is used instead -->
+                                            <li class="text-gray-400 dark:text-gray-500">/</li>
+                                            <li>
+                                                <span class="text-gray-700 dark:text-gray-300 font-medium px-1">@{{ user.username }}</span>
+                                            </li>
+                                        </ol>
+                                    </nav>
+                                {% endif %}
+                            {% endif %}
+                        {% endblock breadcrumb_nav %}
                     </div>
 
                     <!-- Right: Search + Quick Actions + User Controls -->

@@ -22,6 +22,20 @@ from data_tools.services.session_service import (
 logger = logging.getLogger(__name__)
 
 
+class NumpyEncoder(json.JSONEncoder):
+    """Custom JSON encoder for numpy/pandas data types."""
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        elif pd.isna(obj):
+            return None
+        return super().default(obj)
+
+
 @login_required
 def data_studio_page(request, pk):
     """
@@ -108,6 +122,13 @@ def data_studio_page(request, pk):
         
         column_defs_json = json.dumps(column_defs)
 
+        # Prepare sample data for HTML table (like debug version)
+        sample_data_records = df.head(10).fillna('').to_dict('records') if not df.empty else []
+        sample_data = {
+            'columns': list(df.columns) if not df.empty else [],
+            'data': [list(record.values()) for record in sample_data_records] if sample_data_records else []
+        }
+
         context = {
             'datasource': datasource,
             'breadcrumbs': breadcrumbs,
@@ -117,6 +138,8 @@ def data_studio_page(request, pk):
             'session_data': session_data,
             'grid_data_json': grid_data_json,
             'column_defs_json': column_defs_json,
+            'sample_data': sample_data,  # For HTML table in new template
+            'breadcrumb_path': f'@{request.user.username}/Data Sources/{datasource.name}',  # For base template breadcrumb
         }
 
         return render(request, 'data_tools/data_studio.html', context)
@@ -236,3 +259,76 @@ def prepare_column_info(df):
         logger.error(f"Error preparing column info: {e}")
         sentry_sdk.capture_exception(e)
         return []
+
+
+@login_required
+def data_studio_debug(request, pk):
+    """
+    Debug version of Data Studio with clean template for progressive enhancement.
+    """
+    try:
+        datasource = get_object_or_404(DataSource, pk=pk, project__owner=request.user)
+
+        # Load dataframe for analysis
+        df = load_dataframe_from_source(datasource)
+        if df is None:
+            return render(request, 'data_tools/error.html', {
+                'error_message': 'Failed to load data from source file.'
+            })
+
+        # Generate automated analysis
+        automated_analysis = generate_data_analysis(df)
+
+        # Prepare column information for frontend
+        column_list = prepare_column_info(df)
+        
+        # Prepare grid data for TanStack Table (all data for client-side pagination)
+        if not df.empty:
+            # For TanStack Table, load more data (up to 1000 rows for testing)
+            max_rows = 1000  # Sufficient for testing TanStack Table features
+            if len(df) > max_rows:
+                logger.warning(f"Large dataset detected ({len(df)} rows). Loading first {max_rows} rows for TanStack Table testing.")
+                sample_data_records = df.head(max_rows).fillna('').to_dict('records')
+            else:
+                # Load all data for client-side processing
+                sample_data_records = df.fillna('').to_dict('records')
+        else:
+            sample_data_records = []
+        
+        # Prepare sample data for HTML table
+        sample_data = {
+            'columns': list(df.columns) if not df.empty else [],
+            'data': [list(record.values()) for record in sample_data_records] if sample_data_records else []
+        }
+        
+        # Prepare column definitions for AG Grid
+        column_defs = []
+        if not df.empty:
+            for col in df.columns:
+                column_def = {
+                    'field': col,
+                    'headerName': col,
+                    'sortable': True,
+                    'filter': True,
+                    'resizable': True,
+                }
+                column_defs.append(column_def)
+
+        context = {
+            'datasource': datasource,
+            'automated_analysis': automated_analysis,
+            'column_list': column_list,
+            'sample_data': sample_data,  # For HTML table
+            'grid_data_json': json.dumps(sample_data_records, cls=NumpyEncoder),  # For JS usage
+            'column_defs_json': json.dumps(column_defs, cls=NumpyEncoder),
+            'breadcrumb_path': f'@{request.user.username}/Data Sources/{datasource.name}',  # Complete breadcrumb path
+        }
+
+        return render(request, 'data_tools/data_studio_clean.html', context)
+
+    except Exception as e:
+        logger.error(f"Error in data_studio_debug: {e}")
+        sentry_sdk.capture_exception(e)
+        return render(request, 'data_tools/error.html', {
+            'error_message': f'An error occurred: {str(e)}'
+        })

@@ -1,0 +1,253 @@
+/**
+ * Data Studio Components
+ * Grove Design System compatible components for data studio pages
+ */
+
+/* ==========================================================================
+   Data Studio Layout
+   ========================================================================== */
+
+.data-studio-container {
+  min-height: 100vh;
+  background-color: #f9fafb; /* grove-bg-secondary equivalent */
+  padding: 2rem;
+}
+
+.data-studio-content {
+  max-width: 88rem; /* 7xl equivalent */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ==========================================================================
+   Data Studio Header
+   ========================================================================== */
+
+.data-studio-header {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.data-studio-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+.data-studio-description {
+  color: #4b5563;
+  font-size: 1rem;
+}
+
+/* ==========================================================================
+   Info Grid Components
+   ========================================================================== */
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .info-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.info-card {
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border: 1px solid;
+}
+
+.info-card-blue {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.info-card-green {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.info-card-purple {
+  background-color: #faf5ff;
+  border-color: #d8b4fe;
+}
+
+.info-card-gray {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.info-card-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.info-card-blue .info-card-label {
+  color: #1e40af;
+}
+
+.info-card-green .info-card-label {
+  color: #166534;
+}
+
+.info-card-purple .info-card-label {
+  color: #7c3aed;
+}
+
+.info-card-gray .info-card-label {
+  color: #374151;
+}
+
+.info-card-value {
+  font-weight: 600;
+  font-size: 0.875rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.info-card-blue .info-card-value {
+  color: #1d4ed8;
+}
+
+.info-card-green .info-card-value {
+  color: #15803d;
+}
+
+.info-card-purple .info-card-value {
+  color: #7c3aed;
+}
+
+.info-card-gray .info-card-value {
+  color: #374151;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-size: 0.75rem;
+}
+
+.info-card-full {
+  grid-column: 1 / -1;
+  margin-top: 1rem;
+}
+
+/* ==========================================================================
+   Status Components
+   ========================================================================== */
+
+.status-container {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+}
+
+.status-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.status-icon-container {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: #dcfce7;
+  border-radius: 50%;
+}
+
+.status-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #16a34a;
+}
+
+.status-info {
+  flex: 1;
+}
+
+.status-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.status-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.status-item-badge {
+  margin-right: 0.75rem;
+}
+
+.status-item-text {
+  color: #4b5563;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .data-studio-container {
+    padding: 1rem;
+  }
+  
+  .data-studio-header {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .data-studio-title {
+    font-size: 1.5rem;
+  }
+  
+  .info-grid {
+    gap: 0.75rem;
+  }
+  
+  .info-card {
+    padding: 0.75rem;
+  }
+  
+  .status-container {
+    padding: 1rem;
+  }
+  
+  .status-content {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .status-icon-container {
+    align-self: flex-start;
+  }
+}

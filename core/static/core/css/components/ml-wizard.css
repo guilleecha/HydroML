@@ -1,0 +1,149 @@
+/* ML Experiment Wizard Component Styles - Grove Design System */
+
+/* Form Elements using Grove Design Tokens */
+.wizard-form-label {
+    display: block;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--grove-text-primary);
+    margin-bottom: var(--space-2);
+    line-height: var(--line-height-tight);
+}
+
+.wizard-form-input,
+.wizard-form-textarea,
+.wizard-form-select {
+    display: block;
+    width: 100%;
+    padding: var(--space-2-5) var(--space-3);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--grove-border-primary);
+    border-radius: var(--radius-md);
+    background-color: var(--grove-bg-surface);
+    color: var(--grove-text-primary);
+    box-shadow: var(--shadow-xs);
+    transition: var(--transition-colors), var(--transition-shadow);
+}
+
+.wizard-form-input:focus,
+.wizard-form-textarea:focus,
+.wizard-form-select:focus {
+    outline: none;
+    border-color: var(--grove-gray-900);
+    box-shadow: var(--shadow-focus);
+    background-color: var(--grove-white);
+}
+
+.wizard-form-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.wizard-form-help {
+    margin-top: var(--space-1);
+    font-size: var(--font-size-xs);
+    color: var(--grove-text-tertiary);
+    line-height: var(--line-height-relaxed);
+}
+
+/* Workspace Selection */
+.wizard-workspace-card {
+    @apply flex items-start p-4 border border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors;
+}
+
+.wizard-workspace-card--selected {
+    @apply border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-900/20;
+}
+
+.wizard-workspace-radio {
+    @apply mt-1 text-blue-600 dark:text-blue-400 focus:ring-blue-500 dark:focus:ring-blue-500 border-gray-300 dark:border-gray-600;
+}
+
+.wizard-workspace-title {
+    @apply font-medium text-gray-900 dark:text-gray-100;
+}
+
+.wizard-workspace-description {
+    @apply text-sm text-gray-600 dark:text-gray-400;
+}
+
+.wizard-workspace-stats {
+    @apply text-xs text-gray-500 dark:text-gray-400 mt-1;
+}
+
+/* Loading States */
+.wizard-loading-container {
+    @apply flex items-center justify-center p-8 bg-gray-50 dark:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600;
+}
+
+.wizard-loading-spinner {
+    @apply animate-spin w-8 h-8 text-gray-400 mx-auto mb-2;
+}
+
+.wizard-loading-text {
+    @apply text-sm text-gray-500 dark:text-gray-400;
+}
+
+/* Info Sections */
+.wizard-info-section {
+    @apply bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4;
+}
+
+.wizard-info-title {
+    @apply text-sm font-medium text-gray-900 dark:text-gray-100 mb-2;
+}
+
+.wizard-info-content {
+    @apply text-sm text-gray-600 dark:text-gray-400 space-y-1;
+}
+
+/* Tips Section */
+.wizard-tips-section {
+    @apply bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4;
+}
+
+.wizard-tips-icon {
+    width: 1.25rem !important; /* 20px - equivalent to w-5 */
+    height: 1.25rem !important; /* 20px - equivalent to h-5 */
+    color: #2563eb; /* blue-600 */
+    margin-top: 0.125rem; /* 2px - equivalent to mt-0.5 */
+    margin-right: 0.75rem; /* 12px - equivalent to mr-3 */
+    flex-shrink: 0;
+}
+
+.wizard-tips-title {
+    @apply text-sm font-medium text-blue-800 dark:text-blue-200 mb-1;
+}
+
+.wizard-tips-list {
+    @apply text-xs text-blue-700 dark:text-blue-300 space-y-1;
+}
+
+/* Error/Warning States */
+.wizard-warning-section {
+    @apply p-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg;
+}
+
+.wizard-warning-icon {
+    @apply w-6 h-6 text-yellow-600 dark:text-yellow-400 mr-3;
+}
+
+.wizard-warning-title {
+    @apply text-sm font-medium text-yellow-800 dark:text-yellow-200;
+}
+
+.wizard-warning-text {
+    @apply text-sm text-yellow-700 dark:text-yellow-300 mt-1;
+}
+
+.wizard-error-section {
+    @apply p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg;
+}
+
+.wizard-error-icon {
+    @apply w-5 h-5 text-red-600 dark:text-red-400 mr-2;
+}
+
+.wizard-error-text {
+    @apply text-sm text-red-800 dark:text-red-200;
+}

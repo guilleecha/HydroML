@@ -18,7 +18,7 @@ from projects.models import DataSource
 from data_tools.services.session_manager import get_session_manager
 from data_tools.services.data_loader import load_data_from_parquet
 from data_tools.services.api_performance_service import rate_limit, cache_response, monitor_performance
-from data_tools.websockets.data_studio_consumer import sync_send_session_update
+# from data_tools.websockets.data_studio_consumer import sync_send_session_update
 
 logger = logging.getLogger(__name__)
 

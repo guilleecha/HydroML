@@ -9,6 +9,23 @@
 /* Import base Grove design tokens */
 @import url('../design-tokens.css');
 
+/* ===== GROVE HEADBAR HEIGHT VARIABLES ===== */
+:root {
+  /* Grove headbar height calculations for layout integration */
+  --grove-headbar-primary-height: 4rem;    /* 64px - primary row height */
+  --grove-headbar-secondary-height: 3rem;  /* 48px - secondary row height */
+  --grove-headbar-total-height: 7rem;      /* 112px - combined height for two-row layout */
+  --grove-headbar-single-height: 4rem;     /* 64px - fallback for single-row compatibility */
+  
+  /* Content offset variables for layout calculations */
+  --grove-content-offset-two-row: calc(100vh - var(--grove-headbar-total-height));
+  --grove-content-offset-single-row: calc(100vh - var(--grove-headbar-single-height));
+  
+  /* Z-index variables for proper layering */
+  --z-index-header: 50;
+  --z-index-dropdown: 100;
+}
+
 /* ===== TWO-ROW HEADBAR CONTAINER ===== */
 
 .wave-headbar.two-row {

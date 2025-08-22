@@ -384,7 +384,13 @@ class DataStudioSidebar {
     }
 
     exportData() {
-        DataStudioUIUtils.showPlaceholderFeature('Export data');
+        // Open the export wizard modal
+        if (window.exportWizard) {
+            window.exportWizard.open();
+        } else {
+            console.warn('Export wizard not available');
+            DataStudioUIUtils.showPlaceholderFeature('Export data');
+        }
     }
 }
 

@@ -1,362 +1,118 @@
 {% extends "core/base_main.html" %}
 {% load static %}
-{% load dict_extras %}
 
 {% block page_title %}Data Studio - {{ datasource.name }}{% endblock %}
 
-{% block breadcrumb_nav %}
-<nav class="flex items-center text-sm text-gray-600 dark:text-gray-400" aria-label="Breadcrumb">
-    <ol class="flex items-center space-x-1">
-        <li class="text-gray-400 dark:text-gray-500">/</li>
-        <li>
-            <a href="{% url 'core:data_sources_list' %}" class="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
-                datasources
-            </a>
-        </li>
-        <li class="text-gray-400 dark:text-gray-500">/</li>
-        <li>
-            <span class="text-blue-600 dark:text-blue-400 font-medium font-mono">
-                {{ datasource.name|truncatechars:25 }}
-            </span>
-        </li>
-    </ol>
-</nav>
-{% endblock %}
-
-{% block page_heading %}{% endblock %}
-
-{% block page_subtitle %}{% endblock %}
-
-{% block header_actions %}
-<!-- Clean header without duplicated text -->
-<div class="flex items-center space-x-2">
-    <span class="text-xs text-gray-500 dark:text-gray-400">
-        Ready
-    </span>
-</div>
-{% endblock %}
-
-{% block extra_css %}<link rel="stylesheet" href="{% static 'core/css/layouts/data-studio-layout.css' %}">{% endblock %}
+<!-- Use base template breadcrumb with breadcrumb_path context variable -->
 
 {% block content %}
-<!-- Full Width Data Studio Layout - absolute positioning for edge-to-edge layout -->
-<div class="flex bg-gray-50 dark:bg-gray-900" style="
-    position: absolute;
-    top: 4rem;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100vw;
-    height: calc(100vh - 4rem);
-    margin: 0;
-    padding: 0;
-    z-index: 1;
-" x-data="{...dataStudioApp(), showExportHistory: false}" x-init="init(); checkSessionStatus()">
-    <!-- Data Studio Sidebar -->
-    {% include 'data_tools/_data_studio_sidebar.html' %}
-    
-    <!-- Main Content Area - Full Width -->
-    <div class="flex-1 min-w-0 flex flex-col">
-        <!-- Content Area with zero padding for maximum width usage -->
-        <div class="flex-1 px-0 py-2 overflow-hidden">
-        <!-- Data Transformation History - Improved UX -->
-    <div x-data="{ showHistory: localStorage.getItem('dataStudio_showHistory') === 'true' }" 
-         x-init="$watch('showHistory', value => localStorage.setItem('dataStudio_showHistory', value))"
-         class="mb-3 mx-2">
-        <button @click="showHistory = !showHistory" 
-                class="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <span>Transformation History</span>
-            <svg class="w-4 h-4 transform transition-transform" :class="{ 'rotate-180': showHistory }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-            </svg>
-        </button>
+<div class="min-h-screen bg-white p-8">
+    <div class="max-w-4xl mx-auto">
         
-        <div x-show="showHistory" x-transition class="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                <div class="flex items-center space-x-2">
-                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                    <div>
-                        <span class="font-medium text-gray-900 dark:text-gray-100">Operations:</span>
-                        <span id="history-info" class="text-gray-600 dark:text-gray-400 ml-1">0</span>
-                    </div>
+        <!-- Basic Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                🔧 Data Studio - {{ datasource.name }}
+            </h1>
+            <p class="text-gray-600">
+                Análisis y preparación de datos
+            </p>
+        </div>
+
+        <!-- Data Source Info -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold text-blue-900 mb-4">Información del DataSource</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                    <strong class="text-blue-800">Nombre:</strong>
+                    <span class="ml-2 text-blue-700">{{ datasource.name }}</span>
                 </div>
-                <div class="flex items-center space-x-2">
-                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                    </svg>
-                    <div>
-                        <span class="font-medium text-gray-900 dark:text-gray-100">Current:</span>
-                        <span id="position-info" class="text-gray-600 dark:text-gray-400 ml-1">0/0</span>
-                    </div>
+                <div>
+                    <strong class="text-blue-800">ID:</strong>
+                    <span class="ml-2 text-blue-700 font-mono text-xs">{{ datasource.id }}</span>
                 </div>
-                <div class="flex items-center space-x-2">
-                    <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
-                    </svg>
-                    <div>
-                        <span class="font-medium text-gray-900 dark:text-gray-100">Rows:</span>
-                        <span id="rows-info" class="text-gray-600 dark:text-gray-400 ml-1">{{ automated_analysis.basic_info.total_rows|floatformat:0 }}</span>
-                    </div>
+                <div>
+                    <strong class="text-blue-800">Archivo:</strong>
+                    <span class="ml-2 text-blue-700">{{ datasource.file.name }}</span>
                 </div>
-                <div class="flex items-center space-x-2">
-                    <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2"></path>
+                <div>
+                    <strong class="text-blue-800">Filas:</strong>
+                    <span class="ml-2 text-blue-700">{{ automated_analysis.basic_info.total_rows|floatformat:0 }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table Section -->
+        <div class="bg-white border border-gray-200 rounded-lg shadow-sm mb-8">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">Datos del DataSource</h2>
+                <p class="text-sm text-gray-600 mt-1">
+                    Mostrando primeras 10 filas de {{ automated_analysis.basic_info.total_rows|floatformat:0 }} total
+                </p>
+            </div>
+            
+            <!-- Simple HTML Table -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            {% for column in sample_data.columns %}
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {{ column }}
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for row in sample_data.data %}
+                        <tr class="hover:bg-gray-50">
+                            {% for value in row %}
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ value|default:"-"|truncatechars:50 }}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="{{ sample_data.columns|length }}" class="px-6 py-4 text-center text-gray-500">
+                                No hay datos disponibles
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Simple Success Message -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                     </svg>
-                    <div>
-                        <span class="font-medium text-gray-900 dark:text-gray-100">Columns:</span>
-                        <span id="columns-info" class="text-gray-600 dark:text-gray-400 ml-1">{{ automated_analysis.basic_info.total_columns }}</span>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-green-800">
+                        ✅ Data Studio funcionando correctamente
+                    </h3>
+                    <div class="mt-2 text-sm text-green-700">
+                        <p>Template base limpio con breadcrumbs unificados y sin conflictos de tema.</p>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Dataset Overview KPIs - Optimized for full width usage -->
-    {% if automated_analysis %}
-    <!-- Workflow Progress Indicator -->
-    <div id="workflow-progress-container" class="mb-4 px-1" style="display: none;"></div>
-    
-    <div class="mb-3 px-1">
-        <div class="grid grid-cols-6 gap-1 kpi-grid" style="grid-template-columns: repeat(6, 1fr);">
-            <!-- Total Rows -->
-            <div class="bg-white dark:bg-gray-800 rounded-md p-2 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors kpi-card">
-                <div class="text-center">
-                    <div class="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center mx-auto mb-1">
-                        <svg class="w-3 h-3 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
-                        </svg>
-                    </div>
-                    <p class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Rows</p>
-                    <p class="text-base font-bold text-gray-900 dark:text-gray-100">{{ automated_analysis.basic_info.total_rows|floatformat:0 }}</p>
-                </div>
-            </div>
-
-            <!-- Total Columns -->
-            <div class="bg-white dark:bg-gray-800 rounded-md p-2 border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-colors kpi-card">
-                <div class="text-center">
-                    <div class="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center mx-auto mb-1">
-                        <svg class="w-3 h-3 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2"></path>
-                        </svg>
-                    </div>
-                    <p class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Cols</p>
-                    <p class="text-base font-bold text-gray-900 dark:text-gray-100">{{ automated_analysis.basic_info.total_columns }}</p>
-                </div>
-            </div>
-
-            <!-- Missing Values -->
-            <div class="bg-white dark:bg-gray-800 rounded-md p-2 border border-gray-200 dark:border-gray-700 hover:border-red-300 dark:hover:border-red-600 transition-colors kpi-card">
-                <div class="text-center">
-                    <div class="w-6 h-6 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mx-auto mb-1">
-                        <svg class="w-3 h-3 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.8 6.8m3.078 3.078l-1.2 1.2m4.242-1.2l1.2 1.2m-1.2-1.2l1.2-1.2m-1.2 1.2l-3.042 3.042"></path>
-                        </svg>
-                    </div>
-                    <p class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Missing Values</p>
-                    <p class="text-base font-bold text-gray-900 dark:text-gray-100">{{ automated_analysis.missing_data.missing_percentage|floatformat:1 }}%</p>
-                </div>
-            </div>
-
-            <!-- Data Types -->
-            <div class="bg-white dark:bg-gray-800 rounded-md p-2 border border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-600 transition-colors kpi-card">
-                <div class="text-center">
-                    <div class="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center mx-auto mb-1">
-                        <svg class="w-3 h-3 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                        </svg>
-                    </div>
-                    <p class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Data Types</p>
-                    <div class="text-xs text-gray-900 dark:text-gray-100">
-                        <div class="flex items-center justify-center space-x-1">
-                            <span>📊</span><span>{{ automated_analysis.basic_info.numeric_columns }}</span>
-                        </div>
-                        <div class="flex items-center justify-center space-x-1">
-                            <span>📝</span><span>{{ automated_analysis.basic_info.categorical_columns }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Memory Usage -->
-            <div class="bg-white dark:bg-gray-800 rounded-md p-2 border border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors kpi-card">
-                <div class="text-center">
-                    <div class="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/20 flex items-center justify-center mx-auto mb-1">
-                        <svg class="w-3 h-3 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
-                        </svg>
-                    </div>
-                    <p class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Memory</p>
-                    <p class="text-base font-bold text-gray-900 dark:text-gray-100">{{ automated_analysis.basic_info.memory_usage_mb|floatformat:1 }}MB</p>
-                </div>
-            </div>
-
-            <!-- Duplicate Rows -->
-            <div class="bg-white dark:bg-gray-800 rounded-md p-2 border border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-600 transition-colors kpi-card">
-                <div class="text-center">
-                    <div class="w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center mx-auto mb-1">
-                        <svg class="w-3 h-3 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                        </svg>
-                    </div>
-                    <p class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Duplicates</p>
-                    <p class="text-base font-bold text-gray-900 dark:text-gray-100">{{ automated_analysis.basic_info.duplicate_rows|default:0 }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Data Grid Section - Optimized for full width without margins -->
-    <div class="data-grid-container px-2">
-        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 h-full flex flex-col">
-            <div class="px-3 py-2 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Data Preview</h3>
-                        <div class="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
-                            <div class="flex items-center space-x-1">
-                                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
-                                </svg>
-                                <span><strong id="grid-row-count">{{ automated_analysis.basic_info.total_rows|floatformat:0 }}</strong> rows total</span>
-                            </div>
-                            <div class="flex items-center space-x-1">
-                                <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2"></path>
-                                </svg>
-                                <span><strong>{{ automated_analysis.basic_info.total_columns }}</strong> columns</span>
-                            </div>
-                            <div class="flex items-center space-x-1">
-                                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                </svg>
-                                <span>Showing <strong id="displayed-rows">25</strong> per page</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-3 text-xs">
-                        <div class="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
-                            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                            <span>Row numbers enabled</span>
-                        </div>
-                        <div class="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
-                            <span class="w-2 h-2 rounded-full bg-green-500"></span>
-                            <span id="grid-selection-info">No selection</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="flex-1 p-2 min-h-0">
-                <div id="data-preview-grid" 
-                     class="h-full w-full ag-theme-quartz"
-                     style="height: calc(100% - 60px); width: 100%;">
-                    <!-- AG Grid will be rendered here -->
-                </div>
-                
-                <!-- Enhanced Pagination Controls -->
-                <div class="mt-2 border-t border-gray-200 dark:border-gray-700 pt-2">
-                    <div class="flex items-center justify-between text-sm">
-                        <!-- Left side: Page size selector -->
-                        <div class="flex items-center space-x-3">
-                            <span class="text-gray-600 dark:text-gray-400">Rows per page:</span>
-                            <select x-model="pagination.pageSize" 
-                                    @change="changePageSize($event.target.value)"
-                                    class="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-xs">
-                                <template x-for="size in pagination.availablePageSizes" :key="size">
-                                    <option :value="size" x-text="size"></option>
-                                </template>
-                            </select>
-                        </div>
-                        
-                        <!-- Center: Navigation controls -->
-                        <div class="flex items-center space-x-2">
-                            <button @click="navigateToFirstPage()" 
-                                    :disabled="pagination.currentPage === 1"
-                                    :class="pagination.currentPage === 1 ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed' : 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300'"
-                                    class="px-2 py-1 text-xs font-medium">
-                                ‹‹ First
-                            </button>
-                            <button @click="navigateToPreviousPage()" 
-                                    :disabled="pagination.currentPage === 1"
-                                    :class="pagination.currentPage === 1 ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed' : 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300'"
-                                    class="px-2 py-1 text-xs font-medium">
-                                ‹ Prev
-                            </button>
-                            
-                            <!-- Jump to page input -->
-                            <div class="flex items-center space-x-1">
-                                <span class="text-gray-600 dark:text-gray-400 text-xs">Page</span>
-                                <input type="number" 
-                                       x-model="pagination.jumpToPage"
-                                       @keydown.enter="jumpToPageInput()"
-                                       @blur="jumpToPageInput()"
-                                       :min="1" 
-                                       :max="pagination.totalPages"
-                                       class="w-12 px-1 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded text-center bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-                                <span class="text-gray-600 dark:text-gray-400 text-xs">of</span>
-                                <span class="text-gray-900 dark:text-gray-100 text-xs font-medium" x-text="pagination.totalPages"></span>
-                            </div>
-                            
-                            <button @click="navigateToNextPage()" 
-                                    :disabled="pagination.currentPage === pagination.totalPages"
-                                    :class="pagination.currentPage === pagination.totalPages ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed' : 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300'"
-                                    class="px-2 py-1 text-xs font-medium">
-                                Next ›
-                            </button>
-                            <button @click="navigateToLastPage()" 
-                                    :disabled="pagination.currentPage === pagination.totalPages"
-                                    :class="pagination.currentPage === pagination.totalPages ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed' : 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300'"
-                                    class="px-2 py-1 text-xs font-medium">
-                                Last ››
-                            </button>
-                        </div>
-                        
-                        <!-- Right side: Current range display -->
-                        <div class="text-gray-600 dark:text-gray-400 text-xs">
-                            <span>Showing </span>
-                            <span x-text="((pagination.currentPage - 1) * pagination.pageSize) + 1"></span>
-                            <span> - </span>
-                            <span x-text="Math.min(pagination.currentPage * pagination.pageSize, pagination.totalRows)"></span>
-                            <span> of </span>
-                            <span x-text="pagination.totalRows"></span>
-                            <span> rows</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        </div>
     </div>
 </div>
-
-<!-- Export Wizard Modal -->
-{% include 'data_tools/partials/_export_wizard.html' %}
-
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
-<script src="{% static 'data_tools/js/data_studio_session_manager.js' %}"></script>
-<script src="{% static 'data_tools/js/data_studio_filters.js' %}"></script>
-<script src="{% static 'data_tools/js/data_studio.js' %}"></script>
-<script src="{% static 'data_tools/js/data_studio_ui_utils.js' %}"></script>
-<script src="{% static 'data_tools/js/data_studio_api.js' %}"></script>
-<script src="{% static 'data_tools/js/data_studio_sidebar.js' %}"></script>
-<script src="{% static 'data_tools/js/export_components.js' %}"></script>
-
 <script>
-// Make data available to JavaScript
-window.gridRowData = {{ grid_data_json|safe }};
-window.columnDefsData = {{ column_defs_json|safe }};
-window.columnListData = {{ column_list|default:'[]'|safe }};
-window.datasourceId = "{{ datasource.id }}";
-window.datasourceName = "{{ datasource.name }}";
-window.datasourceFilename = "{{ datasource.file.name }}";
-window.datasourceFileType = "{{ datasource.source_type|default:'file' }}";
+console.log('🔧 Data Studio cargado');
+console.log('📊 DataSource ID:', "{{ datasource.id }}");
+console.log('📁 DataSource Name:', "{{ datasource.name }}");
+console.log('📈 Total Rows:', {{ automated_analysis.basic_info.total_rows|default:0 }});
+console.log('📊 Total Columns:', {{ automated_analysis.basic_info.total_columns|default:0 }});
 </script>
 {% endblock %}

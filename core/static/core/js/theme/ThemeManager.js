@@ -100,13 +100,18 @@ class HydroMLThemeManager {
   }
 
   /**
-   * Get system preference
+   * Get system preference - TEMPORARILY DISABLED to prevent auto dark theme
    */
   getSystemPreference() {
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
+    // TEMPORARY FIX: Force light theme until theme system is fully stable
+    console.log('[HydroML Theme] System preference detection disabled - forcing light theme');
     return 'light';
+    
+    // Original implementation (disabled):
+    // if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    //   return 'dark';
+    // }
+    // return 'light';
   }
 
   /**
@@ -187,23 +192,33 @@ class HydroMLThemeManager {
   }
 
   /**
-   * Apply theme CSS classes and attributes
+   * Apply theme CSS classes and attributes with diff-based updates to prevent flash
    */
   applyThemeClasses(theme, themeName) {
     const html = document.documentElement;
     const body = document.body;
 
-    // Remove all existing theme classes and attributes
-    html.classList.remove('light', 'dark');
-    html.removeAttribute('data-theme');
-    body.classList.remove('theme-light', 'theme-dark', 'theme-darcula');
-
-    // Apply new theme classes
-    if (theme.cssClass) {
+    // Get current theme state to avoid unnecessary changes
+    const currentHtmlClass = html.classList.contains('dark') ? 'dark' : 'light';
+    const currentDataTheme = html.getAttribute('data-theme');
+    
+    // Only update HTML class if it's different (prevents flash)
+    if (theme.cssClass && theme.cssClass !== currentHtmlClass) {
+      html.classList.remove('light', 'dark');
       html.classList.add(theme.cssClass);
     }
-    html.setAttribute('data-theme', theme.dataTheme);
-    body.classList.add(`theme-${themeName}`);
+    
+    // Only update data-theme if it's different
+    if (theme.dataTheme !== currentDataTheme) {
+      html.setAttribute('data-theme', theme.dataTheme);
+    }
+    
+    // Update body classes only if needed
+    const expectedBodyClass = `theme-${themeName}`;
+    if (!body.classList.contains(expectedBodyClass)) {
+      body.classList.remove('theme-light', 'theme-dark', 'theme-darcula');
+      body.classList.add(expectedBodyClass);
+    }
 
     // Apply custom colors if any
     if (this.customizations[themeName]) {

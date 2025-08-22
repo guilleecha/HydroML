@@ -80,7 +80,7 @@ class HydroMLCleanupManager:
             
             return True
         except Exception as e:
-            print(f"❌ Failed to backup {file_path}: {e}")
+            print(f"ERROR: Failed to backup {file_path}: {e}")
             return False
     
     def scan_root_violations(self) -> List[Tuple[Path, str]]:
@@ -139,7 +139,7 @@ class HydroMLCleanupManager:
         if not canonical:
             canonical = duplicates[0]
         
-        print(f"📋 Consolidating config files, keeping: {canonical}")
+        print(f"Consolidating config files, keeping: {canonical}")
         
         # Remove other duplicates
         for dup in duplicates:
@@ -150,9 +150,9 @@ class HydroMLCleanupManager:
                             dup.unlink()
                         else:
                             shutil.rmtree(dup)
-                        print(f"  ✅ Removed duplicate: {dup}")
+                        print(f"  OK: Removed duplicate: {dup}")
                 except Exception as e:
-                    print(f"  ❌ Failed to remove {dup}: {e}")
+                    print(f"  ERROR: Failed to remove {dup}: {e}")
                     return False
         
         return True
@@ -173,11 +173,11 @@ class HydroMLCleanupManager:
                     else:
                         shutil.move(str(file_path), str(new_location))
                     
-                    print(f"  ✅ Moved {file_path.name} → {target_dir}")
+                    print(f"  OK: Moved {file_path.name} -> {target_dir}")
                 else:
                     success = False
             except Exception as e:
-                print(f"  ❌ Failed to move {file_path}: {e}")
+                print(f"  ERROR: Failed to move {file_path}: {e}")
                 success = False
         
         return success
@@ -193,37 +193,37 @@ class HydroMLCleanupManager:
                         file_path.unlink()
                     else:
                         shutil.rmtree(file_path)
-                    print(f"  ✅ Deleted: {file_path}")
+                    print(f"  OK: Deleted: {file_path}")
                 else:
                     success = False
             except Exception as e:
-                print(f"  ❌ Failed to delete {file_path}: {e}")
+                print(f"  ERROR: Failed to delete {file_path}: {e}")
                 success = False
         
         return success
     
     def run_cleanup(self, dry_run: bool = True, categories: Set[str] = None) -> Dict[str, bool]:
         """Run cleanup operations"""
-        print("🧹 HydroML Project Cleanup")
+        print("HydroML Project Cleanup")
         print("=" * 50)
         
         if dry_run:
-            print("🔍 DRY RUN MODE - No changes will be made")
+            print("DRY RUN MODE - No changes will be made")
         
         results = {}
         
         # Check root violations
-        print("\n📁 Scanning root directory violations...")
+        print("\nScanning root directory violations...")
         root_violations = self.scan_root_violations()
         if root_violations:
             print(f"Found {len(root_violations)} root violations:")
             for violation, reason in root_violations:
-                print(f"  ❌ {violation.name}: {reason}")
+                print(f"  ERROR: {violation.name}: {reason}")
         else:
-            print("  ✅ No root directory violations found")
+            print("  OK: No root directory violations found")
         
         # Find cleanup candidates
-        print("\n🔍 Scanning for cleanup candidates...")
+        print("\nScanning for cleanup candidates...")
         candidates = self.find_cleanup_candidates()
         
         total_candidates = sum(len(files) for files in candidates.values())
@@ -235,11 +235,11 @@ class HydroMLCleanupManager:
                 continue
             
             config = self.cleanup_patterns[category]
-            print(f"\n📋 Processing {category}: {len(files)} items")
+            print(f"\nProcessing {category}: {len(files)} items")
             
             if dry_run:
                 for file_path in files[:5]:  # Show first 5 items
-                    print(f"  🔍 Would {config['action']}: {file_path}")
+                    print(f"  Would {config['action']}: {file_path}")
                 if len(files) > 5:
                     print(f"  ... and {len(files) - 5} more items")
                 results[category] = True
@@ -253,7 +253,7 @@ class HydroMLCleanupManager:
             elif config['action'] == 'delete':
                 results[category] = self.delete_files(files)
             else:
-                print(f"  ⚠️ Unknown action: {config['action']}")
+                print(f"  WARNING: Unknown action: {config['action']}")
                 results[category] = False
         
         return results
@@ -286,16 +286,16 @@ class HydroMLCleanupManager:
             # Find latest backup
             backups = list(self.backup_dir.glob('*'))
             if not backups:
-                print("❌ No backups found")
+                print("ERROR: No backups found")
                 return False
             backup_timestamp = max(backups, key=lambda x: x.stat().st_mtime).name
         
         backup_path = self.backup_dir / backup_timestamp
         if not backup_path.exists():
-            print(f"❌ Backup not found: {backup_timestamp}")
+            print(f"ERROR: Backup not found: {backup_timestamp}")
             return False
         
-        print(f"🔄 Restoring from backup: {backup_timestamp}")
+        print(f"Restoring from backup: {backup_timestamp}")
         
         try:
             # Restore files
@@ -308,10 +308,10 @@ class HydroMLCleanupManager:
                     dst.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(src, dst)
                     
-            print("✅ Restoration completed")
+            print("OK: Restoration completed")
             return True
         except Exception as e:
-            print(f"❌ Restoration failed: {e}")
+            print(f"ERROR: Restoration failed: {e}")
             return False
 
 
@@ -338,9 +338,9 @@ def main():
     # Generate report
     report_file = cleanup_manager.generate_report(results)
     
-    print(f"\n📊 Cleanup completed")
-    print(f"📄 Report saved to: {report_file}")
-    print(f"💾 Backups available in: {cleanup_manager.backup_dir}")
+    print(f"\nCleanup completed")
+    print(f"Report saved to: {report_file}")
+    print(f"Backups available in: {cleanup_manager.backup_dir}")
     
     # Exit with success/failure code
     success_rate = sum(results.values()) / len(results) if results else 1

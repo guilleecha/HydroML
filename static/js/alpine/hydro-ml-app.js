@@ -5,9 +5,8 @@
 
 document.addEventListener('alpine:init', () => {
     Alpine.data('hydroMLApp', () => ({
-        // Theme management
-        darkMode: localStorage.getItem('theme') === 'dark' || 
-                 (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches),
+        // Theme management - DISABLED temporarily to prevent flash
+        darkMode: false, // Force light mode to prevent auto dark theme flash
         
         // UI state management
         sidebarOpen: false,
@@ -18,16 +17,16 @@ document.addEventListener('alpine:init', () => {
         
         // Initialize the app
         init() {
-            // Apply theme on startup
-            this.applyTheme();
+            // Apply theme on startup - DISABLED temporarily
+            // this.applyTheme();
             
-            // Listen for system theme changes
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-                if (!localStorage.getItem('theme')) {
-                    this.darkMode = e.matches;
-                    this.applyTheme();
-                }
-            });
+            // Listen for system theme changes - DISABLED temporarily
+            // window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            //     if (!localStorage.getItem('theme')) {
+            //         this.darkMode = e.matches;
+            //         this.applyTheme();
+            //     }
+            // });
         },
         
         // Theme methods

@@ -3,6 +3,7 @@ from django.urls import path
 # Importamos todos nuestros módulos de vistas
 from .views import visualization_views, fusion_views
 from .views.preparation_controller import data_preparer_page
+from .views.data_studio_views import data_studio_debug
 from .views.api.pagination_api import data_studio_pagination_api
 from .views.feature_engineering_views import feature_engineering_page
 from .views.missing_data_views import run_deep_missing_analysis_api, missing_data_results_page
@@ -36,6 +37,11 @@ urlpatterns = [
     path('studio/<uuid:pk>/',
          data_preparer_page,
          name='data_studio_page'),
+
+    # --- Debug version of Data Studio for progressive enhancement ---
+    path('studio/<uuid:pk>/debug/',
+         data_studio_debug,
+         name='data_studio_debug'),
 
     # --- Data Studio Pagination API ---
     path('api/studio/<uuid:pk>/data/',

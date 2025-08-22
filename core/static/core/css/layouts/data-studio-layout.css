@@ -1,0 +1,251 @@
+/* 
+ * Data Studio Layout - Grove Headbar Integration
+ * Optimized for Grove two-row headbar system with dynamic height calculations
+ * Provides edge-to-edge layout with AG Grid optimization
+ */
+
+/* Import Grove design system */
+@import url('../design-tokens.css');
+@import url('../components/grove-headbar.css');
+
+/* Full Width Layout with Grove headbar - maximize screen usage */
+.data-studio-layout {
+    height: var(--grove-content-offset-two-row); /* Dynamic Grove headbar offset */
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+}
+
+/* Data grid container optimized for Grove headbar integration */
+.data-grid-container {
+    height: calc(var(--grove-content-offset-two-row) - 2rem); /* Grove offset minus KPI space */
+    min-height: 400px;
+    width: 100%;
+    max-width: none; /* Remove any max-width constraints */
+    overflow: hidden; /* Prevent container overflow */
+    margin: 0;
+    padding: 0;
+}
+
+/* Ensure AG Grid uses full available width and handles responsive columns */
+.ag-theme-quartz,
+.ag-theme-quartz-dark {
+    width: 100% !important;
+    height: 100% !important;
+    box-sizing: border-box;
+}
+
+/* Optimize AG Grid for better column distribution */
+.ag-theme-quartz .ag-root-wrapper,
+.ag-theme-quartz-dark .ag-root-wrapper {
+    width: 100%;
+    height: 100%;
+}
+
+/* Ensure headers and cells use available width efficiently */
+.ag-theme-quartz .ag-header-viewport,
+.ag-theme-quartz-dark .ag-header-viewport,
+.ag-theme-quartz .ag-body-viewport,
+.ag-theme-quartz-dark .ag-body-viewport {
+    width: 100% !important;
+}
+
+/* Responsive column sizing */
+.ag-theme-quartz .ag-header-cell,
+.ag-theme-quartz-dark .ag-header-cell {
+    min-width: 100px;
+    max-width: 300px;
+}
+
+/* Prevent any scrollbars on data cells */
+.ag-theme-quartz .ag-cell,
+.ag-theme-quartz-dark .ag-cell {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* KPI cards layout optimization */
+.kpi-cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 0 1rem;
+    width: 100%;
+}
+
+.kpi-card {
+    flex: 1 1 auto;
+    min-width: 200px;
+    max-width: 300px;
+    background: var(--grove-bg-surface);
+    border: 1px solid var(--grove-border-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    color: var(--grove-text-primary);
+}
+
+/* Grove theme integration - automatic via CSS custom properties */
+[data-theme="dark"] .kpi-card,
+.dark .kpi-card {
+    /* Dark theme handled automatically via Grove design tokens */
+}
+
+/* Mobile responsiveness for data studio */
+@media (max-width: 768px) {
+    .data-studio-layout {
+        height: var(--grove-content-offset-single-row); /* Mobile uses single-row headbar */
+    }
+    
+    .data-grid-container {
+        height: calc(var(--grove-content-offset-single-row) - 2rem);
+        min-height: 300px;
+    }
+    
+    .kpi-cards-container {
+        flex-direction: column;
+        padding: 0 0.5rem;
+    }
+    
+    .kpi-card {
+        min-width: unset;
+        max-width: unset;
+    }
+    
+    /* Mobile container adjustment for single-row Grove headbar */
+    .data-studio-container {
+        top: var(--grove-headbar-single-height); /* Mobile uses single-row */
+        height: var(--grove-content-offset-single-row);
+    }
+}
+
+/* Tablet responsive adjustments */
+@media (max-width: 1024px) {
+    .ag-theme-quartz .ag-header-cell,
+    .ag-theme-quartz-dark .ag-header-cell {
+        min-width: 80px;
+        max-width: 250px;
+    }
+}
+
+/* Critical viewport overrides for edge-to-edge layout */
+/* These overrides ensure the data studio uses full screen width */
+body.data-studio-active {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100vw !important;
+    max-width: none !important;
+    overflow-x: hidden !important;
+    position: relative !important;
+}
+
+/* Force parent elements to not have any spacing when in data studio */
+body.data-studio-active * {
+    box-sizing: border-box !important;
+}
+
+/* Specific override for the page content area */
+body.data-studio-active #content,
+body.data-studio-active .page-content,
+body.data-studio-active .layout-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100vw !important;
+    max-width: none !important;
+}
+
+/* Data Studio specific container styling - Grove headbar integration */
+.data-studio-container {
+    position: absolute;
+    top: var(--grove-headbar-total-height); /* Dynamic Grove headbar height */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: var(--grove-content-offset-two-row); /* Dynamic content height */
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ensure proper layout hierarchy */
+.data-studio-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.data-studio-header {
+    flex-shrink: 0;
+    padding: var(--space-4);
+    background: var(--grove-bg-primary);
+    border-bottom: 1px solid var(--grove-border-primary);
+    color: var(--grove-text-primary);
+}
+
+.data-studio-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Grove theme integration for data studio header */
+[data-theme="dark"] .data-studio-header,
+.dark .data-studio-header {
+    /* Dark theme handled automatically via Grove design tokens */
+}
+
+/* FOUC Prevention - Critical styles to prevent flash during page load */
+/* Prevent flash of black elements during theme loading */
+.wave-headbar-primary-row,
+.wave-headbar-secondary-row {
+    background-color: var(--grove-bg-primary, #ffffff);
+    color: var(--grove-text-primary, #1f2937);
+    transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+/* Breadcrumb visibility fix - ensure proper contrast in both light and dark themes */
+nav[aria-label="Breadcrumb"] {
+    background-color: var(--grove-bg-primary, #ffffff);
+    transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+nav[aria-label="Breadcrumb"] ol,
+nav[aria-label="Breadcrumb"] li,
+nav[aria-label="Breadcrumb"] a,
+nav[aria-label="Breadcrumb"] span {
+    color: var(--grove-text-primary, #1f2937) !important;
+}
+
+/* Dark theme breadcrumb colors - FIXED: removed !important and changed fallback color */
+.dark nav[aria-label="Breadcrumb"] ol,
+.dark nav[aria-label="Breadcrumb"] li,
+.dark nav[aria-label="Breadcrumb"] a,
+.dark nav[aria-label="Breadcrumb"] span {
+    color: var(--grove-text-primary-dark, #9ca3af);
+}
+
+/* Dark mode fallbacks for FOUC prevention - DISABLED to prevent white text flash */
+/* @media (prefers-color-scheme: dark) {
+    .wave-headbar-primary-row,
+    .wave-headbar-secondary-row,
+    nav[aria-label="Breadcrumb"] {
+        background-color: var(--grove-bg-primary, #111827);
+        color: var(--grove-text-primary, #f9fafb);
+    }
+} */
+
+/* Alpine.js state flash prevention */
+[x-data]:not(.alpine-initialized) {
+    visibility: hidden;
+}
+
+[x-data].alpine-initialized {
+    visibility: visible;
+    transition: visibility 0.1s ease;
+}

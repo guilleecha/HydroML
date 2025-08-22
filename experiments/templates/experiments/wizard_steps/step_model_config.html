@@ -1,0 +1,458 @@
+{% load static %}
+{% load tailwind_filters %}
+
+<!-- Step 4: Model Configuration -->
+<div class="space-y-6">
+    <!-- Model Selection -->
+    <div x-data="modelSelector()" x-init="init()">
+        <label class="block text-sm font-medium text-gray-900 dark:text-darcula-foreground mb-3">
+            Algoritmo de Machine Learning <span class="text-red-500">*</span>
+        </label>
+        
+        <!-- Model Recommendations -->
+        <div x-show="recommendations.length > 0" class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+            <div class="flex items-start">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM9 9a1 1 0 0 0 0 2v3a1 1 0 0 0 1 1h1a1 1 0 1 0 0-2v-3a1 1 0 0 0-1-1H9z" clip-rule="evenodd"></path>
+                </svg>
+                <div>
+                    <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">🤖 Recomendaciones basadas en tus datos:</h4>
+                    <div class="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                        <template x-for="rec in recommendations" :key="rec.model">
+                            <div class="flex items-center space-x-2">
+                                <span class="font-medium" x-text="rec.name"></span>
+                                <span class="text-xs">•</span>
+                                <span x-text="rec.reason"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Model Selection Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <template x-for="model in availableModels" :key="model.value">
+                <label class="flex items-start p-4 border border-gray-200 dark:border-darcula-border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-darcula-background-lighter transition-colors"
+                       :class="{ 
+                           'border-blue-500 bg-blue-50 dark:border-darcula-accent dark:bg-darcula-accent/10': formData.model_name === model.value,
+                           'border-green-500 bg-green-50 dark:border-green-500 dark:bg-green-900/20': recommendations.some(r => r.model === model.value)
+                       }">
+                    <input type="radio" 
+                           name="model_name" 
+                           :value="model.value" 
+                           x-model="formData.model_name"
+                           @change="onModelChange"
+                           class="mt-1 text-blue-600 dark:text-darcula-accent focus:ring-blue-500 dark:focus:ring-darcula-accent border-gray-300 dark:border-darcula-border">
+                    <div class="ml-3 flex-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-medium text-gray-900 dark:text-darcula-foreground" x-text="model.name"></span>
+                            <span x-show="recommendations.some(r => r.model === model.value)" 
+                                  class="text-xs bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 px-2 py-1 rounded-full">
+                                Recomendado
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-600 dark:text-darcula-foreground-muted mt-1" x-text="model.description"></p>
+                        <div class="mt-2 flex flex-wrap gap-2">
+                            <template x-for="tag in model.tags" :key="tag">
+                                <span class="text-xs bg-gray-100 dark:bg-darcula-background-lighter text-gray-700 dark:text-darcula-foreground-muted px-2 py-1 rounded" x-text="tag"></span>
+                            </template>
+                        </div>
+                    </div>
+                </label>
+            </template>
+        </div>
+    </div>
+    
+    <!-- Hyperparameter Configuration -->
+    <div x-data="hyperparameterConfig()" x-init="init()">
+        <div x-show="formData.model_name">
+            <div class="border-t border-gray-200 dark:border-darcula-border pt-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-darcula-foreground">Configuración de Hiperparámetros</h3>
+                    <div class="flex items-center space-x-3">
+                        <label class="flex items-center">
+                            <input type="checkbox" 
+                                   x-model="showAdvanced" 
+                                   class="text-blue-600 dark:text-darcula-accent focus:ring-blue-500 dark:focus:ring-darcula-accent border-gray-300 dark:border-darcula-border rounded">
+                            <span class="ml-2 text-sm text-gray-700 dark:text-darcula-foreground">Mostrar opciones avanzadas</span>
+                        </label>
+                        <button type="button" 
+                                @click="resetToDefaults()"
+                                class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 underline">
+                            Restablecer valores por defecto
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Random Forest Parameters -->
+                <div x-show="formData.model_name === 'random_forest'" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- N Estimators -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900 dark:text-darcula-foreground mb-2">
+                                Número de Árboles: <span x-text="params.rf_n_estimators" class="font-semibold text-blue-600 dark:text-blue-400"></span>
+                            </label>
+                            <input type="range" 
+                                   x-model="params.rf_n_estimators"
+                                   min="10" max="500" step="10"
+                                   class="w-full h-2 bg-gray-200 dark:bg-darcula-background-lighter rounded-lg appearance-none cursor-pointer">
+                            <div class="flex justify-between text-xs text-gray-500 dark:text-darcula-foreground-muted mt-1">
+                                <span>10</span>
+                                <span>500</span>
+                            </div>
+                            <p class="text-xs text-gray-500 dark:text-darcula-foreground-muted mt-1">
+                                Más árboles = mejor precisión pero más tiempo de entrenamiento
+                            </p>
+                        </div>
+                        
+                        <!-- Max Depth -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900 dark:text-darcula-foreground mb-2">
+                                Profundidad Máxima: <span x-text="params.rf_max_depth || 'Sin límite'" class="font-semibold text-blue-600 dark:text-blue-400"></span>
+                            </label>
+                            <input type="range" 
+                                   x-model="params.rf_max_depth"
+                                   min="3" max="50" step="1"
+                                   class="w-full h-2 bg-gray-200 dark:bg-darcula-background-lighter rounded-lg appearance-none cursor-pointer">
+                            <div class="flex justify-between text-xs text-gray-500 dark:text-darcula-foreground-muted mt-1">
+                                <span>3</span>
+                                <span>Sin límite</span>
+                            </div>
+                            <p class="text-xs text-gray-500 dark:text-darcula-foreground-muted mt-1">
+                                Profundidad menor = menos overfitting
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Advanced RF Parameters -->
+                    <div x-show="showAdvanced" x-transition class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-darcula-border">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900 dark:text-darcula-foreground mb-2">
+                                Min Samples Split: <span x-text="params.rf_min_samples_split" class="font-semibold text-blue-600 dark:text-blue-400"></span>
+                            </label>
+                            <input type="range" 
+                                   x-model="params.rf_min_samples_split"
+                                   min="2" max="20" step="1"
+                                   class="w-full h-2 bg-gray-200 dark:bg-darcula-background-lighter rounded-lg appearance-none cursor-pointer">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900 dark:text-darcula-foreground mb-2">
+                                Min Samples Leaf: <span x-text="params.rf_min_samples_leaf" class="font-semibold text-blue-600 dark:text-blue-400"></span>
+                            </label>
+                            <input type="range" 
+                                   x-model="params.rf_min_samples_leaf"
+                                   min="1" max="10" step="1"
+                                   class="w-full h-2 bg-gray-200 dark:bg-darcula-background-lighter rounded-lg appearance-none cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Gradient Boosting Parameters -->
+                <div x-show="formData.model_name === 'gradient_boosting'" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- N Estimators -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900 dark:text-darcula-foreground mb-2">
+                                Número de Estimadores: <span x-text="params.gb_n_estimators" class="font-semibold text-blue-600 dark:text-blue-400"></span>
+                            </label>
+                            <input type="range" 
+                                   x-model="params.gb_n_estimators"
+                                   min="50" max="500" step="10"
+                                   class="w-full h-2 bg-gray-200 dark:bg-darcula-background-lighter rounded-lg appearance-none cursor-pointer">
+                        </div>
+                        
+                        <!-- Learning Rate -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900 dark:text-darcula-foreground mb-2">
+                                Tasa de Aprendizaje: <span x-text="params.gb_learning_rate" class="font-semibold text-blue-600 dark:text-blue-400"></span>
+                            </label>
+                            <input type="range" 
+                                   x-model="params.gb_learning_rate"
+                                   min="0.01" max="0.3" step="0.01"
+                                   class="w-full h-2 bg-gray-200 dark:bg-darcula-background-lighter rounded-lg appearance-none cursor-pointer">
+                            <p class="text-xs text-gray-500 dark:text-darcula-foreground-muted mt-1">
+                                Menor = aprendizaje más lento pero más estable
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Linear Regression Parameters -->
+                <div x-show="formData.model_name === 'linear_regression'" class="space-y-4">
+                    <div class="p-4 bg-gray-50 dark:bg-darcula-background-lighter rounded-lg">
+                        <p class="text-sm text-gray-600 dark:text-darcula-foreground-muted">
+                            La regresión lineal utiliza configuración automática sin hiperparámetros ajustables.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Support Vector Machine Parameters -->
+                <div x-show="formData.model_name === 'svm'" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- C Parameter -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900 dark:text-darcula-foreground mb-2">
+                                Parámetro C: <span x-text="params.svm_c" class="font-semibold text-blue-600 dark:text-blue-400"></span>
+                            </label>
+                            <input type="range" 
+                                   x-model="params.svm_c"
+                                   min="0.1" max="10" step="0.1"
+                                   class="w-full h-2 bg-gray-200 dark:bg-darcula-background-lighter rounded-lg appearance-none cursor-pointer">
+                            <p class="text-xs text-gray-500 dark:text-darcula-foreground-muted mt-1">
+                                Control de regularización
+                            </p>
+                        </div>
+                        
+                        <!-- Kernel -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900 dark:text-darcula-foreground mb-2">Kernel</label>
+                            <select x-model="params.svm_kernel" 
+                                    class="block w-full border-gray-300 dark:border-darcula-border bg-white dark:bg-darcula-background text-gray-900 dark:text-darcula-foreground rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-darcula-accent dark:focus:border-darcula-accent">
+                                <option value="rbf">RBF (Radial)</option>
+                                <option value="linear">Lineal</option>
+                                <option value="poly">Polinomial</option>
+                                <option value="sigmoid">Sigmoide</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Model Performance Expectations -->
+    <div x-show="formData.model_name" class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg p-4">
+        <div class="flex items-start">
+            <svg class="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+            </svg>
+            <div>
+                <h4 class="text-sm font-medium text-green-800 dark:text-green-200 mb-1">📈 Expectativas de rendimiento:</h4>
+                <div class="text-sm text-green-700 dark:text-green-300" x-text="getPerformanceExpectation()"></div>
+                <div class="text-xs text-green-600 dark:text-green-400 mt-1" x-text="getTrainingTimeEstimate()"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Model Configuration Tips -->
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+        <div class="flex items-start">
+            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+            </svg>
+            <div>
+                <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">🎛️ Consejos para configuración:</h4>
+                <ul class="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                    <li>• Comienza con los valores por defecto y ajusta gradualmente</li>
+                    <li>• Para datasets pequeños (&lt;1000 filas), reduce el número de estimadores</li>
+                    <li>• Para datasets grandes, aumenta la profundidad máxima con cuidado</li>
+                    <li>• Random Forest es una buena opción general para principiantes</li>
+                    <li>• Gradient Boosting suele dar mejor precisión pero toma más tiempo</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Model Selector Component
+function modelSelector() {
+    return {
+        availableModels: [
+            {
+                value: 'random_forest',
+                name: 'Random Forest',
+                description: 'Algoritmo versátil que combina múltiples árboles de decisión. Excelente balance entre precisión y interpretabilidad.',
+                tags: ['Clasificación', 'Regresión', 'Robusto', 'Fácil de usar']
+            },
+            {
+                value: 'gradient_boosting',
+                name: 'Gradient Boosting',
+                description: 'Algoritmo potente que construye modelos secuencialmente. Alta precisión pero más complejo de ajustar.',
+                tags: ['Alta precisión', 'Clasificación', 'Regresión', 'Avanzado']
+            },
+            {
+                value: 'linear_regression',
+                name: 'Regresión Lineal',
+                description: 'Modelo simple y rápido para problemas de regresión. Ideal para relaciones lineales.',
+                tags: ['Regresión', 'Simple', 'Rápido', 'Interpretable']
+            },
+            {
+                value: 'logistic_regression',
+                name: 'Regresión Logística',
+                description: 'Modelo clásico para clasificación. Simple, rápido e interpretable.',
+                tags: ['Clasificación', 'Simple', 'Rápido', 'Interpretable']
+            },
+            {
+                value: 'svm',
+                name: 'Support Vector Machine',
+                description: 'Algoritmo efectivo para datasets pequeños y medianos. Bueno para alta dimensionalidad.',
+                tags: ['Clasificación', 'Regresión', 'Alta dimensión', 'Robusto']
+            },
+            {
+                value: 'neural_network',
+                name: 'Red Neuronal',
+                description: 'Modelo flexible para patrones complejos. Requiere más datos y tiempo de entrenamiento.',
+                tags: ['Patrones complejos', 'Flexible', 'Avanzado', 'Muchos datos']
+            }
+        ],
+        recommendations: [],
+        
+        init() {
+            this.generateRecommendations();
+        },
+        
+        generateRecommendations() {
+            // Generate recommendations based on problem type and data characteristics
+            const problemType = this.getProblemType();
+            const datasetSize = this.getDatasetSize();
+            
+            this.recommendations = [];
+            
+            if (problemType === 'regression') {
+                if (datasetSize === 'small') {
+                    this.recommendations.push({
+                        model: 'linear_regression',
+                        name: 'Regresión Lineal',
+                        reason: 'Ideal para datasets pequeños y relaciones lineales'
+                    });
+                } else {
+                    this.recommendations.push({
+                        model: 'random_forest',
+                        name: 'Random Forest',
+                        reason: 'Versátil y robusto para problemas de regresión'
+                    });
+                }
+            } else if (problemType === 'binary_classification') {
+                this.recommendations.push({
+                    model: 'logistic_regression',
+                    name: 'Regresión Logística',
+                    reason: 'Excelente para clasificación binaria'
+                });
+                this.recommendations.push({
+                    model: 'random_forest',
+                    name: 'Random Forest',
+                    reason: 'Alternativa robusta con buena precisión'
+                });
+            } else {
+                this.recommendations.push({
+                    model: 'random_forest',
+                    name: 'Random Forest',
+                    reason: 'Recomendación general para la mayoría de problemas'
+                });
+            }
+        },
+        
+        getProblemType() {
+            // This would be determined by the target column analysis
+            // For now, return a default
+            return 'classification';
+        },
+        
+        getDatasetSize() {
+            // This would be determined by the selected dataset
+            // For now, return a default
+            return 'medium';
+        },
+        
+        onModelChange() {
+            // Update hyperparameters when model changes
+            this.$dispatch('model-changed', { model: this.formData.model_name });
+        }
+    };
+}
+
+// Hyperparameter Configuration Component
+function hyperparameterConfig() {
+    return {
+        showAdvanced: false,
+        params: {
+            // Random Forest
+            rf_n_estimators: 100,
+            rf_max_depth: 10,
+            rf_min_samples_split: 2,
+            rf_min_samples_leaf: 1,
+            
+            // Gradient Boosting
+            gb_n_estimators: 100,
+            gb_learning_rate: 0.1,
+            
+            // SVM
+            svm_c: 1.0,
+            svm_kernel: 'rbf',
+            
+            // Neural Network
+            nn_hidden_layers: 2,
+            nn_neurons_per_layer: 100
+        },
+        
+        init() {
+            // Listen for model changes
+            this.$el.addEventListener('model-changed', (event) => {
+                this.resetToDefaults();
+            });
+            
+            // Sync params with formData
+            this.syncWithFormData();
+        },
+        
+        resetToDefaults() {
+            // Reset to default values based on current model
+            const model = this.formData.model_name;
+            
+            if (model === 'random_forest') {
+                this.params.rf_n_estimators = 100;
+                this.params.rf_max_depth = 10;
+                this.params.rf_min_samples_split = 2;
+                this.params.rf_min_samples_leaf = 1;
+            } else if (model === 'gradient_boosting') {
+                this.params.gb_n_estimators = 100;
+                this.params.gb_learning_rate = 0.1;
+            } else if (model === 'svm') {
+                this.params.svm_c = 1.0;
+                this.params.svm_kernel = 'rbf';
+            }
+            
+            this.syncWithFormData();
+        },
+        
+        syncWithFormData() {
+            // Sync hyperparameters with main form data
+            Object.keys(this.params).forEach(key => {
+                this.formData[key] = this.params[key];
+            });
+        },
+        
+        getPerformanceExpectation() {
+            const model = this.formData.model_name;
+            
+            const expectations = {
+                'random_forest': 'Precisión alta, buena generalización, resistente al overfitting',
+                'gradient_boosting': 'Precisión muy alta, pero puede ser propenso al overfitting',
+                'linear_regression': 'Precisión moderada, muy interpretable, rápido',
+                'logistic_regression': 'Precisión buena para clasificación simple, muy interpretable',
+                'svm': 'Precisión alta para datasets pequeños/medianos, bueno con muchas variables',
+                'neural_network': 'Precisión variable, excelente para patrones complejos con suficientes datos'
+            };
+            
+            return expectations[model] || 'Rendimiento esperado depende de la configuración y datos';
+        },
+        
+        getTrainingTimeEstimate() {
+            const model = this.formData.model_name;
+            
+            const timeEstimates = {
+                'random_forest': 'Tiempo de entrenamiento: 1-5 minutos (datasets típicos)',
+                'gradient_boosting': 'Tiempo de entrenamiento: 2-10 minutos (puede ser más lento)',
+                'linear_regression': 'Tiempo de entrenamiento: < 1 minuto (muy rápido)',
+                'logistic_regression': 'Tiempo de entrenamiento: < 1 minuto (muy rápido)',
+                'svm': 'Tiempo de entrenamiento: 1-3 minutos (depende del kernel)',
+                'neural_network': 'Tiempo de entrenamiento: 5-30 minutos (requiere más tiempo)'
+            };
+            
+            return timeEstimates[model] || 'Tiempo estimado: Variable según configuración';
+        }
+    };
+}
+</script>

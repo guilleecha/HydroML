@@ -1,4 +1,6 @@
-# HydroML - Claude Code CCMP Configuration
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 > **Primary Directive**: Think carefully and implement the most concise solution that changes as little code as possible.
 
@@ -93,29 +95,131 @@ Full MCP configuration and status in `.claude/context/mcp-configuration.md`
 - Occasional pleasantries are fine.
 - Feel free to ask many questions. If you are in doubt of my intent, don't guess. Ask.
 
+## 🔧 Common Development Commands
+
+### Docker Commands (Primary Development Environment)
+```bash
+# Start all services
+docker-compose up --build
+
+# Django commands in container
+docker-compose exec web python manage.py migrate
+docker-compose exec web python manage.py createsuperuser
+docker-compose exec web python manage.py collectstatic
+docker-compose exec web python manage.py makemigrations
+docker-compose exec web python manage.py shell
+
+# Restart services after backend changes
+docker-compose down && docker-compose up --build
+
+# View logs
+docker-compose logs web
+docker-compose logs worker
+```
+
+### Testing Commands
+```bash
+# Run all tests with coverage
+docker-compose exec web python -m pytest
+
+# Run specific test categories
+docker-compose exec web python -m pytest tests/unit/
+docker-compose exec web python -m pytest tests/integration/
+docker-compose exec web python -m pytest tests/e2e/
+
+# Run tests with specific markers
+docker-compose exec web python -m pytest -m "unit"
+docker-compose exec web python -m pytest -m "integration"
+
+# Generate coverage report
+docker-compose exec web python -m pytest --cov=. --cov-report=html
+```
+
+### Frontend Development
+```bash
+# Build CSS (Tailwind)
+npm run build          # Production build
+npm run dev            # Development with watch
+
+# Install frontend dependencies
+npm install
+```
+
+### Code Quality
+```bash
+# Format and lint (in container)
+docker-compose exec web black .
+docker-compose exec web isort .
+docker-compose exec web flake8 .
+```
+
+## 🏗️ Architecture Overview
+
+### Core Django Apps Structure
+- **core/**: Authentication, navigation, shared utilities, design system components
+- **projects/**: Project and datasource management with many-to-many relationships
+- **data_tools/**: Data analysis, cleaning, preparation with session-based workflows
+- **experiments/**: ML experiment tracking with MLflow integration
+- **connectors/**: Database connections and data import functionality
+- **accounts/**: User management and profiles
+
+### Key Architectural Patterns
+- **Models**: Split into `models/` directories with separate files (not single `models.py`)
+- **Views**: Split into `views/` directories organized by functionality
+- **Services**: Business logic separated into `services.py` and `services/` directories
+- **UUID Primary Keys**: All models use UUID for primary keys
+- **Template Structure**: All templates must start with `{% extends %}` followed by `{% load %}`
+
+### Technology Stack
+- **Backend**: Django 5.2.4, PostgreSQL 14, Redis 6, Celery
+- **Frontend**: Tailwind CSS, Alpine.js, AG Grid, Plotly.js
+- **ML/Analytics**: MLflow 2.22.1, Optuna, scikit-learn, pandas
+- **Infrastructure**: Docker Compose, Sentry (monitoring)
+
+### Service Dependencies
+- **PostgreSQL**: Database (port 5432)
+- **Redis**: Cache and task queue (port 6379)
+- **MLflow**: Experiment tracking (port 5000)
+- **Web App**: Django application (port 8000)
+- **Celery Worker**: Background task processing
+
 ## 🔧 HydroML Specific Configuration
 
-### Docker Environment
+### Docker Environment Requirements
 - **Always use Docker**: Execute Django commands via `docker compose exec web`
 - **Database**: PostgreSQL in container, never use SQLite in production contexts
 - **Testing**: Run tests in Docker environment with proper service dependencies
+- **Service Health**: Ensure all services (db, redis, mlflow) are healthy before running commands
 
 ### Development Workflow
-- **Foco en la Tarea**: Realiza únicamente los cambios solicitados. Sugiere mejoras, pero no las implementes sin confirmación.
-- **Pruebas Rigurosas**: Después de cambios en el backend, SIEMPRE detén cualquier servidor en ejecución e inicia uno nuevo.
-- **Context7**: Siempre que necesites consultar documentación de bibliotecas, frameworks o APIs, utiliza la herramienta Context7.
+- **Focused Changes**: Make only requested changes, suggest improvements but don't implement without confirmation
+- **Rigorous Testing**: After backend changes, always restart services with `docker-compose down && docker-compose up --build`
+- **Context7**: Always use Context7 tool for library/framework documentation queries
 
-### Django Architecture
-- **Models**: Directorio `models/` con archivos separados (no `models.py` único)
-- **Views**: Directorio `views/` con archivos separados por funcionalidad  
-- **UUID Primary Keys**: Todos los modelos deben usar UUID como clave primaria
-- **Services**: Funciones en `services.py` no deben interactuar con `request` directamente
-- **Templates**: `{% extends %}` DEBE ser la primera línea, `{% load %}` inmediatamente después
+### Django Architecture Conventions
+- **Models**: Use `models/` directory structure with separate files
+- **Views**: Use `views/` directory structure with functional separation
+- **UUID Primary Keys**: All models must use UUID as primary key
+- **Services**: Business logic in `services.py` should not interact with `request` objects directly
+- **Templates**: Must start with `{% extends %}` as first line, `{% load %}` immediately after
 
 ### Package Management
-- **uv prioritizado**: `uv venv`, `uv pip install`, `uv pip freeze`
-- **pathlib**: Para manipulación de archivos y rutas
-- **Sentry**: Para manejo de errores y monitoreo
+- **uv prioritized**: Use `uv venv`, `uv pip install`, `uv pip freeze` when possible
+- **pathlib**: Use for file and path manipulation
+- **Sentry**: Integrated for error handling and monitoring
+
+### Component Library Strategy
+- **Always check Grove components first**: Search `core/static/core/css/components/` before creating new CSS
+- **Grove over Wave**: Use Grove Design System components (modern) over Wave components (legacy)
+- **Component Hierarchy**:
+  1. **Grove components** - Primary system with design tokens
+  2. **Specialized components** - Domain-specific (data-studio, ml-wizard)
+  3. **Wave components** - Legacy only, avoid for new features
+- **Before creating new CSS**: Search existing components in this order:
+  1. Grove system (`grove-*.css`)
+  2. Specialized components (`*-components.css`) 
+  3. Wave legacy (`wave-components.css`)
+- **CSS best practices**: Use semantic class names, design tokens, avoid Tailwind utilities in templates
 
 ## ABSOLUTE RULES:
 
@@ -129,3 +233,9 @@ Full MCP configuration and status in `.claude/context/mcp-configuration.md`
 - NO OVER-ENGINEERING - Don't add unnecessary abstractions, factory patterns, or middleware when simple functions would work. Don't think "enterprise" when you need "working"
 - NO MIXED CONCERNS - Don't put validation logic inside API handlers, database queries inside UI components, etc. instead of proper separation
 - NO RESOURCE LEAKS - Don't forget to close database connections, clear timeouts, remove event listeners, or clean up file handles
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.

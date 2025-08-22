@@ -24,7 +24,7 @@ from data_tools.services.api_performance_service import (
     rate_limit, cache_response, monitor_performance, 
     bulk_operation_manager
 )
-from data_tools.websockets.data_studio_consumer import sync_send_bulk_progress, sync_send_error
+# from data_tools.websockets.data_studio_consumer import sync_send_bulk_progress, sync_send_error
 from data_tools.views.api.mixins import BaseAPIView
 
 logger = logging.getLogger(__name__)

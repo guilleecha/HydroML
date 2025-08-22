@@ -95,12 +95,12 @@ class WaveHeadbar {
                             </svg>
                         </button>
                         
-                        <!-- Grove Logo -->
-                        <a href="/dashboard/" class="wave-headbar-primary-logo">
+                        <!-- Grove Logo - DISABLED to prevent duplicate with template breadcrumb -->
+                        <!-- <a href="/dashboard/" class="wave-headbar-primary-logo">
                             <svg class="w-12 h-12 text-gray-600 dark:text-gray-300" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/>
                             </svg>
-                        </a>
+                        </a> -->
                         
                         <!-- Enhanced Breadcrumbs -->
                         <div class="wave-headbar-breadcrumbs">
@@ -301,18 +301,8 @@ class WaveHeadbar {
             
             // Event Methods
             toggleTheme() {
-                const html = document.documentElement;
-                const isDark = html.classList.contains('dark');
-                
-                if (isDark) {
-                    html.classList.remove('dark');
-                    html.classList.add('light');
-                    console.log('Theme toggled to: light');
-                } else {
-                    html.classList.remove('light');
-                    html.classList.add('dark');
-                    console.log('Theme toggled to: dark');
-                }
+                // DISABLED: Theme management delegated to HydroMLThemeManager to prevent conflicts
+                console.log('Theme toggle disabled in WaveHeadbar - use HydroMLThemeManager instead');
             },
             
             toggleMobileMenu() {
