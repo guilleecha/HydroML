@@ -1,0 +1,278 @@
+/**
+ * Grove Page Components
+ * Semantic CSS classes for Grove design system page layouts
+ * Replaces inline styles with reusable component classes
+ */
+
+/* =================================
+   CONTEXT BAR COMPONENTS
+   ================================= */
+
+.grove-context-bar {
+  @apply border-b bg-gradient-to-r;
+  border-color: var(--grove-border-primary);
+  background: linear-gradient(to right, var(--grove-bg-primary), var(--grove-bg-secondary));
+}
+
+.grove-context-bar-container {
+  @apply container mx-auto px-4;
+}
+
+/* =================================
+   NAVIGATION COMPONENTS
+   ================================= */
+
+.grove-breadcrumb-container {
+  @apply py-3 border-b;
+  border-color: var(--grove-border-primary);
+}
+
+.grove-breadcrumb-nav {
+  @apply flex items-center space-x-2 text-sm;
+  color: var(--grove-text-tertiary);
+}
+
+.grove-breadcrumb-link {
+  @apply hover:text-primary transition-colors;
+}
+
+.grove-breadcrumb-current {
+  @apply font-medium;
+  color: var(--grove-text-primary);
+}
+
+.grove-breadcrumb-separator {
+  @apply w-4 h-4;
+}
+
+/* =================================
+   PROJECT HEADER COMPONENTS
+   ================================= */
+
+.grove-project-header {
+  @apply py-6;
+}
+
+.grove-project-header-content {
+  @apply flex items-center justify-between;
+}
+
+.grove-project-info {
+  @apply flex-1;
+}
+
+.grove-project-title {
+  @apply text-2xl font-bold mb-2;
+  color: var(--grove-text-primary);
+}
+
+.grove-project-description {
+  @apply text-base leading-relaxed max-w-2xl;
+  color: var(--grove-text-secondary);
+}
+
+.grove-project-meta {
+  @apply flex items-center space-x-6 mt-3 text-sm;
+  color: var(--grove-text-tertiary);
+}
+
+.grove-project-meta-item {
+  @apply flex items-center;
+}
+
+.grove-project-meta-icon {
+  @apply w-4 h-4 mr-1;
+}
+
+/* =================================
+   PROJECT ACTIONS
+   ================================= */
+
+.grove-project-actions {
+  @apply flex items-center space-x-3;
+}
+
+/* =================================
+   TABLE COMPONENTS
+   ================================= */
+
+.grove-table-secondary-text {
+  color: var(--grove-text-secondary);
+}
+
+.grove-table-muted-text {
+  color: var(--grove-text-tertiary);
+}
+
+/* =================================
+   CODE BLOCK COMPONENTS
+   ================================= */
+
+.grove-code-block {
+  @apply rounded-lg p-4 text-sm overflow-x-auto;
+  background-color: var(--grove-bg-secondary);
+}
+
+.grove-code-block-small {
+  @apply text-xs p-2;
+  background-color: var(--grove-bg-secondary);
+}
+
+/* =================================
+   ICON COMPONENTS
+   ================================= */
+
+.grove-icon-secondary {
+  color: var(--grove-text-secondary);
+}
+
+.grove-icon-muted {
+  color: var(--grove-text-tertiary);
+}
+
+.grove-icon-surface {
+  background-color: var(--grove-bg-surface);
+  border-color: var(--grove-border-primary);
+}
+
+/* =================================
+   DOCUMENTATION COMPONENTS
+   ================================= */
+
+.grove-doc-section-title {
+  color: var(--grove-text-primary);
+}
+
+.grove-doc-section-description {
+  color: var(--grove-text-secondary);
+}
+
+.grove-doc-meta-text {
+  color: var(--grove-text-tertiary);
+}
+
+/* =================================
+   COMPONENT SHOWCASE
+   ================================= */
+
+.grove-component-showcase {
+  @apply space-y-6;
+}
+
+.grove-component-card {
+  @apply bg-white rounded-lg border p-6;
+  border-color: var(--grove-border-primary);
+  background-color: var(--grove-bg-primary);
+}
+
+.grove-component-header {
+  @apply flex items-center justify-between mb-4;
+}
+
+.grove-component-title {
+  @apply text-lg font-semibold;
+  color: var(--grove-text-primary);
+}
+
+.grove-component-description {
+  @apply text-sm mb-4;
+  color: var(--grove-text-secondary);
+}
+
+/* =================================
+   GROVE CARD COMPONENTS  
+   ================================= */
+
+.grove-card {
+  background-color: var(--grove-bg-surface);
+  border: 1px solid var(--grove-border-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  transition: var(--transition-shadow);
+}
+
+.grove-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.grove-card-header {
+  padding: var(--space-6) var(--space-6) var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--grove-border-primary);
+  background-color: var(--grove-bg-secondary);
+}
+
+.grove-card-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--grove-text-primary);
+  line-height: var(--line-height-tight);
+  margin: 0;
+}
+
+.grove-card-content {
+  padding: var(--space-6);
+}
+
+/* =================================
+   UTILITY CLASSES
+   ================================= */
+
+.grove-text-primary {
+  color: var(--grove-text-primary);
+}
+
+.grove-text-secondary {
+  color: var(--grove-text-secondary);
+}
+
+.grove-text-tertiary {
+  color: var(--grove-text-tertiary);
+}
+
+.grove-bg-primary {
+  background-color: var(--grove-bg-primary);
+}
+
+.grove-bg-secondary {
+  background-color: var(--grove-bg-secondary);
+}
+
+.grove-bg-surface {
+  background-color: var(--grove-bg-surface);
+}
+
+.grove-border-primary {
+  border-color: var(--grove-border-primary);
+}
+
+/* =================================
+   RESPONSIVE UTILITIES
+   ================================= */
+
+@media (max-width: 768px) {
+  .grove-project-header-content {
+    @apply flex-col items-start space-y-4;
+  }
+  
+  .grove-project-actions {
+    @apply flex-col space-x-0 space-y-2 w-full;
+  }
+  
+  .grove-breadcrumb-nav {
+    @apply text-xs;
+  }
+}
+
+/* =================================
+   THEME TRANSITIONS
+   ================================= */
+
+.grove-context-bar,
+.grove-project-title,
+.grove-project-description,
+.grove-project-meta,
+.grove-breadcrumb-nav,
+.grove-breadcrumb-current {
+  transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}

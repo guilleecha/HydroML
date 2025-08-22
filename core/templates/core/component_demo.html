@@ -1,7 +1,7 @@
-{% extends 'core/base.html' %}
+{% extends 'core/base_main.html' %}
 {% load static %}
 
-{% block title %}Component System Demo - HydroML{% endblock %}
+{% block page_title %}Component System Demo{% endblock %}
 
 {% block extra_head %}
 <!-- Additional demo styles -->
@@ -27,19 +27,9 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="min-h-screen bg-primary transition-theme">
-  <!-- Header -->
-  <header class="bg-surface border-b border-primary shadow-card">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-16">
-        <h1 class="text-xl font-semibold text-primary">HydroML Component System Demo</h1>
-        {% include 'core/partials/_theme_switcher.html' %}
-      </div>
-    </div>
-  </header>
+{% block page_heading %}HydroML Component System Demo{% endblock %}
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+{% block content %}
     <!-- Introduction -->
     <div class="bg-surface rounded-lg border border-primary shadow-card p-6 mb-8">
       <h2 class="text-lg font-medium text-primary mb-4">Component Architecture Overview</h2>

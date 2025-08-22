@@ -31,27 +31,16 @@ class HydroMLThemeManager {
       dark: {
         name: 'Dark',
         icon: '🌙', 
-        description: 'Easy on the eyes for low-light environments',
+        description: 'Easy on the eyes for low-light environments (basic implementation)',
         cssClass: 'dark',
         dataTheme: 'dark',
         colors: {
           primary: 'var(--color-brand-primary)',
-          background: 'var(--color-onedark-background)',
-          foreground: 'var(--color-darcula-foreground)'
-        }
-      },
-      darcula: {
-        name: 'Darcula',
-        icon: '🔧',
-        description: 'Professional IDE-inspired dark theme',
-        cssClass: '',
-        dataTheme: 'darcula',
-        colors: {
-          primary: 'var(--color-brand-primary)',
-          background: 'var(--color-darcula-background)',
-          foreground: 'var(--color-darcula-foreground)'
+          background: 'var(--color-background-secondary)',
+          foreground: 'var(--color-foreground-default)'
         }
       }
+      // Additional themes will be implemented in future version
     };
 
     this.currentTheme = 'light';

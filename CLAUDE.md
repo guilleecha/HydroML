@@ -4,9 +4,54 @@
 
 **📖 FIRST READ**: Complete project rules and guidelines in `.claude/CLAUDE.md`
 
+## USE SUB-AGENTS FOR CONTEXT OPTIMIZATION
+
+### 1. Always use the file-analyzer sub-agent when asked to read files.
+The file-analyzer agent is an expert in extracting and summarizing critical information from files, particularly log files and verbose outputs. It provides concise, actionable summaries that preserve essential information while dramatically reducing context usage.
+
+### 2. Always use the code-analyzer sub-agent when asked to search code, analyze code, research bugs, or trace logic flow.
+
+The code-analyzer agent is an expert in code analysis, logic tracing, and vulnerability detection. It provides concise, actionable summaries that preserve essential information while dramatically reducing context usage.
+
+### 3. Always use the test-runner sub-agent to run tests and analyze the test results.
+
+Using the test-runner agent ensures:
+
+- Full test output is captured for debugging
+- Main conversation stays clean and focused
+- Context usage is optimized
+- All issues are properly surfaced
+- No approval dialogs interrupt the workflow
+
 ## 🚀 CCMP SYSTEM ACTIVATED
 HydroML uses the official Claude Code PM (CCMP) system. See detailed commands in `.claude/commands/pm/`
 Full workflow documentation: `.claude/context/ccmp-workflow.md`
+
+### 🌳 CCMP Worktrees for Safe Development
+**ALWAYS use worktrees for feature development to avoid conflicts with main branch:**
+
+#### Epic-Level Development (Recommended)
+```bash
+/pm:epic-start <epic-name>    # Creates worktree with parallel agents
+/pm:epic-status <epic-name>   # Monitor progress
+/pm:epic-merge <epic-name>    # Merge back to main when complete
+```
+
+#### Issue-Level Development  
+```bash
+/pm:issue-start <issue-number>  # Launch specialized agents for single issue
+```
+
+#### Manual Branch Creation
+```bash
+git checkout -b feature/<feature-name>  # Traditional branch workflow
+```
+
+**Worktree Structure:**
+- **Location**: `../epic-{name}` (sibling directory)
+- **Branch Format**: `epic/feature-name`
+- **Parallel Agents**: Multiple agents work simultaneously in same worktree
+- **Safe Isolation**: Complete separation from main branch until merge
 
 ## 🤖 SUB-AGENTS AVAILABLE
 Use specialized agents for context optimization. See specifications in `.claude/agents/`

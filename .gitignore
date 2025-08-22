@@ -98,10 +98,19 @@ quality_test_output/
 test-results/
 
 # Temporary Development Files (should not be committed)
-test_*.py  # Test files in root (should be moved to tests/)
-*_SUMMARY.md  # Summary docs in root (should be in docs/)
-*_backup.*  # Backup files in root
-run_*.py  # Run scripts in root (should be in scripts/)
+/test_*.py  # Test files in root (should be moved to tests/)
+/*_SUMMARY.md  # Summary docs in root (should be in docs/)
+/*_backup.*  # Backup files in root
+/run_*.py  # Run scripts in root (should be in scripts/)
+/README_backup.md  # Specific backup files to ignore
+/test_session_management.md  # Session docs should be in docs/testing/
+
+# Root-level patterns for cleanup maintenance
+/temp_*.py  # Temporary Python files
+/debug_*.py  # Debug scripts
+/experiment_*.py  # Temporary experiment files
+/*_temp.*  # Any temporary files with temp suffix
+/*_old.*   # Old versions of files
 
 # Cache Directories
 .cache/

@@ -82,81 +82,154 @@ def navigation_context(request):
 
 def breadcrumb_context(request):
     """
-    Generate breadcrumb navigation based on current URL and context.
+    Enhanced breadcrumb navigation with dynamic path structure.
+    
+    Generates breadcrumbs in the format:
+    - Main pages: @username/Data Sources, @username/Workspaces
+    - Specific items: @username/Workspaces/project_name, @username/Data Sources/data_source_name
     
     Returns:
-        dict: Breadcrumb navigation data
+        dict: Breadcrumb navigation data with path structure
     """
-    breadcrumbs = []
+    context = {
+        'breadcrumb_path': '',
+        'breadcrumb_parts': [],
+        'current_section': None,
+        'current_item': None,
+    }
+    
+    if not request.user.is_authenticated:
+        return context
+    
+    # Always start with username
+    parts = [f"@{request.user.username}"]
     
     if hasattr(request, 'resolver_match') and request.resolver_match:
         namespace = request.resolver_match.namespace
         url_name = request.resolver_match.url_name
+        kwargs = request.resolver_match.kwargs
         
-        # Always start with Home
-        breadcrumbs.append({
-            'name': 'Overview',
-            'url': '/dashboard/',
-            'active': False
-        })
-        
-        # Add namespace-specific breadcrumbs
+        # Determine section and add specific items
         if namespace == 'projects':
-            breadcrumbs.append({
-                'name': 'Workspaces',
-                'url': '/projects/',
-                'active': url_name == 'project_list'
-            })
+            if url_name == 'project_list':
+                # Main Workspaces page: @username/Workspaces
+                parts.append("Workspaces")
+                context['current_section'] = 'workspaces'
+            elif url_name in ['project_detail', 'project_create']:
+                # Specific project: @username/Workspaces/project_name
+                parts.append("Workspaces")
+                context['current_section'] = 'workspaces'
+                
+                # Try to get project name for detail page
+                if url_name == 'project_detail':
+                    project_pk = kwargs.get('pk') or kwargs.get('project_pk') or kwargs.get('project_id')
+                    if project_pk:
+                        try:
+                            project = get_object_or_404(Project, pk=project_pk, owner=request.user)
+                            parts.append(project.name)
+                            context['current_item'] = project
+                        except (Project.DoesNotExist, ValueError, TypeError):
+                            parts.append("Unknown Project")
+                elif url_name == 'project_create':
+                    parts.append("New Workspace")
             
-            # Add project-specific breadcrumb if in project context
-            # Reuse the same logic from navigation_context to avoid circular import
-            project_pk = None
-            if hasattr(request, 'resolver_match') and request.resolver_match:
-                kwargs = request.resolver_match.kwargs
-                # Only treat 'pk' as project_pk if we're in project namespace
-                if namespace == 'projects':
-                    project_pk = kwargs.get('project_pk') or kwargs.get('pk') or kwargs.get('project_id')
-                else:
-                    project_pk = kwargs.get('project_pk') or kwargs.get('project_id')
-            
-            current_project = None
-            if project_pk and request.user.is_authenticated:
-                try:
-                    current_project = get_object_or_404(Project, pk=project_pk, owner=request.user)
-                except (Project.DoesNotExist, ValueError, TypeError):
-                    current_project = None
-            
-            if current_project and url_name in ['project_detail']:
-                breadcrumbs.append({
-                    'name': current_project.name,
-                    'url': f'/projects/{current_project.pk}/',
-                    'active': url_name == 'project_detail'
-                })
+            elif url_name in ['datasource_upload', 'datasource_upload_summary', 'datasource_update']:
+                # Data source within project context
+                project_pk = kwargs.get('project_pk') or kwargs.get('project_id')
+                if project_pk:
+                    try:
+                        project = get_object_or_404(Project, pk=project_pk, owner=request.user)
+                        parts.extend(["Workspaces", project.name])
+                        
+                        # Add data source name if available
+                        datasource_pk = kwargs.get('pk') or kwargs.get('datasource_id')
+                        if datasource_pk and url_name != 'datasource_upload':
+                            try:
+                                datasource = get_object_or_404(DataSource, pk=datasource_pk, owner=request.user)
+                                parts.append(datasource.name)
+                                context['current_item'] = datasource
+                            except (DataSource.DoesNotExist, ValueError, TypeError):
+                                parts.append("Data Source")
+                        elif url_name == 'datasource_upload':
+                            parts.append("Upload Data")
+                            
+                        context['current_section'] = 'workspaces'
+                    except (Project.DoesNotExist, ValueError, TypeError):
+                        parts.extend(["Workspaces", "Unknown Project"])
+        
+        elif namespace == 'core':
+            if url_name == 'data_sources_list':
+                # Main Data Sources page: @username/Data Sources
+                parts.append("Data Sources")
+                context['current_section'] = 'data_sources'
+            elif url_name in ['theme_demo', 'component_demo', 'grove_demo', 'layout_demo']:
+                # Demo pages
+                parts.append("System")
+                if url_name == 'theme_demo':
+                    parts.append("Theme Demo")
+                elif url_name == 'component_demo':
+                    parts.append("Component Demo")
+                elif url_name == 'grove_demo':
+                    parts.append("Grove Demo")
+                elif url_name == 'layout_demo':
+                    parts.append("Layout Demo")
+                context['current_section'] = 'system'
         
         elif namespace == 'experiments':
-            breadcrumbs.append({
-                'name': 'Experiments',
-                'url': '/experiments/',
-                'active': url_name in ['experiment_list', 'public_experiment_list']
-            })
+            if url_name in ['experiment_list', 'public_experiment_list']:
+                # Main Experiments page: @username/Experiments
+                parts.append("Experiments")
+                context['current_section'] = 'experiments'
+            elif url_name in ['experiment_detail', 'experiment_create']:
+                # Specific experiment: @username/Experiments/experiment_name
+                parts.append("Experiments")
+                context['current_section'] = 'experiments'
+                
+                if url_name == 'experiment_detail':
+                    experiment_pk = kwargs.get('pk')
+                    if experiment_pk:
+                        try:
+                            experiment = get_object_or_404(MLExperiment, pk=experiment_pk, project__owner=request.user)
+                            parts.append(experiment.name)
+                            context['current_item'] = experiment
+                        except (MLExperiment.DoesNotExist, ValueError, TypeError):
+                            parts.append("Unknown Experiment")
+                elif url_name == 'experiment_create':
+                    parts.append("New Experiment")
         
         elif namespace == 'data_tools':
-            breadcrumbs.append({
-                'name': 'Data Tools',
-                'url': '/data-tools/',
-                'active': True
-            })
+            # Data Tools namespace
+            parts.append("Data Sources")
+            if url_name in ['datasource_detail', 'datasource_update']:
+                datasource_pk = kwargs.get('pk')
+                if datasource_pk:
+                    try:
+                        datasource = get_object_or_404(DataSource, pk=datasource_pk, owner=request.user)
+                        parts.append(datasource.name)
+                        context['current_item'] = datasource
+                    except (DataSource.DoesNotExist, ValueError, TypeError):
+                        parts.append("Unknown Data Source")
+            context['current_section'] = 'data_sources'
         
         elif namespace == 'connectors':
-            breadcrumbs.append({
-                'name': 'Data Sources',
-                'url': '/connectors/',
-                'active': True
-            })
+            # Database Connections
+            parts.append("Data Sources")
+            if url_name in ['connection_detail', 'connection_edit']:
+                connection_pk = kwargs.get('pk')
+                if connection_pk:
+                    try:
+                        connection = get_object_or_404(DatabaseConnection, pk=connection_pk, user=request.user)
+                        parts.append(connection.name)
+                        context['current_item'] = connection
+                    except (DatabaseConnection.DoesNotExist, ValueError, TypeError):
+                        parts.append("Unknown Connection")
+            context['current_section'] = 'data_sources'
     
-    return {
-        'breadcrumbs': breadcrumbs
-    }
+    # Build the final breadcrumb path
+    context['breadcrumb_path'] = '/'.join(parts)
+    context['breadcrumb_parts'] = parts
+    
+    return context
 
 
 def sentry_dsn(request):
@@ -224,3 +297,5 @@ def grove_branding(request):
         'SITE_ICON': getattr(settings, 'SITE_ICON', 'core/img/logos/grove_icon.svg'),
         'ECO_CREDITS_NAME': getattr(settings, 'ECO_CREDITS_NAME', 'Trees'),
     }
+
+

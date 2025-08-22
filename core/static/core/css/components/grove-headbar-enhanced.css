@@ -1,0 +1,472 @@
+/**
+ * Enhanced Grove Headbar - Two-Row Layout Support
+ * Part of HydroML Enhanced Grove Headbar Component
+ * 
+ * Extends grove-headbar.css with two-row layout capabilities for the Enhanced Grove Headbar.
+ * Maintains backward compatibility while adding breadcrumb row and enhanced navigation.
+ */
+
+/* Import base Grove design tokens */
+@import url('../design-tokens.css');
+
+/* ===== TWO-ROW HEADBAR CONTAINER ===== */
+
+.wave-headbar.two-row {
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  z-index: var(--z-index-header);
+  background: none; /* Override single-row background */
+  border-bottom: none; /* Override single-row border */
+}
+
+/* ===== PRIMARY ROW (BREADCRUMBS & USER CONTEXT) ===== */
+
+.wave-headbar-primary-row {
+  /* Use Grove design tokens for consistent theming */
+  background-color: var(--grove-bg-secondary);
+  color: var(--grove-text-primary);
+  border-bottom: 1px solid var(--grove-border-primary);
+  
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-4);
+  min-height: var(--space-16); /* 64px - matches existing dashboard */
+  
+  /* Responsive spacing */
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+  
+  /* Smooth transitions */
+  transition: var(--transition-colors);
+}
+
+/* Responsive primary row spacing */
+@media (min-width: 640px) {
+  .wave-headbar-primary-row {
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+}
+
+@media (min-width: 1024px) {
+  .wave-headbar-primary-row {
+    padding-left: var(--space-8);
+    padding-right: var(--space-8);
+  }
+}
+
+/* ===== SECONDARY ROW (MAIN NAVIGATION) ===== */
+
+.wave-headbar-secondary-row {
+  /* Use Grove design tokens */
+  background-color: var(--grove-bg-primary);
+  color: var(--grove-text-primary);
+  border-bottom: 1px solid var(--grove-border-primary);
+  
+  /* Layout */
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-4);
+  min-height: var(--space-12); /* 48px - matches existing dashboard */
+  
+  /* Responsive spacing */
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+  
+  /* Smooth transitions */
+  transition: var(--transition-colors);
+}
+
+/* Responsive secondary row spacing */
+@media (min-width: 640px) {
+  .wave-headbar-secondary-row {
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+}
+
+@media (min-width: 1024px) {
+  .wave-headbar-secondary-row {
+    padding-left: var(--space-8);
+    padding-right: var(--space-8);
+  }
+}
+
+/* ===== ENHANCED BREADCRUMB NAVIGATION ===== */
+
+.wave-headbar-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-sans);
+  line-height: var(--line-height-snug);
+}
+
+.wave-headbar-breadcrumb-part {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--grove-text-secondary);
+  transition: var(--transition-colors);
+}
+
+/* Special character styling */
+.wave-headbar-breadcrumb-char {
+  color: var(--grove-text-tertiary);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+  transition: var(--transition-colors);
+  cursor: pointer;
+}
+
+.wave-headbar-breadcrumb-char:hover {
+  color: var(--grove-brand-primary);
+}
+
+/* Username styling */
+.wave-headbar-breadcrumb-user {
+  color: var(--grove-text-primary);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  transition: var(--transition-colors);
+}
+
+.wave-headbar-breadcrumb-user:hover {
+  color: var(--grove-brand-primary);
+}
+
+/* Workspace/section styling */
+.wave-headbar-breadcrumb-section {
+  color: var(--grove-text-secondary);
+  font-weight: var(--font-weight-normal);
+  text-decoration: none;
+  transition: var(--transition-colors);
+}
+
+.wave-headbar-breadcrumb-section:hover {
+  color: var(--grove-text-primary);
+}
+
+/* Separator styling */
+.wave-headbar-breadcrumb-separator {
+  color: var(--grove-text-quaternary);
+  font-size: var(--font-size-xs);
+  margin: 0 var(--space-1);
+}
+
+/* ===== ENHANCED COUNT BADGES ===== */
+
+.wave-headbar-count-badge {
+  /* Use Grove design tokens for consistent styling */
+  background-color: var(--grove-bg-tertiary);
+  color: var(--grove-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-0-5) var(--space-2);
+  border-radius: var(--radius-full);
+  margin-left: var(--space-2);
+  min-width: var(--space-5);
+  text-align: center;
+  
+  /* Smooth transitions */
+  transition: var(--transition-colors), var(--transition-transform);
+  
+  /* Ensure badge is always visible */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Badge hover states */
+.wave-headbar-nav-item:hover .wave-headbar-count-badge {
+  background-color: var(--grove-brand-primary);
+  color: var(--grove-text-inverse);
+  transform: scale(1.05);
+}
+
+/* Badge active states */
+.wave-headbar-nav-item.active .wave-headbar-count-badge {
+  background-color: var(--grove-brand-primary);
+  color: var(--grove-text-inverse);
+}
+
+/* Badge updating state */
+.wave-headbar-count-badge.updating {
+  opacity: 0.6;
+  transform: scale(0.95);
+  animation: pulse 1s infinite;
+}
+
+/* Hide zero badges */
+.wave-headbar-count-badge.zero {
+  display: none;
+}
+
+/* Badge pulse animation for updates */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.0);
+  }
+}
+
+/* ===== SECONDARY ROW NAVIGATION ===== */
+
+.wave-headbar-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  height: 100%;
+}
+
+.wave-headbar-nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: var(--space-3) 0;
+  color: var(--grove-text-secondary);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  border-bottom: 2px solid transparent;
+  transition: var(--transition-colors);
+  
+  /* Ensure items are clickable */
+  cursor: pointer;
+}
+
+.wave-headbar-nav-item:hover {
+  color: var(--grove-text-primary);
+  border-bottom-color: var(--grove-border-secondary);
+}
+
+.wave-headbar-nav-item.active {
+  color: var(--grove-brand-primary);
+  border-bottom-color: var(--grove-brand-primary);
+}
+
+/* Active indicator styling (orange from base_github_style.html) */
+.wave-headbar-nav-item.active {
+  color: var(--grove-text-primary);
+  border-bottom-color: #ea580c; /* Orange-500 for active state */
+}
+
+/* ===== PRIMARY ROW LAYOUT ===== */
+
+.wave-headbar-primary-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+}
+
+.wave-headbar-primary-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* Logo in primary row */
+.wave-headbar-primary-logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--grove-text-primary);
+  font-weight: var(--font-weight-semibold);
+  transition: var(--transition-colors);
+}
+
+.wave-headbar-primary-logo:hover {
+  color: var(--grove-brand-primary);
+}
+
+.wave-headbar-primary-logo img {
+  height: var(--space-12); /* 48px */
+  width: var(--space-12); /* 48px */
+  margin-right: var(--space-2);
+}
+
+/* ===== RESPONSIVE MOBILE DESIGN ===== */
+
+@media (max-width: 768px) {
+  /* Primary row mobile adjustments */
+  .wave-headbar-primary-row {
+    padding: var(--space-2) var(--space-4);
+    min-height: var(--space-12); /* Smaller on mobile */
+  }
+  
+  /* Hide secondary row on mobile by default */
+  .wave-headbar-secondary-row {
+    display: none;
+  }
+  
+  /* Show secondary row as mobile menu when opened */
+  .wave-headbar.two-row.mobile-menu-open .wave-headbar-secondary-row {
+    display: block;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--grove-bg-primary);
+    border-bottom: 1px solid var(--grove-border-primary);
+    box-shadow: var(--shadow-dropdown);
+    z-index: var(--z-index-dropdown);
+  }
+  
+  /* Mobile navigation styling */
+  .wave-headbar.mobile-menu-open .wave-headbar-nav {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: var(--space-2) 0;
+  }
+  
+  .wave-headbar.mobile-menu-open .wave-headbar-nav-item {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: none;
+    border-left: 3px solid transparent;
+    border-radius: var(--radius-base);
+    margin: var(--space-1) var(--space-2);
+  }
+  
+  .wave-headbar.mobile-menu-open .wave-headbar-nav-item:hover,
+  .wave-headbar.mobile-menu-open .wave-headbar-nav-item.active {
+    background-color: var(--grove-bg-secondary);
+    border-left-color: var(--grove-brand-primary);
+  }
+  
+  /* Hide search on small mobile screens */
+  .wave-headbar-primary-search {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Extra small screens */
+  .wave-headbar-primary-row {
+    padding: var(--space-2);
+  }
+  
+  .wave-headbar-breadcrumbs {
+    font-size: var(--font-size-xs);
+    gap: var(--space-1);
+  }
+  
+  .wave-headbar-primary-logo img {
+    height: var(--space-10); /* Smaller logo on mobile */
+    width: var(--space-10);
+  }
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+
+/* Use containment for better performance */
+.wave-headbar.two-row {
+  contain: layout style;
+}
+
+.wave-headbar-primary-row,
+.wave-headbar-secondary-row {
+  contain: layout;
+}
+
+/* Optimize transitions for 60fps performance */
+.wave-headbar-nav-item,
+.wave-headbar-breadcrumb-char,
+.wave-headbar-breadcrumb-user,
+.wave-headbar-count-badge {
+  will-change: color, background-color, transform;
+}
+
+/* Remove will-change after transition completes */
+.wave-headbar-nav-item:not(:hover),
+.wave-headbar-breadcrumb-char:not(:hover),
+.wave-headbar-breadcrumb-user:not(:hover),
+.wave-headbar-count-badge:not(.updating) {
+  will-change: auto;
+}
+
+/* ===== ACCESSIBILITY ENHANCEMENTS ===== */
+
+/* Focus indicators */
+.wave-headbar-nav-item:focus,
+.wave-headbar-breadcrumb-char:focus,
+.wave-headbar-breadcrumb-user:focus {
+  outline: 2px solid var(--grove-brand-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Screen reader support */
+.wave-headbar-breadcrumb-char[aria-label] {
+  position: relative;
+}
+
+.wave-headbar-count-badge[aria-label="0"] {
+  display: none;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .wave-headbar-primary-row {
+    border-bottom-width: 2px;
+  }
+  
+  .wave-headbar-secondary-row {
+    border-bottom-width: 2px;
+  }
+  
+  .wave-headbar-nav-item.active {
+    border-bottom-width: 3px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .wave-headbar-nav-item,
+  .wave-headbar-breadcrumb-char,
+  .wave-headbar-breadcrumb-user,
+  .wave-headbar-count-badge {
+    transition-duration: 0.01ms !important;
+  }
+  
+  .wave-headbar-count-badge.updating {
+    animation: none !important;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+
+@media print {
+  .wave-headbar.two-row {
+    display: none !important;
+  }
+}
+
+/* ===== INTEGRATION WITH GROVE DESIGN TOKENS ===== */
+
+/* Ensure compatibility with Grove theme switching */
+[data-theme="dark"] .wave-headbar.two-row,
+.dark .wave-headbar.two-row {
+  /* Dark theme is handled automatically via CSS custom properties */
+}
+
+/* Ensure compatibility with Darcula theme */
+[data-theme="darcula"] .wave-headbar.two-row {
+  /* Custom Darcula overrides if needed */
+  --grove-bg-secondary: #3C3F41;
+  --grove-bg-primary: #2B2B2B;
+  --grove-text-primary: #A9B7C6;
+  --grove-text-secondary: #808080;
+  --grove-border-primary: #555555;
+}

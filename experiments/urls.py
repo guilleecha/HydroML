@@ -20,6 +20,11 @@ urlpatterns = [
          experiment_management_views.ml_experiment_form_partial,
          name='ml_experiment_form_partial'),
     
+    # TESTING: Wizard partial view for testing new wizard interface
+    path('ml-experiment-wizard-partial/',
+         experiment_management_views.ml_experiment_wizard_partial,
+         name='ml_experiment_wizard_partial'),
+    
     path('<uuid:pk>/update/',
          experiment_management_views.MLExperimentUpdateView.as_view(),
          name='ml_experiment_update'),

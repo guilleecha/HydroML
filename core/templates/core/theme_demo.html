@@ -1,55 +1,39 @@
-{% extends "core/layouts/base_layout.html" %}
+{% extends "core/base_main.html" %}
 {% load static %}
 
 {% block page_title %}Theme System Demo{% endblock %}
 
-{% block main_content %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'core/css/design-tokens.css' %}">
+<link rel="stylesheet" href="{% static 'core/css/components/grove-button.css' %}">
+<link rel="stylesheet" href="{% static 'core/css/components/grove-headbar.css' %}">
+<link rel="stylesheet" href="{% static 'core/css/components/grove-headbar-enhanced.css' %}">
+<link rel="stylesheet" href="{% static 'core/css/components/grove-page-components.css' %}">
+<link rel="stylesheet" href="{% static 'core/css/layouts/two-row-layout.css' %}">
+{% endblock %}
+
+{% block extra_head %}
+{% include "core/partials/grove_demo/_grove_demo_head.html" %}
+{% endblock %}
+
+{% block page_heading %}Runtime Theme Configuration System{% endblock %}
+
+
+{% block content %}
 <div class="container mx-auto px-4 py-8">
-  
-  <!-- Page Header -->
-  <div class="mb-8">
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-3xl font-bold text-foreground-default mb-2">
-          Runtime Theme Configuration System
-        </h1>
-        <p class="text-foreground-muted">
-          Advanced theme management with smooth transitions, customization, and user preferences
-        </p>
-      </div>
-      
-      <!-- Quick Navigation -->
-      <div class="flex gap-2">
-        <a href="{% url 'core:component_demo' %}" 
-           class="btn btn-secondary">
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-          </svg>
-          Component Demo
-        </a>
-        <a href="{% url 'core:layout_demo' %}" 
-           class="btn btn-secondary">
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
-          </svg>
-          Layout Demo
-        </a>
-      </div>
-    </div>
-  </div>
 
   <!-- Theme System Overview -->
-  <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
     
     <!-- Advanced Theme Switcher -->
-    <div class="card">
-      <div class="card-header">
-        <h3 class="card-title flex items-center">
+    <div class="grove-card">
+      <div class="grove-card-header">
+        <h3 class="grove-card-title flex items-center">
           <span class="text-2xl mr-2">🎨</span>
           Advanced Theme Switcher
         </h3>
       </div>
-      <div class="card-content">
+      <div class="grove-card-content">
         <p class="text-foreground-muted mb-4">
           Enhanced theme switching with preview, smooth transitions, and customization options.
         </p>
@@ -71,14 +55,14 @@
     </div>
 
     <!-- Theme Features -->
-    <div class="card">
-      <div class="card-header">
-        <h3 class="card-title flex items-center">
+    <div class="grove-card">
+      <div class="grove-card-header">
+        <h3 class="grove-card-title flex items-center">
           <span class="text-2xl mr-2">⚡</span>
           Performance Features
         </h3>
       </div>
-      <div class="card-content">
+      <div class="grove-card-content">
         <div class="space-y-3">
           <div class="flex items-center justify-between">
             <span class="text-sm text-foreground-muted">Transition Speed</span>
@@ -101,14 +85,14 @@
     </div>
 
     <!-- API Integration -->
-    <div class="card">
-      <div class="card-header">
-        <h3 class="card-title flex items-center">
+    <div class="grove-card">
+      <div class="grove-card-header">
+        <h3 class="grove-card-title flex items-center">
           <span class="text-2xl mr-2">🔌</span>
           API Integration
         </h3>
       </div>
-      <div class="card-content">
+      <div class="grove-card-content">
         <p class="text-foreground-muted mb-4">
           Full Django integration for user preferences and server-side theme management.
         </p>
@@ -132,14 +116,14 @@
   </div>
 
   <!-- Theme Testing Section -->
-  <div class="card mb-8">
-    <div class="card-header">
-      <h3 class="card-title">🧪 Theme Testing & Validation</h3>
+  <div class="grove-card mb-8">
+    <div class="grove-card-header">
+      <h3 class="grove-card-title">🧪 Theme Testing & Validation</h3>
     </div>
-    <div class="card-content">
+    <div class="grove-card-content">
       
       <!-- Theme Colors Preview -->
-      <div class="grid md:grid-cols-3 gap-6 mb-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
         
         <!-- Light Theme Colors -->
         <div class="space-y-3">
@@ -176,7 +160,7 @@
       </div>
 
       <!-- Component Testing -->
-      <div class="grid md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         
         <!-- Form Elements -->
         <div class="space-y-4">
@@ -241,13 +225,13 @@
   </div>
 
   <!-- Implementation Guide -->
-  <div class="card">
-    <div class="card-header">
-      <h3 class="card-title">🛠️ Implementation Guide</h3>
+  <div class="grove-card">
+    <div class="grove-card-header">
+      <h3 class="grove-card-title">🛠️ Implementation Guide</h3>
     </div>
-    <div class="card-content">
+    <div class="grove-card-content">
       
-      <div class="grid md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         <!-- Usage Examples -->
         <div>
@@ -309,7 +293,7 @@ console.log(current.name, current.colors);
       <div class="mt-6 pt-6 border-t border-border-default">
         <h4 class="font-medium text-foreground-default mb-3">🎯 Feature Highlights</h4>
         
-        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div class="space-y-2">
             <h5 class="text-sm font-medium text-foreground-default">Performance</h5>
             <ul class="text-sm text-foreground-muted space-y-1">
@@ -353,5 +337,6 @@ console.log(current.name, current.colors);
       </div>
     </div>
   </div>
+
 </div>
 {% endblock %}

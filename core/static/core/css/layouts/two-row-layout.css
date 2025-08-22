@@ -1,0 +1,373 @@
+/**
+ * Two-Row Layout System
+ * Part of HydroML Enhanced Grove Component Library
+ * 
+ * Provides responsive two-row layout utilities for Enhanced Grove Headbar
+ * and other components that need dual-row architecture.
+ */
+
+/* Import Grove design tokens */
+@import url('../design-tokens.css');
+
+/* ===== TWO-ROW LAYOUT UTILITIES ===== */
+
+/* Base two-row container */
+.layout-two-row {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Sticky two-row container */
+.layout-two-row.sticky {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-index-sticky);
+}
+
+/* Fixed two-row container */
+.layout-two-row.fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-index-header);
+}
+
+/* ===== ROW SIZING UTILITIES ===== */
+
+/* Primary row heights */
+.layout-row-primary {
+  min-height: var(--space-16); /* 64px */
+  display: flex;
+  align-items: center;
+}
+
+.layout-row-primary.compact {
+  min-height: var(--space-12); /* 48px */
+}
+
+.layout-row-primary.spacious {
+  min-height: var(--space-20); /* 80px */
+}
+
+/* Secondary row heights */
+.layout-row-secondary {
+  min-height: var(--space-12); /* 48px */
+  display: flex;
+  align-items: center;
+}
+
+.layout-row-secondary.compact {
+  min-height: var(--space-10); /* 40px */
+}
+
+.layout-row-secondary.spacious {
+  min-height: var(--space-16); /* 64px */
+}
+
+/* ===== RESPONSIVE ROW BEHAVIOR ===== */
+
+/* Mobile-first responsive utilities */
+@media (max-width: 768px) {
+  /* Mobile row adjustments */
+  .layout-row-primary.mobile-compact {
+    min-height: var(--space-12); /* 48px on mobile */
+  }
+  
+  .layout-row-secondary.mobile-hidden {
+    display: none;
+  }
+  
+  .layout-row-secondary.mobile-overlay {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--grove-bg-primary);
+    border-bottom: 1px solid var(--grove-border-primary);
+    box-shadow: var(--shadow-dropdown);
+    z-index: var(--z-index-dropdown);
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .layout-row-primary.tablet-compact {
+    min-height: var(--space-14); /* 56px on tablet */
+  }
+}
+
+/* ===== SPACING UTILITIES ===== */
+
+/* Horizontal padding utilities for rows */
+.layout-row-padding-sm {
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+}
+
+.layout-row-padding-md {
+  padding-left: var(--space-6);
+  padding-right: var(--space-6);
+}
+
+.layout-row-padding-lg {
+  padding-left: var(--space-8);
+  padding-right: var(--space-8);
+}
+
+/* Responsive padding */
+@media (min-width: 640px) {
+  .layout-row-padding-responsive {
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+}
+
+@media (min-width: 1024px) {
+  .layout-row-padding-responsive {
+    padding-left: var(--space-8);
+    padding-right: var(--space-8);
+  }
+}
+
+/* ===== CONTENT LAYOUT UTILITIES ===== */
+
+/* Flex layouts for row content */
+.layout-row-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.layout-row-content.justify-between {
+  justify-content: space-between;
+}
+
+.layout-row-content.justify-center {
+  justify-content: center;
+}
+
+.layout-row-content.justify-start {
+  justify-content: flex-start;
+}
+
+.layout-row-content.justify-end {
+  justify-content: flex-end;
+}
+
+/* Content sections within rows */
+.layout-row-section {
+  display: flex;
+  align-items: center;
+}
+
+.layout-row-section.left {
+  justify-content: flex-start;
+  flex: 1;
+}
+
+.layout-row-section.center {
+  justify-content: center;
+  flex: 1;
+}
+
+.layout-row-section.right {
+  justify-content: flex-end;
+}
+
+/* Section gaps */
+.layout-row-section.gap-sm > * + * {
+  margin-left: var(--space-2);
+}
+
+.layout-row-section.gap-md > * + * {
+  margin-left: var(--space-4);
+}
+
+.layout-row-section.gap-lg > * + * {
+  margin-left: var(--space-6);
+}
+
+/* ===== BORDER AND BACKGROUND UTILITIES ===== */
+
+/* Border utilities */
+.layout-row-border-bottom {
+  border-bottom: 1px solid var(--grove-border-primary);
+}
+
+.layout-row-border-top {
+  border-top: 1px solid var(--grove-border-primary);
+}
+
+.layout-row-border-both {
+  border-top: 1px solid var(--grove-border-primary);
+  border-bottom: 1px solid var(--grove-border-primary);
+}
+
+/* Background utilities using Grove tokens */
+.layout-row-bg-primary {
+  background-color: var(--grove-bg-primary);
+}
+
+.layout-row-bg-secondary {
+  background-color: var(--grove-bg-secondary);
+}
+
+.layout-row-bg-tertiary {
+  background-color: var(--grove-bg-tertiary);
+}
+
+.layout-row-bg-surface {
+  background-color: var(--grove-bg-surface);
+}
+
+/* ===== ANIMATION AND TRANSITION UTILITIES ===== */
+
+/* Smooth transitions for row changes */
+.layout-row-transition {
+  transition: var(--transition-colors), var(--transition-shadow);
+}
+
+.layout-row-transition-fast {
+  transition: var(--transition-colors);
+  transition-duration: var(--duration-fast);
+}
+
+.layout-row-transition-slow {
+  transition: var(--transition-colors);
+  transition-duration: var(--duration-slow);
+}
+
+/* Slide animations for mobile overlays */
+@keyframes slideDownRow {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUpRow {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+}
+
+/* Animation classes */
+.layout-row-slide-down {
+  animation: slideDownRow var(--duration-normal) var(--ease-out) forwards;
+}
+
+.layout-row-slide-up {
+  animation: slideUpRow var(--duration-normal) var(--ease-in) forwards;
+}
+
+/* ===== ACCESSIBILITY UTILITIES ===== */
+
+/* Screen reader utilities */
+.layout-row-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip links for accessibility */
+.layout-row-skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.layout-row-skip-link:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--grove-bg-primary);
+  color: var(--grove-text-primary);
+  text-decoration: none;
+  border: 2px solid var(--grove-brand-primary);
+  border-radius: var(--radius-base);
+  z-index: var(--z-index-max);
+}
+
+/* ===== INTEGRATION UTILITIES ===== */
+
+/* Content offset utilities for fixed/sticky headers */
+.layout-offset-two-row {
+  margin-top: calc(var(--space-16) + var(--space-12)); /* Primary + Secondary row heights */
+}
+
+.layout-offset-two-row.compact {
+  margin-top: calc(var(--space-12) + var(--space-10)); /* Compact heights */
+}
+
+/* Print utilities */
+@media print {
+  .layout-two-row.print-hidden {
+    display: none !important;
+  }
+  
+  .layout-row-border-bottom,
+  .layout-row-border-top,
+  .layout-row-border-both {
+    border-color: #000 !important;
+  }
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+
+/* CSS containment for better performance */
+.layout-two-row {
+  contain: layout style;
+}
+
+.layout-row-primary,
+.layout-row-secondary {
+  contain: layout;
+}
+
+/* Optimize animations */
+.layout-row-slide-down,
+.layout-row-slide-up {
+  will-change: transform, opacity;
+}
+
+/* Remove will-change after animation */
+.layout-row-slide-down:not(.animating),
+.layout-row-slide-up:not(.animating) {
+  will-change: auto;
+}
+
+/* ===== REDUCED MOTION SUPPORT ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  .layout-row-transition,
+  .layout-row-transition-fast,
+  .layout-row-transition-slow {
+    transition-duration: 0.01ms !important;
+  }
+  
+  .layout-row-slide-down,
+  .layout-row-slide-up {
+    animation-duration: 0.01ms !important;
+  }
+}

@@ -150,6 +150,30 @@ def ml_experiment_form_partial(request, project_id=None):
     return render(request, 'experiments/ml_experiment_form_partial.html', context)
 
 
+@login_required
+def ml_experiment_wizard_partial(request, project_id=None):
+    """
+    Render the ML experiment wizard as a partial template for testing.
+    
+    This is a temporary view for testing the new wizard interface.
+    """
+    # Get project_id from URL parameter or GET parameter
+    if not project_id:
+        project_id = request.GET.get('project_id')
+    
+    if project_id:
+        project = get_object_or_404(Project, id=project_id, owner=request.user)
+    else:
+        # If no project_id, return an empty form without project context
+        project = None
+    
+    context = {
+        'project': project,
+    }
+    
+    return render(request, 'experiments/ml_experiment_wizard_full.html', context)
+
+
 class MLExperimentUpdateView(UpdateView):
     """
     Class-based view for updating existing ML experiments.

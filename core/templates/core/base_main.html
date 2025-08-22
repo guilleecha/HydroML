@@ -47,6 +47,10 @@
         window.__SENTRY_DSN__ = "{{ SENTRY_DSN }}";
     </script>
     {% endif %}
+    <!-- Theme System -->
+    <script src="{% static 'core/js/theme/ThemeManager.js' %}"></script>
+    <script src="{% static 'core/js/theme/ThemeController.js' %}"></script>
+    
     <!-- Alpine.js Modular Components -->
     <script src="{% static 'js/alpine/hydro-ml-app.js' %}"></script>
     <script src="{% static 'js/alpine/app-store.js' %}"></script>
@@ -164,14 +168,21 @@
                             <img src="{% static 'core/img/logos/grove_icon.svg' %}" alt="Grove" class="w-12 h-12">
                         </a>
                         
-                        <!-- Breadcrumb Navigation -->
+                        <!-- Dynamic Breadcrumb Navigation -->
+                        {% if breadcrumb_path %}
+                            <nav class="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
+                                <span>{{ breadcrumb_path }}</span>
+                            </nav>
+                        {% else %}
+                            <!-- Fallback: Username with better visibility -->
+                            {% if user.is_authenticated %}
+                                <span class="text-sm text-gray-700 dark:text-gray-300 font-medium">@{{ user.username }}</span>
+                            {% endif %}
+                        {% endif %}
+                        
+                        <!-- Breadcrumb Navigation Block for custom overrides -->
                         {% block breadcrumb_nav %}
                         {% endblock %}
-                        
-                        <!-- Username with better visibility -->
-                        {% if user.is_authenticated %}
-                            <span class="text-sm text-gray-700 dark:text-gray-300 font-medium">@{{ user.username }}</span>
-                        {% endif %}
                     </div>
 
                     <!-- Right: Search + Quick Actions + User Controls -->

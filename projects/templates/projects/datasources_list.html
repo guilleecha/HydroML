@@ -130,206 +130,38 @@
 
 {% block extra_js %}
 <script src="https://unpkg.com/ag-grid-community/dist/ag-grid-community.min.js"></script>
+<script src="{% static 'core/js/components/DataSourceGrid.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Status renderer function
-    function statusRenderer(params) {
-        const status = params.value;
-        let badgeClass = '';
-        let statusText = '';
-        
-        switch(status) {
-            case 'READY':
-                badgeClass = 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
-                statusText = 'Listo';
-                break;
-            case 'PROCESSING':
-                badgeClass = 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
-                statusText = 'Procesando';
-                break;
-            case 'FAILED':
-                badgeClass = 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
-                statusText = 'Error';
-                break;
-            default:
-                badgeClass = 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800';
-                statusText = status;
-        }
-        
-        return `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${badgeClass}">${statusText}</span>`;
-    }
-
-    // Actions renderer function
-    function actionsRenderer(params) {
-        const datasource = params.data;
-        return `
-            <div class="flex items-center space-x-2">
-                <a href="/data-tools/data-studio/${datasource.id}/" 
-                   class="text-brand-600 dark:text-darcula-accent hover:text-brand-700 dark:hover:text-darcula-foreground text-sm font-medium">
-                    Ver
-                </a>
-                <span class="text-foreground-muted dark:text-darcula-foreground-muted">•</span>
-                <a href="/data-tools/data-studio/${datasource.id}/" 
-                   class="text-foreground-muted dark:text-darcula-foreground-muted hover:text-brand-600 dark:hover:text-darcula-accent text-sm">
-                    Explorar
-                </a>
-            </div>
-        `;
-    }
-
-    // Projects renderer function
-    function projectsRenderer(params) {
-        const projects = params.value || [];
-        if (projects.length === 0) {
-            return '<span class="text-foreground-muted dark:text-darcula-foreground-muted text-sm">Sin proyectos</span>';
-        }
-        
-        const projectLinks = projects.map(project => 
-            `<a href="/projects/${project.id}/" class="text-brand-600 dark:text-darcula-accent hover:text-brand-700 text-sm">${project.name}</a>`
-        ).join(', ');
-        
-        return projectLinks;
-    }
-
-    // Format date function
-    function dateRenderer(params) {
-        if (!params.value) return '';
-        const date = new Date(params.value);
-        return date.toLocaleDateString('es-ES', { 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric' 
-        });
-    }
-
-    // Grid options
-    const gridOptions = {
-        columnDefs: [
-            {
-                headerName: 'Nombre',
-                field: 'name',
-                flex: 2,
-                minWidth: 200,
-                cellRenderer: function(params) {
-                    const datasource = params.data;
-                    return `
-                        <div class="flex items-center">
-                            <div class="bg-blue-100 dark:bg-darcula-accent/20 rounded-full p-1 mr-3">
-                                <svg class="w-3 h-3 text-blue-600 dark:text-darcula-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
-                                </svg>
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <div class="text-sm font-medium text-foreground-default dark:text-darcula-foreground">
-                                    ${datasource.name}
-                                </div>
-                                <div class="text-xs text-foreground-muted dark:text-darcula-foreground-muted truncate">
-                                    ${datasource.filename}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-            },
-            {
-                headerName: 'Tipo',
-                field: 'data_type_display',
-                flex: 1,
-                minWidth: 100
-            },
-            {
-                headerName: 'Estado',
-                field: 'status',
-                flex: 1,
-                minWidth: 120,
-                cellRenderer: statusRenderer
-            },
-            {
-                headerName: 'Filas',
-                field: 'total_rows',
-                flex: 1,
-                minWidth: 100,
-                cellRenderer: function(params) {
-                    if (!params.value) return '-';
-                    return new Intl.NumberFormat('es-ES').format(params.value);
-                }
-            },
-            {
-                headerName: 'Proyectos',
-                field: 'projects',
-                flex: 2,
-                minWidth: 150,
-                cellRenderer: projectsRenderer
-            },
-            {
-                headerName: 'Fecha',
-                field: 'uploaded_at',
-                flex: 1,
-                minWidth: 120,
-                cellRenderer: dateRenderer
-            },
-            {
-                headerName: 'Acciones',
-                field: 'actions',
-                flex: 1,
-                minWidth: 120,
-                cellRenderer: actionsRenderer,
-                sortable: false,
-                filter: false
-            }
-        ],
-        rowData: [
-            {% for ds in datasources %}
-            {
-                id: '{{ ds.id }}',
-                name: '{{ ds.name|escapejs }}',
-                filename: '{{ ds.filename|escapejs }}',
-                data_type_display: '{{ ds.get_data_type_display|escapejs }}',
-                status: '{{ ds.status }}',
-                total_rows: {{ ds.total_rows|default:"null" }},
-                uploaded_at: '{{ ds.uploaded_at|date:"c" }}',
-                projects: [
-                    {% for project in ds.projects.all %}
-                    {
-                        id: '{{ project.id }}',
-                        name: '{{ project.name|escapejs }}'
-                    }{% if not forloop.last %},{% endif %}
-                    {% endfor %}
-                ]
-            }{% if not forloop.last %},{% endif %}
-            {% endfor %}
-        ],
-        defaultColDef: {
-            sortable: true,
-            filter: true,
-            resizable: true
-        },
-        pagination: true,
-        paginationPageSize: 20,
-        domLayout: 'normal',
-        animateRows: true,
-        enableCellTextSelection: true,
-        suppressMenuHide: true,
-        onGridReady: function(params) {
-            params.api.sizeColumnsToFit();
-        },
-        onFirstDataRendered: function(params) {
-            params.api.sizeColumnsToFit();
-        }
-    };
-
-    // Create the grid
-    const gridDiv = document.querySelector('#datasourcesGrid');
-    new agGrid.Grid(gridDiv, gridOptions);
-
-    // Responsive grid sizing
-    window.addEventListener('resize', function() {
-        setTimeout(function() {
-            if (gridOptions.api) {
-                gridOptions.api.sizeColumnsToFit();
-            }
-        }, 100);
-    });
+    // Prepare datasources data for the grid
+    const datasources = [
+        {% for ds in datasources %}
+        {
+            id: '{{ ds.id }}',
+            name: '{{ ds.name|escapejs }}',
+            description: '{{ ds.description|default:""|escapejs }}',
+            format: '{{ ds.get_data_type_display|escapejs }}',
+            status: '{{ ds.status }}',
+            file_size: {{ ds.file_size|default:"0" }},
+            rows_count: {{ ds.total_rows|default:"0" }},
+            created_at: '{{ ds.uploaded_at|date:"c" }}',
+            projects: [
+                {% for project in ds.projects.all %}
+                {
+                    id: '{{ project.id }}',
+                    name: '{{ project.name|escapejs }}'
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ]
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+    
+    // Initialize the DataSourceGrid component
+    const gridComponent = new DataSourceGrid('datasourcesGrid', datasources);
+    
+    // Make grid globally available if needed
+    window.datasourceGrid = gridComponent;
 });
 </script>
 {% endblock %}
