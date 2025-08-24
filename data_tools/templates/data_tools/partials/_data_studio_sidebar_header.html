@@ -1,0 +1,17 @@
+{% load tabler_icons %}
+<!-- Data Studio Sidebar Header -->
+<div class="grove-sidebar-header grove-sidebar-header--data-studio">
+    <div class="grove-sidebar-header-content">
+        <h2 class="grove-sidebar-title" x-show="!isCollapsed" x-cloak>
+            {% tabler_icon_outline 'chart-bar' 'grove-sidebar-title-icon' %}
+            <span>Data Studio</span>
+        </h2>
+        <button @click="toggleCollapse()" class="grove-sidebar-btn grove-sidebar-btn--collapse">
+            <span x-show="!isCollapsed" x-cloak>{% tabler_icon_outline 'chevron-left' 'w-4 h-4' %}</span>
+            <span x-show="isCollapsed" x-cloak>{% tabler_icon_outline 'chevron-right' 'w-4 h-4' %}</span>
+        </button>
+    </div>
+    <p x-show="!isCollapsed" x-cloak class="grove-sidebar-description">
+        Herramientas de manipulación y análisis de datos
+    </p>
+</div>

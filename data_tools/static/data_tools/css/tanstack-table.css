@@ -1,0 +1,87 @@
+/**
+ * TanStack Table Styling - Grove Design System Compliant
+ * Custom styles for TanStack Table components in Data Studio
+ */
+
+/* ===== TANSTACK TABLE FORM CONTROLS ===== */
+
+.tanstack-select {
+    /* Remove default browser select styling */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    
+    /* Ensure enough padding for the icon */
+    padding-right: 2rem !important;
+    
+    /* Consistent styling with other form elements */
+    min-width: 4rem;
+    cursor: pointer;
+}
+
+.tanstack-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* ===== TANSTACK TABLE STRUCTURE ===== */
+
+.tanstack-table {
+    /* Table styling will be handled by existing Tailwind classes */
+}
+
+.tanstack-table th {
+    background-color: var(--grove-gray-50);
+    font-weight: 600;
+    text-align: left;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--grove-gray-200);
+}
+
+.dark .tanstack-table th {
+    background-color: var(--grove-gray-800);
+    border-bottom-color: var(--grove-gray-700);
+}
+
+.tanstack-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--grove-gray-100);
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dark .tanstack-table td {
+    border-bottom-color: var(--grove-gray-700);
+}
+
+.tanstack-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.tanstack-table th.sortable:hover {
+    background-color: var(--grove-gray-100);
+}
+
+.dark .tanstack-table th.sortable:hover {
+    background-color: var(--grove-gray-700);
+}
+
+.tanstack-table .sort-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.tanstack-table .sort-icon {
+    opacity: 0.5;
+    font-size: 0.75rem;
+}
+
+.tanstack-table .sort-icon.active {
+    opacity: 1;
+    color: var(--grove-blue-600);
+}

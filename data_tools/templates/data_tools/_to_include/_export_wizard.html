@@ -1,0 +1,751 @@
+<!-- Export Wizard - Pure JavaScript Component (Alpine.js Free) -->
+<!-- Eliminado Alpine.js para prevenir problemas de persistencia automática -->
+<div id="export-wizard" class="export-wizard" style="display: none;">
+    <!-- Modal Backdrop -->
+    <div id="export-wizard-backdrop" 
+         class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+         style="opacity: 0; transition: opacity 0.3s ease-out;"
+         onclick="exportWizard.closeWizard(event)">
+        
+        <!-- Modal Content -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+             onclick="event.stopPropagation()">
+             
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    Export Data
+                </h3>
+                <button onclick="exportWizard.close()" 
+                        class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Progress Indicator -->
+            <div class="px-6 py-2 bg-gray-50 dark:bg-gray-700">
+                <div class="flex items-center justify-center space-x-2">
+                    <div class="flex space-x-1">
+                        <div id="step-indicator-1" class="w-2 h-2 rounded-full transition-colors bg-blue-500"></div>
+                        <div id="step-indicator-2" class="w-2 h-2 rounded-full transition-colors bg-gray-300"></div>
+                        <div id="step-indicator-3" class="w-2 h-2 rounded-full transition-colors bg-gray-300"></div>
+                    </div>
+                    <span class="text-xs text-gray-600 dark:text-gray-300">
+                        Step <span id="current-step-number">1</span> of 3
+                    </span>
+                </div>
+            </div>
+
+            <!-- Step Content -->
+            <div class="px-6 py-4">
+                
+                <!-- Step 1: Format Selection -->
+                <div id="step-1" class="step-content">
+                    <h4 class="text-base font-medium text-gray-900 dark:text-gray-100 mb-4">
+                        Choose Export Format
+                    </h4>
+                    <div class="space-y-3">
+                        <!-- CSV Option -->
+                        <label class="format-option flex items-center p-3 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 border-blue-500 bg-blue-50 dark:bg-blue-900/20" 
+                               data-format="csv">
+                            <input type="radio" name="export-format" value="csv" class="sr-only" checked>
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded flex items-center justify-center">
+                                        <span class="text-blue-600 dark:text-blue-400 font-semibold text-xs">CSV</span>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900 dark:text-gray-100">CSV File</div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">Comma-separated values, compatible with Excel</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="format-checkmark">
+                                <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </label>
+
+                        <!-- JSON Option -->
+                        <label class="format-option flex items-center p-3 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-600" 
+                               data-format="json">
+                            <input type="radio" name="export-format" value="json" class="sr-only">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-orange-100 dark:bg-orange-900/30 rounded flex items-center justify-center">
+                                        <span class="text-orange-600 dark:text-orange-400 font-semibold text-xs">JSON</span>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900 dark:text-gray-100">JSON File</div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">Structured data format for APIs</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="format-checkmark" style="display: none;">
+                                <svg class="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </label>
+
+                        <!-- Excel Option -->
+                        <label class="format-option flex items-center p-3 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-600" 
+                               data-format="excel">
+                            <input type="radio" name="export-format" value="excel" class="sr-only">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded flex items-center justify-center">
+                                        <span class="text-green-600 dark:text-green-400 font-semibold text-xs">XLS</span>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900 dark:text-gray-100">Excel File</div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">Native Excel format with formatting</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="format-checkmark" style="display: none;">
+                                <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Step 2: Export Options -->
+                <div id="step-2" class="step-content" style="display: none;">
+                    <h4 class="text-base font-medium text-gray-900 dark:text-gray-100 mb-4">
+                        Export Options
+                    </h4>
+                    <div class="space-y-4">
+                        <!-- Data Scope -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Data Scope
+                            </label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="radio" name="export-scope" value="all" class="text-blue-600" checked>
+                                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Export all data</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="export-scope" value="filtered" class="text-blue-600">
+                                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Export filtered data only</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="export-scope" value="selected" class="text-blue-600" disabled>
+                                    <span class="ml-2 text-sm text-gray-500">Export selected rows (not available)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Additional Options -->
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="include-headers" class="text-blue-600" checked>
+                                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Include column headers</span>
+                            </label>
+                            <label class="flex items-center" id="preserve-formatting-option" style="display: none;">
+                                <input type="checkbox" id="preserve-formatting" class="text-blue-600">
+                                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Preserve number formatting</span>
+                            </label>
+                        </div>
+
+                        <!-- Row Count Info -->
+                        <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                            <div class="flex items-center space-x-2">
+                                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span class="text-sm text-blue-700 dark:text-blue-300">
+                                    Approximately <span id="estimated-rows">0</span> rows will be exported
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Processing -->
+                <div id="step-3" class="step-content" style="display: none;">
+                    <div class="text-center py-4">
+                        <div id="processing-state">
+                            <!-- Processing State -->
+                            <div class="mb-4">
+                                <svg class="w-12 h-12 text-blue-500 animate-spin mx-auto" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </div>
+                            <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                                Processing Export
+                            </h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                Please wait while we prepare your data...
+                            </p>
+                            <!-- Progress Bar -->
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out" style="width: 0%"></div>
+                            </div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                <span id="progress-percentage">0</span>% complete
+                            </p>
+                        </div>
+
+                        <div id="success-state" style="display: none;">
+                            <!-- Success State -->
+                            <div class="mb-4">
+                                <svg class="w-12 h-12 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </div>
+                            <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                                Export Complete!
+                            </h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                Your data has been exported successfully.
+                            </p>
+                        </div>
+
+                        <div id="error-state" style="display: none;">
+                            <!-- Error State -->
+                            <div class="mb-4">
+                                <svg class="w-12 h-12 text-red-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </div>
+                            <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                                Export Failed
+                            </h4>
+                            <p id="error-message" class="text-sm text-red-600 dark:text-red-400 mb-4">
+                                An error occurred during the export process.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <button id="back-button" 
+                        onclick="exportWizard.previousStep()"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                        style="display: none;">
+                    Back
+                </button>
+                <div id="empty-spacer"></div>
+
+                <div class="flex space-x-2">
+                    <button id="cancel-button" 
+                            onclick="exportWizard.close()"
+                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
+                        Cancel
+                    </button>
+                    
+                    <button id="next-button" 
+                            onclick="exportWizard.nextStep()"
+                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md transition-colors">
+                        Next
+                    </button>
+                    
+                    <button id="start-export-button" 
+                            onclick="exportWizard.startExport()"
+                            class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors"
+                            style="display: none;">
+                        Start Export
+                    </button>
+
+                    <button id="download-button" 
+                            onclick="exportWizard.downloadFile()"
+                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+                            style="display: none;">
+                        Download File
+                    </button>
+
+                    <button id="retry-button" 
+                            onclick="exportWizard.retry()"
+                            class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
+                            style="display: none;">
+                        Retry
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Export Wizard - Pure JavaScript Implementation (No Alpine.js)
+class ExportWizardManager {
+    constructor() {
+        this.isOpen = false;
+        this.currentStep = 1;
+        this.selectedFormat = 'csv';
+        this.options = {
+            scope: 'all',
+            includeHeaders: true,
+            preserveFormatting: false
+        };
+        this.progress = 0;
+        this.exportComplete = false;
+        this.exportError = false;
+        this.errorMessage = '';
+        this.estimatedRows = 0;
+        this.currentJobId = null;
+        this._manualOpen = false;
+
+        this.init();
+    }
+
+    init() {
+        console.log('🧪 Export Wizard Init: Starting initialization (Pure JS)...');
+        
+        try {
+            // Force ensure closed state on initialization to prevent persistence issues
+            this.forceReset();
+            
+            // Setup event listeners
+            this.setupEventListeners();
+            
+            // Make this component globally accessible
+            window.exportWizard = this;
+            this.updateEstimatedRows();
+            
+            console.log('✅ Export Wizard Init: Pure JavaScript initialization completed successfully');
+            
+        } catch (error) {
+            console.error('❌ Export Wizard Init: Initialization failed:', error);
+            if (window.DataStudioErrorHandler) {
+                window.DataStudioErrorHandler.handleFatalError(error, {
+                    component: 'export-wizard',
+                    operation: 'component_initialization'
+                });
+            }
+        }
+    }
+
+    forceReset() {
+        this.isOpen = false;
+        this.currentStep = 1;
+        this.selectedFormat = 'csv';
+        this._manualOpen = false;
+        this.options = {
+            scope: 'all',
+            includeHeaders: true,
+            preserveFormatting: false
+        };
+        this.progress = 0;
+        this.exportComplete = false;
+        this.exportError = false;
+        this.errorMessage = '';
+        this.currentJobId = null;
+        
+        // Hide wizard immediately
+        const wizardEl = document.getElementById('export-wizard');
+        if (wizardEl) {
+            wizardEl.style.display = 'none';
+        }
+    }
+
+    setupEventListeners() {
+        // Format selection
+        document.querySelectorAll('.format-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                const format = option.dataset.format;
+                this.selectFormat(format);
+            });
+        });
+
+        // Scope selection
+        document.querySelectorAll('input[name="export-scope"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                this.options.scope = e.target.value;
+            });
+        });
+
+        // Checkbox options
+        const includeHeadersEl = document.getElementById('include-headers');
+        if (includeHeadersEl) {
+            includeHeadersEl.addEventListener('change', (e) => {
+                this.options.includeHeaders = e.target.checked;
+            });
+        }
+
+        const preserveFormattingEl = document.getElementById('preserve-formatting');
+        if (preserveFormattingEl) {
+            preserveFormattingEl.addEventListener('change', (e) => {
+                this.options.preserveFormatting = e.target.checked;
+            });
+        }
+    }
+
+    selectFormat(format) {
+        this.selectedFormat = format;
+        
+        // Update UI
+        document.querySelectorAll('.format-option').forEach(option => {
+            const isSelected = option.dataset.format === format;
+            const checkmark = option.querySelector('.format-checkmark');
+            
+            if (isSelected) {
+                option.classList.remove('border-gray-200', 'dark:border-gray-600');
+                option.classList.add('border-blue-500', 'bg-blue-50', 'dark:bg-blue-900/20');
+                if (format === 'json') {
+                    option.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-blue-900/20');
+                    option.classList.add('border-orange-500', 'bg-orange-50', 'dark:bg-orange-900/20');
+                } else if (format === 'excel') {
+                    option.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-blue-900/20');
+                    option.classList.add('border-green-500', 'bg-green-50', 'dark:bg-green-900/20');
+                }
+                checkmark.style.display = 'block';
+            } else {
+                option.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-blue-900/20', 
+                                        'border-orange-500', 'bg-orange-50', 'dark:bg-orange-900/20',
+                                        'border-green-500', 'bg-green-50', 'dark:bg-green-900/20');
+                option.classList.add('border-gray-200', 'dark:border-gray-600');
+                checkmark.style.display = 'none';
+            }
+        });
+
+        // Show/hide preserve formatting option for CSV
+        const preserveFormattingOption = document.getElementById('preserve-formatting-option');
+        if (preserveFormattingOption) {
+            preserveFormattingOption.style.display = format === 'csv' ? 'block' : 'none';
+        }
+
+        // Update radio button
+        const radioButton = document.querySelector(`input[value="${format}"]`);
+        if (radioButton) {
+            radioButton.checked = true;
+        }
+    }
+
+    open() {
+        console.log('🔓 Export Wizard: Opening wizard manually');
+        this._manualOpen = true;
+        this.isOpen = true;
+        this.reset();
+        this.updateEstimatedRows();
+        this.showWizard();
+    }
+
+    close() {
+        console.log('🔒 Export Wizard: Closing wizard');
+        this._manualOpen = false;
+        this.isOpen = false;
+        this.hideWizard();
+    }
+
+    closeWizard(event) {
+        // Only close if clicking the backdrop
+        if (event.target.id === 'export-wizard-backdrop') {
+            this.close();
+        }
+    }
+
+    showWizard() {
+        const wizardEl = document.getElementById('export-wizard');
+        const backdropEl = document.getElementById('export-wizard-backdrop');
+        
+        if (wizardEl && backdropEl) {
+            wizardEl.style.display = 'block';
+            // Force reflow
+            wizardEl.offsetHeight;
+            backdropEl.style.opacity = '1';
+        }
+    }
+
+    hideWizard() {
+        const wizardEl = document.getElementById('export-wizard');
+        const backdropEl = document.getElementById('export-wizard-backdrop');
+        
+        if (backdropEl) {
+            backdropEl.style.opacity = '0';
+            setTimeout(() => {
+                if (wizardEl) {
+                    wizardEl.style.display = 'none';
+                }
+            }, 300);
+        }
+    }
+
+    reset() {
+        console.log('🔄 Export Wizard: Resetting wizard state');
+        this.currentStep = 1;
+        this.selectedFormat = 'csv';
+        this.options = {
+            scope: 'all',
+            includeHeaders: true,
+            preserveFormatting: false
+        };
+        this.progress = 0;
+        this.exportComplete = false;
+        this.exportError = false;
+        this.errorMessage = '';
+        this.currentJobId = null;
+        
+        this.updateStepDisplay();
+        this.selectFormat('csv');
+    }
+
+    nextStep() {
+        if (this.currentStep < 3) {
+            this.currentStep++;
+            this.updateStepDisplay();
+        }
+    }
+
+    previousStep() {
+        if (this.currentStep > 1) {
+            this.currentStep--;
+            this.updateStepDisplay();
+        }
+    }
+
+    updateStepDisplay() {
+        // Update step indicators
+        for (let i = 1; i <= 3; i++) {
+            const indicator = document.getElementById(`step-indicator-${i}`);
+            if (indicator) {
+                if (i <= this.currentStep) {
+                    indicator.classList.remove('bg-gray-300');
+                    indicator.classList.add('bg-blue-500');
+                } else {
+                    indicator.classList.remove('bg-blue-500');
+                    indicator.classList.add('bg-gray-300');
+                }
+            }
+        }
+
+        // Update step number
+        const stepNumberEl = document.getElementById('current-step-number');
+        if (stepNumberEl) {
+            stepNumberEl.textContent = this.currentStep;
+        }
+
+        // Show/hide step content
+        for (let i = 1; i <= 3; i++) {
+            const stepEl = document.getElementById(`step-${i}`);
+            if (stepEl) {
+                stepEl.style.display = (i === this.currentStep) ? 'block' : 'none';
+            }
+        }
+
+        // Update buttons
+        this.updateButtons();
+    }
+
+    updateButtons() {
+        const backBtn = document.getElementById('back-button');
+        const nextBtn = document.getElementById('next-button');
+        const startExportBtn = document.getElementById('start-export-button');
+        const cancelBtn = document.getElementById('cancel-button');
+        const downloadBtn = document.getElementById('download-button');
+        const retryBtn = document.getElementById('retry-button');
+
+        // Hide all buttons first
+        [backBtn, nextBtn, startExportBtn, downloadBtn, retryBtn].forEach(btn => {
+            if (btn) btn.style.display = 'none';
+        });
+
+        if (this.currentStep === 1) {
+            if (nextBtn) nextBtn.style.display = 'inline-block';
+        } else if (this.currentStep === 2) {
+            if (backBtn) backBtn.style.display = 'inline-block';
+            if (startExportBtn) startExportBtn.style.display = 'inline-block';
+        } else if (this.currentStep === 3) {
+            if (this.exportComplete && downloadBtn) {
+                downloadBtn.style.display = 'inline-block';
+            } else if (this.exportError && retryBtn) {
+                retryBtn.style.display = 'inline-block';
+            }
+        }
+
+        // Cancel button logic
+        if (cancelBtn) {
+            if (this.currentStep < 3 || this.exportComplete || this.exportError) {
+                cancelBtn.style.display = 'inline-block';
+                cancelBtn.textContent = this.currentStep < 3 ? 'Cancel' : 'Close';
+            }
+        }
+    }
+
+    updateEstimatedRows() {
+        // Get current grid row count
+        let rowCount = 0;
+        if (window.gridApi && typeof window.gridApi.getDisplayedRowCount === 'function') {
+            rowCount = window.gridApi.getDisplayedRowCount();
+        } else if (window.gridRowData) {
+            rowCount = window.gridRowData.length;
+        } else if (window.tanStackTableCoordinator && window.tanStackTableCoordinator.isReady()) {
+            rowCount = window.tanStackTableCoordinator.getController().getTotalRowCount();
+        }
+        
+        this.estimatedRows = rowCount;
+        
+        const estimatedRowsEl = document.getElementById('estimated-rows');
+        if (estimatedRowsEl) {
+            estimatedRowsEl.textContent = this.estimatedRows.toLocaleString();
+        }
+    }
+
+    async startExport() {
+        this.currentStep = 3;
+        this.progress = 0;
+        this.exportComplete = false;
+        this.exportError = false;
+        
+        this.updateStepDisplay();
+        this.showProcessingState();
+        
+        try {
+            // Prepare export data
+            const exportData = {
+                datasource_id: window.datasourceId,
+                format: this.selectedFormat,
+                filters: this.options.scope === 'filtered' ? this.getCurrentFilters() : {},
+                options: {
+                    include_headers: this.options.includeHeaders,
+                    preserve_formatting: this.options.preserveFormatting,
+                    scope: this.options.scope
+                }
+            };
+
+            // Create export job
+            const response = await this.createExportJob(exportData);
+            
+            if (response.success) {
+                this.currentJobId = response.data.id;
+                this.monitorProgress();
+            } else {
+                throw new Error(response.message || 'Failed to create export job');
+            }
+        } catch (error) {
+            console.error('Export failed:', error);
+            this.exportError = true;
+            this.errorMessage = error.message || 'An unexpected error occurred';
+            this.showErrorState();
+            this.updateButtons();
+        }
+    }
+
+    showProcessingState() {
+        document.getElementById('processing-state').style.display = 'block';
+        document.getElementById('success-state').style.display = 'none';
+        document.getElementById('error-state').style.display = 'none';
+    }
+
+    showSuccessState() {
+        document.getElementById('processing-state').style.display = 'none';
+        document.getElementById('success-state').style.display = 'block';
+        document.getElementById('error-state').style.display = 'none';
+    }
+
+    showErrorState() {
+        document.getElementById('processing-state').style.display = 'none';
+        document.getElementById('success-state').style.display = 'none';
+        document.getElementById('error-state').style.display = 'block';
+        
+        const errorMessageEl = document.getElementById('error-message');
+        if (errorMessageEl) {
+            errorMessageEl.textContent = this.errorMessage;
+        }
+    }
+
+    async createExportJob(data) {
+        const response = await fetch('/tools/api/v1/exports/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': this.getCSRFToken()
+            },
+            body: JSON.stringify(data)
+        });
+        return await response.json();
+    }
+
+    async monitorProgress() {
+        const checkStatus = async () => {
+            try {
+                const response = await fetch(`/tools/api/v1/exports/${this.currentJobId}/`);
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    const job = result.data;
+                    this.progress = job.progress || 0;
+                    
+                    // Update progress bar
+                    const progressBar = document.getElementById('progress-bar');
+                    const progressPercentage = document.getElementById('progress-percentage');
+                    
+                    if (progressBar) {
+                        progressBar.style.width = `${this.progress}%`;
+                    }
+                    if (progressPercentage) {
+                        progressPercentage.textContent = this.progress;
+                    }
+                    
+                    if (job.status === 'completed') {
+                        this.progress = 100;
+                        this.exportComplete = true;
+                        this.showSuccessState();
+                        this.updateButtons();
+                    } else if (job.status === 'failed') {
+                        this.exportError = true;
+                        this.errorMessage = job.error_message || 'Export failed';
+                        this.showErrorState();
+                        this.updateButtons();
+                    } else if (job.status === 'processing' || job.status === 'pending') {
+                        setTimeout(checkStatus, 1000);
+                    }
+                }
+            } catch (error) {
+                console.error('Error monitoring export:', error);
+                this.exportError = true;
+                this.errorMessage = 'Failed to monitor export progress';
+                this.showErrorState();
+                this.updateButtons();
+            }
+        };
+        
+        setTimeout(checkStatus, 1000);
+    }
+
+    downloadFile() {
+        if (this.currentJobId) {
+            const downloadUrl = `/tools/api/v1/exports/${this.currentJobId}/download/`;
+            window.open(downloadUrl, '_blank');
+            this.close();
+        }
+    }
+
+    retry() {
+        this.reset();
+        this.currentStep = 2;
+        this.updateStepDisplay();
+    }
+
+    getCurrentFilters() {
+        const gridApi = window.gridApi;
+        if (gridApi && typeof gridApi.getFilterModel === 'function') {
+            return gridApi.getFilterModel();
+        }
+        return {};
+    }
+
+    getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+               document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '';
+    }
+}
+
+// Initialize export wizard when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    window.exportWizardManager = new ExportWizardManager();
+    
+    // Create backward compatibility alias
+    window.exportWizard = window.exportWizardManager;
+});
+</script>

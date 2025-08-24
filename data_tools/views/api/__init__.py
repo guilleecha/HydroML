@@ -7,9 +7,11 @@ Contains organized API endpoints grouped by functionality.
 from .datasource_api_views import DataSourceColumnsAPIView, FusionColumnsAPIView, get_datasource_columns
 from .sql_api_views import SQLExecutionAPIView, QueryHistoryAPIView
 from .visualization_api_views import ChartGenerationAPIView
-from .session_api_views import (
-    initialize_session, get_session_status, undo_operation, redo_operation,
-    clear_session, save_as_new_datasource
+from .session_api.session_lifecycle_views import (
+    initialize_session, get_session_status, clear_session, save_as_new_datasource
+)
+from .session_api.session_operations_views import (
+    undo_operation, redo_operation
 )
 from .transformation_api_views import (
     apply_missing_data_imputation, apply_feature_encoding, apply_feature_scaling,

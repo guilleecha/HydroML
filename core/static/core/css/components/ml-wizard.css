@@ -1,0 +1,226 @@
+/* ML Experiment Wizard Component Styles - Grove Design System */
+
+/* Form Elements using Grove Design Tokens */
+.wizard-form-label {
+    display: block;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--grove-text-primary);
+    margin-bottom: var(--space-2);
+    line-height: var(--line-height-tight);
+}
+
+.wizard-form-input,
+.wizard-form-textarea,
+.wizard-form-select {
+    display: block;
+    width: 100%;
+    padding: var(--space-2-5) var(--space-3);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--grove-border-primary);
+    border-radius: var(--radius-md);
+    background-color: var(--grove-bg-surface);
+    color: var(--grove-text-primary);
+    box-shadow: var(--shadow-xs);
+    transition: var(--transition-colors), var(--transition-shadow);
+}
+
+.wizard-form-input:focus,
+.wizard-form-textarea:focus,
+.wizard-form-select:focus {
+    outline: none;
+    border-color: var(--grove-gray-900);
+    box-shadow: var(--shadow-focus);
+    background-color: var(--grove-white);
+}
+
+.wizard-form-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.wizard-form-help {
+    margin-top: var(--space-1);
+    font-size: var(--font-size-xs);
+    color: var(--grove-text-tertiary);
+    line-height: var(--line-height-relaxed);
+}
+
+/* Workspace Selection */
+.wizard-workspace-card {
+    display: flex;
+    align-items: flex-start;
+    padding: var(--space-4);
+    border: 1px solid var(--grove-border-primary);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    background-color: var(--grove-bg-surface);
+    transition: var(--transition-colors);
+}
+
+.wizard-workspace-card:hover {
+    background-color: var(--grove-bg-secondary);
+}
+
+.wizard-workspace-card--selected {
+    border-color: var(--grove-info);
+    background-color: var(--grove-info-subtle-bg, #f0f9ff);
+}
+
+.wizard-workspace-radio {
+    margin-top: var(--space-1);
+    color: var(--grove-info);
+    border-color: var(--grove-border-primary);
+}
+
+.wizard-workspace-radio:focus {
+    box-shadow: var(--shadow-focus);
+}
+
+.wizard-workspace-title {
+    font-weight: var(--font-weight-medium);
+    color: var(--grove-text-primary);
+}
+
+.wizard-workspace-description {
+    font-size: var(--font-size-sm);
+    color: var(--grove-text-secondary);
+}
+
+.wizard-workspace-stats {
+    font-size: var(--font-size-xs);
+    color: var(--grove-text-tertiary);
+    margin-top: var(--space-1);
+}
+
+/* Loading States */
+.wizard-loading-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-8);
+    background-color: var(--grove-bg-secondary);
+    border-radius: var(--radius-lg);
+    border: 2px dashed var(--grove-border-secondary);
+}
+
+.wizard-loading-spinner {
+    animation: spin 1s linear infinite;
+    width: 2rem;
+    height: 2rem;
+    color: var(--grove-text-tertiary);
+    margin: 0 auto var(--space-2) auto;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.wizard-loading-text {
+    font-size: var(--font-size-sm);
+    color: var(--grove-text-tertiary);
+}
+
+/* Info Sections */
+.wizard-info-section {
+    background-color: var(--grove-bg-secondary);
+    border: 1px solid var(--grove-border-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+}
+
+.wizard-info-title {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--grove-text-primary);
+    margin-bottom: var(--space-2);
+}
+
+.wizard-info-content {
+    font-size: var(--font-size-sm);
+    color: var(--grove-text-secondary);
+}
+
+.wizard-info-content > * + * {
+    margin-top: var(--space-1);
+}
+
+/* Tips Section */
+.wizard-tips-section {
+    background-color: var(--grove-info-subtle-bg, #f0f9ff);
+    border: 1px solid var(--grove-info-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+}
+
+.wizard-tips-icon {
+    width: 1.25rem !important; /* 20px - equivalent to w-5 */
+    height: 1.25rem !important; /* 20px - equivalent to h-5 */
+    color: #2563eb; /* blue-600 */
+    margin-top: 0.125rem; /* 2px - equivalent to mt-0.5 */
+    margin-right: 0.75rem; /* 12px - equivalent to mr-3 */
+    flex-shrink: 0;
+}
+
+.wizard-tips-title {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--grove-info);
+    margin-bottom: var(--space-1);
+}
+
+.wizard-tips-list {
+    font-size: var(--font-size-xs);
+    color: var(--grove-info-dark, #1e40af);
+}
+
+.wizard-tips-list > li {
+    margin-top: var(--space-1);
+}
+
+/* Error/Warning States */
+.wizard-warning-section {
+    padding: var(--space-6);
+    background-color: var(--grove-warning-subtle-bg, #fefce8);
+    border: 1px solid var(--grove-warning-subtle);
+    border-radius: var(--radius-lg);
+}
+
+.wizard-warning-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--grove-warning);
+    margin-right: var(--space-3);
+}
+
+.wizard-warning-title {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--grove-warning-dark, #92400e);
+}
+
+.wizard-warning-text {
+    font-size: var(--font-size-sm);
+    color: var(--grove-warning-dark, #b45309);
+    margin-top: var(--space-1);
+}
+
+.wizard-error-section {
+    padding: var(--space-4);
+    background-color: var(--grove-error-subtle-bg, #fef2f2);
+    border: 1px solid var(--grove-error-subtle);
+    border-radius: var(--radius-lg);
+}
+
+.wizard-error-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--grove-error);
+    margin-right: var(--space-2);
+}
+
+.wizard-error-text {
+    font-size: var(--font-size-sm);
+    color: var(--grove-error-dark, #991b1b);
+}

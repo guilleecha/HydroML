@@ -1,0 +1,354 @@
+{% load static %}
+{% load tailwind_filters %}
+
+<!-- Step 2: Dataset & Target Selection -->
+<div class="space-y-6">
+    <!-- Dataset Selection -->
+    <div>
+        <label for="dataset-selection" class="block text-sm font-medium text-gray-900 dark:text-darcula-foreground mb-2">
+            Fuente de Datos <span class="text-red-500">*</span>
+        </label>
+        
+        <!-- Dataset Selector Component -->
+        <div x-data="datasetSelector()" x-init="loadDatasets()">
+            <!-- Loading State -->
+            <div x-show="isLoading" class="flex items-center justify-center p-8 bg-gray-50 dark:bg-darcula-background-lighter rounded-lg border-2 border-dashed border-gray-300 dark:border-darcula-border">
+                <div class="text-center">
+                    <svg class="animate-spin w-8 h-8 text-gray-400 dark:text-darcula-foreground-muted mx-auto mb-2" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="text-sm text-gray-500 dark:text-darcula-foreground-muted">Cargando datasets disponibles...</p>
+                </div>
+            </div>
+            
+            <!-- Dataset Selection Interface -->
+            <div x-show="!isLoading && availableDatasets.length > 0">
+                <select x-model="formData.input_datasource" 
+                        @change="onDatasetChange($event.target.value)"
+                        class="block w-full border-gray-300 dark:border-darcula-border bg-white dark:bg-darcula-background text-gray-900 dark:text-darcula-foreground rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-darcula-accent dark:focus:border-darcula-accent">
+                    <option value="">Selecciona una fuente de datos...</option>
+                    <template x-for="dataset in availableDatasets" :key="dataset.id">
+                        <option :value="dataset.id" x-text="`${dataset.name} (${dataset.rows_count} filas, ${dataset.columns_count} columnas)`"></option>
+                    </template>
+                </select>
+                
+                <!-- Selected Dataset Preview -->
+                <div x-show="selectedDataset" class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+                    <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">📊 Vista previa del dataset</h4>
+                    <div class="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                        <div><span class="font-medium">Nombre:</span> <span x-text="selectedDataset?.name"></span></div>
+                        <div><span class="font-medium">Filas:</span> <span x-text="selectedDataset?.rows_count"></span></div>
+                        <div><span class="font-medium">Columnas:</span> <span x-text="selectedDataset?.columns_count"></span></div>
+                        <div x-show="selectedDataset?.description">
+                            <span class="font-medium">Descripción:</span> 
+                            <span x-text="selectedDataset?.description"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- No Datasets Available -->
+            <div x-show="!isLoading && availableDatasets.length === 0" 
+                 class="p-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg">
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <div>
+                        <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                            No hay datasets disponibles
+                        </p>
+                        <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                            Necesitas subir un dataset antes de crear experimentos.
+                        </p>
+                        <a href="#" class="inline-flex items-center mt-2 text-sm font-medium text-yellow-800 dark:text-yellow-200 hover:text-yellow-900 dark:hover:text-yellow-100 underline">
+                            Subir nuevo dataset
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Error State -->
+            <div x-show="hasError" 
+                 class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-red-600 dark:text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM9 9a1 1 0 0 0 0 2v3a1 1 0 0 0 1 1h1a1 1 0 1 0 0-2v-3a1 1 0 0 0-1-1H9z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="text-sm text-red-800 dark:text-red-200" x-text="errorMessage"></span>
+                </div>
+            </div>
+        </div>
+        
+        <p class="mt-2 text-xs text-gray-500 dark:text-darcula-foreground-muted">
+            Selecciona el dataset que utilizarás para entrenar tu modelo
+        </p>
+    </div>
+    
+    <!-- Target Column Selection -->
+    <div>
+        <label for="target-column" class="block text-sm font-medium text-gray-900 dark:text-darcula-foreground mb-2">
+            Variable Objetivo <span class="text-red-500">*</span>
+        </label>
+        
+        <!-- Target Column Selector Component -->
+        <div x-data="targetColumnSelector()" x-init="init()">
+            <!-- Loading Columns State -->
+            <div x-show="isLoadingColumns" class="flex items-center p-3 bg-gray-50 dark:bg-darcula-background-lighter rounded-lg border border-gray-300 dark:border-darcula-border">
+                <svg class="animate-spin w-4 h-4 text-gray-400 dark:text-darcula-foreground-muted mr-2" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="text-sm text-gray-500 dark:text-darcula-foreground-muted">Analizando columnas del dataset...</span>
+            </div>
+            
+            <!-- No Dataset Selected -->
+            <div x-show="!formData.input_datasource && !isLoadingColumns" 
+                 class="p-4 bg-gray-50 dark:bg-darcula-background-lighter rounded-lg border-2 border-dashed border-gray-300 dark:border-darcula-border">
+                <p class="text-sm text-gray-500 dark:text-darcula-foreground-muted text-center">
+                    Primero selecciona una fuente de datos
+                </p>
+            </div>
+            
+            <!-- Target Column Selection -->
+            <div x-show="formData.input_datasource && !isLoadingColumns && availableColumns.length > 0">
+                <select x-model="formData.target_column" 
+                        @change="onTargetColumnChange($event.target.value)"
+                        class="block w-full border-gray-300 dark:border-darcula-border bg-white dark:bg-darcula-background text-gray-900 dark:text-darcula-foreground rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-darcula-accent dark:focus:border-darcula-accent">
+                    <option value="">Selecciona la variable objetivo...</option>
+                    <template x-for="column in availableColumns" :key="column.name">
+                        <option :value="column.name" 
+                                x-text="`${column.name} (${column.type}) - ${column.unique_values} valores únicos`"></option>
+                    </template>
+                </select>
+                
+                <!-- Selected Target Column Info -->
+                <div x-show="selectedTargetColumn" class="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg">
+                    <h4 class="text-sm font-medium text-green-800 dark:text-green-200 mb-1">🎯 Variable objetivo seleccionada</h4>
+                    <div class="text-sm text-green-700 dark:text-green-300 space-y-1">
+                        <div><span class="font-medium">Nombre:</span> <span x-text="selectedTargetColumn?.name"></span></div>
+                        <div><span class="font-medium">Tipo:</span> <span x-text="selectedTargetColumn?.type"></span></div>
+                        <div><span class="font-medium">Valores únicos:</span> <span x-text="selectedTargetColumn?.unique_values"></span></div>
+                        <div x-show="selectedTargetColumn?.missing_values > 0" class="text-yellow-600 dark:text-yellow-400">
+                            <span class="font-medium">⚠️ Valores faltantes:</span> <span x-text="selectedTargetColumn?.missing_values"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- No Columns Available -->
+            <div x-show="formData.input_datasource && !isLoadingColumns && availableColumns.length === 0" 
+                 class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-red-600 dark:text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM9 9a1 1 0 0 0 0 2v3a1 1 0 0 0 1 1h1a1 1 0 1 0 0-2v-3a1 1 0 0 0-1-1H9z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="text-sm text-red-800 dark:text-red-200">
+                        No se pudieron cargar las columnas del dataset seleccionado
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <p class="mt-2 text-xs text-gray-500 dark:text-darcula-foreground-muted">
+            La variable que tu modelo intentará predecir
+        </p>
+    </div>
+    
+    <!-- Problem Type Detection -->
+    <div x-show="formData.target_column" 
+         class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+        <div class="flex items-start">
+            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM9 9a1 1 0 0 0 0 2v3a1 1 0 0 0 1 1h1a1 1 0 1 0 0-2v-3a1 1 0 0 0-1-1H9z" clip-rule="evenodd"></path>
+            </svg>
+            <div>
+                <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">🔍 Tipo de problema detectado:</h4>
+                <div class="text-sm text-blue-700 dark:text-blue-300">
+                    <span x-text="getProblemType()"></span>
+                    <p class="mt-1 text-xs" x-text="getProblemTypeDescription()"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Tips Section -->
+    <div class="bg-gray-50 dark:bg-darcula-background-lighter border border-gray-200 dark:border-darcula-border rounded-lg p-4">
+        <div class="flex items-start">
+            <svg class="w-5 h-5 text-gray-600 dark:text-darcula-foreground-muted mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM9 9a1 1 0 0 0 0 2v3a1 1 0 0 0 1 1h1a1 1 0 1 0 0-2v-3a1 1 0 0 0-1-1H9z" clip-rule="evenodd"></path>
+            </svg>
+            <div>
+                <h4 class="text-sm font-medium text-gray-800 dark:text-darcula-foreground mb-1">💡 Consejos para selección de datos:</h4>
+                <ul class="text-xs text-gray-700 dark:text-darcula-foreground-muted space-y-1">
+                    <li>• Revisa que el dataset tenga suficientes filas para entrenar el modelo</li>
+                    <li>• La variable objetivo debe tener una distribución balanceada</li>
+                    <li>• Evita variables objetivo con demasiados valores faltantes</li>
+                    <li>• Para clasificación, asegúrate de tener ejemplos de todas las clases</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Dataset Selector Component
+function datasetSelector() {
+    return {
+        availableDatasets: [],
+        selectedDataset: null,
+        isLoading: false,
+        hasError: false,
+        errorMessage: '',
+        
+        async loadDatasets() {
+            this.isLoading = true;
+            this.hasError = false;
+            
+            try {
+                // Simulate API call - replace with actual endpoint
+                await new Promise(resolve => setTimeout(resolve, 800));
+                
+                // Mock dataset data - replace with actual API call
+                this.availableDatasets = [
+                    {
+                        id: '1',
+                        name: 'Sales Data 2023',
+                        description: 'Dataset de ventas con información de productos y clientes',
+                        rows_count: 10500,
+                        columns_count: 15
+                    },
+                    {
+                        id: '2', 
+                        name: 'Customer Behavior',
+                        description: 'Datos de comportamiento de clientes online',
+                        rows_count: 25000,
+                        columns_count: 22
+                    },
+                    {
+                        id: '3',
+                        name: 'Product Analytics',
+                        description: 'Métricas de productos y usage analytics',
+                        rows_count: 8750,
+                        columns_count: 18
+                    }
+                ];
+                
+            } catch (error) {
+                console.error('Error loading datasets:', error);
+                this.hasError = true;
+                this.errorMessage = 'Error al cargar los datasets disponibles';
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        
+        onDatasetChange(datasetId) {
+            this.selectedDataset = this.availableDatasets.find(d => d.id === datasetId);
+            
+            // Trigger target column selector to reload
+            this.$dispatch('dataset-changed', { datasetId: datasetId });
+        }
+    };
+}
+
+// Target Column Selector Component
+function targetColumnSelector() {
+    return {
+        availableColumns: [],
+        selectedTargetColumn: null,
+        isLoadingColumns: false,
+        
+        init() {
+            // Listen for dataset changes
+            this.$el.addEventListener('dataset-changed', (event) => {
+                this.loadColumns(event.detail.datasetId);
+            });
+        },
+        
+        async loadColumns(datasetId) {
+            if (!datasetId) {
+                this.availableColumns = [];
+                this.selectedTargetColumn = null;
+                return;
+            }
+            
+            this.isLoadingColumns = true;
+            
+            try {
+                // Simulate API call to get dataset columns
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Mock column data - replace with actual API call
+                this.availableColumns = [
+                    {
+                        name: 'revenue',
+                        type: 'Numérico (float)',
+                        unique_values: 8450,
+                        missing_values: 12
+                    },
+                    {
+                        name: 'category',
+                        type: 'Categórico',
+                        unique_values: 8,
+                        missing_values: 0
+                    },
+                    {
+                        name: 'customer_segment',
+                        type: 'Categórico',
+                        unique_values: 4,
+                        missing_values: 25
+                    },
+                    {
+                        name: 'is_profitable',
+                        type: 'Booleano',
+                        unique_values: 2,
+                        missing_values: 0
+                    }
+                ];
+                
+            } catch (error) {
+                console.error('Error loading columns:', error);
+                this.availableColumns = [];
+            } finally {
+                this.isLoadingColumns = false;
+            }
+        },
+        
+        onTargetColumnChange(columnName) {
+            this.selectedTargetColumn = this.availableColumns.find(c => c.name === columnName);
+        },
+        
+        getProblemType() {
+            if (!this.selectedTargetColumn) return '';
+            
+            const uniqueValues = this.selectedTargetColumn.unique_values;
+            const type = this.selectedTargetColumn.type.toLowerCase();
+            
+            if (type.includes('booleano') || uniqueValues === 2) {
+                return 'Clasificación Binaria';
+            } else if (type.includes('categórico') || uniqueValues < 20) {
+                return 'Clasificación Multiclase';
+            } else {
+                return 'Regresión';
+            }
+        },
+        
+        getProblemTypeDescription() {
+            const problemType = this.getProblemType();
+            
+            const descriptions = {
+                'Clasificación Binaria': 'Predice entre dos categorías (Sí/No, True/False)',
+                'Clasificación Multiclase': 'Predice entre múltiples categorías',
+                'Regresión': 'Predice un valor numérico continuo'
+            };
+            
+            return descriptions[problemType] || '';
+        }
+    };
+}
+</script>

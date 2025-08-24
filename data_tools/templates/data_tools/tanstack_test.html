@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TanStack Table Test - HydroML</title>
+    
+    <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="/static/css/output.css">
+    
+    <!-- TanStack Table CSS -->
+    <link rel="stylesheet" href="/static/core/css/components/tanstack-table.css">
+    <link rel="stylesheet" href="/static/data_tools/css/data-studio-extensions.css">
+</head>
+<body class="h-full bg-gray-50 font-sans antialiased">
+    <div class="min-h-screen py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    🔧 TanStack Table Test - HydroML
+                </h1>
+                <p class="text-gray-600">
+                    Prueba de implementación de TanStack Table con bootstrap local
+                </p>
+            </div>
+
+            <!-- Status Card -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+                <h2 class="text-xl font-semibold text-blue-900 mb-4">Estado de la Implementación</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <strong class="text-blue-800">Bootstrap:</strong>
+                        <span class="ml-2 text-blue-700">tanstack-bootstrap.js</span>
+                    </div>
+                    <div>
+                        <strong class="text-blue-800">TanStack Table:</strong>
+                        <span class="ml-2 text-blue-700" id="library-status">Verificando...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TanStack Table Component -->
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Tabla de Prueba TanStack</h2>
+                    <p class="text-sm text-gray-600 mt-1">
+                        Datos de muestra para verificar funcionalidad | 100 filas sintéticas
+                    </p>
+                </div>
+                
+                <!-- TanStack Table Container -->
+                <div class="p-6">
+                    <div id="tanstack-table-container" class="min-h-96 w-full">
+                        
+                        <!-- Table Controls -->
+                        <div class="mb-4 flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <input
+                                    type="text"
+                                    id="globalFilter"
+                                    placeholder="Buscar en todas las columnas..."
+                                    class="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                                <span id="table-row-count" class="text-sm text-gray-600">
+                                    Cargando filas...
+                                </span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm text-gray-600">Filas por página:</span>
+                                <select id="pageSize" class="px-2 py-1 border border-gray-300 rounded bg-white text-gray-900 focus:ring-2 focus:ring-blue-500">
+                                    <option value="10">10</option>
+                                    <option value="25" selected>25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Table Structure -->
+                        <div class="table-wrapper overflow-auto border border-gray-200 rounded-lg">
+                            <table class="tanstack-table min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <!-- Headers will be rendered by TanStack Table -->
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <!-- Loading state -->
+                                    <tr id="table-loading-row">
+                                        <td colspan="100%" class="px-4 py-8 text-center text-gray-500">
+                                            <div class="flex items-center justify-center">
+                                                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-3"></div>
+                                                <span>Inicializando TanStack Table...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination Controls -->
+                        <div class="pagination-controls mt-4 flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <button id="firstPage" class="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    ‹‹ Primera
+                                </button>
+                                <button id="prevPage" class="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    ‹ Anterior
+                                </button>
+                                <span class="text-sm text-gray-700">
+                                    Página 
+                                    <input id="pageInput" type="number" value="1" min="1" class="w-12 px-1 py-1 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                                    de <span id="totalPages">1</span>
+                                </span>
+                                <button id="nextPage" class="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    Siguiente ›
+                                </button>
+                                <button id="lastPage" class="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    Última ››
+                                </button>
+                            </div>
+                            <div id="pageInfo" class="text-sm text-gray-700">
+                                Cargando...
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- TanStack Table Implementation Scripts -->
+    <script src="/static/data_tools/js/tanstack-bootstrap.js"></script>
+    <script src="/static/data_tools/js/tanstack-table.js"></script>
+    
+    <script>
+    // Datos de prueba sintéticos para TanStack Table
+    window.gridRowData = [
+        { id: 1, nombre: 'Alice Johnson', edad: 28, ciudad: 'Nueva York', salario: 85000 },
+        { id: 2, nombre: 'Bob Smith', edad: 34, ciudad: 'Los Ángeles', salario: 92000 },
+        { id: 3, nombre: 'Carol Davis', edad: 29, ciudad: 'Chicago', salario: 78000 },
+        { id: 4, nombre: 'David Wilson', edad: 31, ciudad: 'Houston', salario: 89000 },
+        { id: 5, nombre: 'Emma Brown', edad: 26, ciudad: 'Phoenix', salario: 82000 },
+        { id: 6, nombre: 'Frank Miller', edad: 35, ciudad: 'Filadelfia', salario: 95000 },
+        { id: 7, nombre: 'Grace Lee', edad: 30, ciudad: 'San Antonio', salario: 87000 },
+        { id: 8, nombre: 'Henry Chang', edad: 33, ciudad: 'San Diego', salario: 91000 },
+        { id: 9, nombre: 'Ivy Martinez', edad: 27, ciudad: 'Dallas', salario: 84000 },
+        { id: 10, nombre: 'Jack Taylor', edad: 32, ciudad: 'San José', salario: 98000 }
+    ];
+
+    window.columnDefsData = ['id', 'nombre', 'edad', 'ciudad', 'salario'];
+
+    // Actualizar estado de biblioteca
+    function updateLibraryStatus() {
+        const statusElement = document.getElementById('library-status');
+        if (window.TableCore) {
+            statusElement.textContent = 'Cargado ✅';
+            statusElement.className = 'ml-2 text-green-700 font-medium';
+        } else {
+            statusElement.textContent = 'Error ❌';
+            statusElement.className = 'ml-2 text-red-700 font-medium';
+        }
+    }
+
+    console.log('📊 Datos de prueba cargados:', {
+        rows: window.gridRowData.length,
+        columns: window.columnDefsData.length
+    });
+
+    // Verificar estado inicial
+    updateLibraryStatus();
+    
+    // Escuchar evento de TanStack Table listo
+    window.addEventListener('tanstack-table-ready', function() {
+        console.log('🎉 TanStack Table bootstrap completado');
+        updateLibraryStatus();
+    });
+
+    // Inicialización automática cuando DOM esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 DOM cargado, iniciando TanStack Table...');
+        
+        // Verificar si la función de inicialización está disponible
+        if (window.initializeTanStackTable) {
+            window.initializeTanStackTable();
+        } else {
+            console.warn('⚠️ initializeTanStackTable no disponible');
+        }
+    });
+    </script>
+</body>
+</html>

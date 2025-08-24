@@ -2,6 +2,12 @@
 
 /* Import Design Tokens First */
 @import '../../core/static/core/css/design-tokens.css';
+@import '../../core/static/core/css/components/navigation/grove-breadcrumb.css';
+@import '../../core/static/core/css/components/navigation/grove-tabs.css';
+@import '../../core/static/core/css/components/navigation/grove-headbar.css';
+@import '../../core/static/core/css/components/grove-navigation.css';
+@import '../../core/static/core/css/components/grove-modal.css';
+@import '../../core/static/core/css/components/grove-interactive.css';
 
 @tailwind base;
 @tailwind components;

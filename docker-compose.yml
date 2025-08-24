@@ -54,6 +54,7 @@ services:
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app
+      - tabler_icons_data:/root/.local/share/django-tabler-icons
     ports:
       - "8000:8000"
     environment:
@@ -74,6 +75,7 @@ services:
     command: celery -A hydroML worker -l info
     volumes:
       - .:/app
+      - tabler_icons_data:/root/.local/share/django-tabler-icons
     environment:
       - POSTGRES_NAME=hydro_db
       - POSTGRES_USER=hydro_user
@@ -89,3 +91,4 @@ services:
 volumes:
   postgres_data:
   mlflow_data:
+  tabler_icons_data:

@@ -1,0 +1,79 @@
+/**
+ * Grove Tab Navigation
+ * Simple tab component system
+ * Part of the Grove Design System for HydroML
+ */
+
+/* ===== TAB NAVIGATION ===== */
+.grove-tabs {
+  border-bottom: 1px solid var(--grove-border-primary);
+}
+
+.grove-tabs__list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.grove-tabs__tab {
+  position: relative;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 2px solid transparent;
+  color: var(--grove-text-secondary);
+  text-decoration: none;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.grove-tabs__tab:hover {
+  color: var(--grove-text-primary);
+  border-bottom-color: var(--grove-border-secondary);
+}
+
+.grove-tabs__tab--active {
+  color: var(--grove-text-primary);
+  border-bottom-color: var(--grove-accent);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ===== TAB BADGES ===== */
+.grove-tabs__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 var(--space-1);
+  margin-left: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  background-color: var(--grove-bg-muted);
+  color: var(--grove-text-muted);
+  border-radius: var(--radius-full);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.grove-tabs__tab--active .grove-tabs__badge {
+  background-color: var(--grove-accent);
+  color: var(--grove-text-inverse);
+}
+
+/* ===== TAB RESPONSIVE ===== */
+@media (max-width: 640px) {
+  .grove-tabs__list {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .grove-tabs__list::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .grove-tabs__tab {
+    white-space: nowrap;
+    padding: var(--space-2) var(--space-3);
+  }
+}

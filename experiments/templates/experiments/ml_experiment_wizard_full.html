@@ -1,0 +1,25 @@
+{% extends 'core/base_main.html' %}
+{% load static %}
+{% load tailwind_filters %}
+
+{% block title %}Wizard Test - Nuevo Experimento ML{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'core/css/components/ml-wizard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-darcula-foreground mb-8">Testing: ML Experiment Wizard</h1>
+        
+        <!-- Include the wizard partial -->
+        {% include 'experiments/ml_experiment_wizard.html' %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Ensure our wizard JS is loaded -->
+<script src="{% static 'experiments/js/ml_experiment_wizard.js' %}"></script>
+{% endblock %}

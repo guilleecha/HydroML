@@ -1,0 +1,112 @@
+/**
+ * Grove Icon Component
+ * 
+ * Standardized icon sizing and spacing system
+ * Part of the Grove Design System for HydroML
+ */
+
+/* ===== GROVE ICON BASE ===== */
+
+.grove-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+/* ===== GROVE ICON SIZES ===== */
+
+/* Extra Small Icons - 12px */
+.grove-icon--xs {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+/* Small Icons - 16px */
+.grove-icon--sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Medium Icons - 20px (default) */
+.grove-icon--md {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Large Icons - 24px */
+.grove-icon--lg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* Extra Large Icons - 32px */
+.grove-icon--xl {
+  width: 2rem;
+  height: 2rem;
+}
+
+/* ===== GROVE ICON SPACING IN BUTTONS ===== */
+
+/* Icon spacing in buttons - aligned with grove-btn gap */
+.grove-btn .grove-icon {
+  margin: 0; /* Remove any external margins */
+}
+
+/* ===== GROVE ICON SPACING IN TEXT ===== */
+
+/* Icon before text */
+.grove-icon--leading {
+  margin-right: var(--space-2);
+}
+
+/* Icon after text */
+.grove-icon--trailing {
+  margin-left: var(--space-2);
+}
+
+/* ===== GROVE ICON COLOR VARIANTS ===== */
+
+.grove-icon--primary {
+  color: var(--grove-gray-900);
+}
+
+.grove-icon--secondary {
+  color: var(--grove-gray-600);
+}
+
+.grove-icon--muted {
+  color: var(--grove-gray-400);
+}
+
+.grove-icon--success {
+  color: var(--grove-success);
+}
+
+.grove-icon--warning {
+  color: var(--grove-warning);
+}
+
+.grove-icon--error {
+  color: var(--grove-error);
+}
+
+.grove-icon--info {
+  color: var(--grove-info);
+}
+
+/* ===== DARK THEME OVERRIDES ===== */
+
+[data-theme="dark"] .grove-icon--primary,
+.dark .grove-icon--primary {
+  color: var(--grove-gray-100);
+}
+
+[data-theme="dark"] .grove-icon--secondary,
+.dark .grove-icon--secondary {
+  color: var(--grove-gray-300);
+}
+
+[data-theme="dark"] .grove-icon--muted,
+.dark .grove-icon--muted {
+  color: var(--grove-gray-500);
+}

@@ -1,0 +1,113 @@
+/**
+ * Grove Card Component
+ * 
+ * Professional card component with semantic variants
+ * Part of the Grove Design System for HydroML
+ */
+
+/* ===== GROVE CARD BASE ===== */
+
+.grove-card {
+  /* Layout */
+  display: block;
+  overflow: hidden;
+  
+  /* Appearance */
+  background-color: var(--grove-bg-surface);
+  border: 1px solid var(--grove-border-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  
+  /* Transitions */
+  transition: var(--transition-shadow);
+}
+
+.grove-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* ===== GROVE CARD COMPONENTS ===== */
+
+.grove-card-header {
+  padding: var(--space-6) var(--space-6) var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--grove-border-primary);
+  background-color: var(--grove-bg-secondary);
+}
+
+.grove-card-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--grove-text-primary);
+  line-height: var(--line-height-tight);
+  margin: 0;
+}
+
+.grove-card-content {
+  padding: var(--space-6);
+}
+
+/* ===== GROVE CARD VARIANTS ===== */
+
+/* Success Card */
+.grove-card--success {
+  border-color: var(--grove-success-subtle);
+  background-color: var(--grove-success-subtle-bg, #f0f9f0);
+}
+
+.grove-card--success .grove-card-header {
+  background-color: var(--grove-success-subtle);
+  border-bottom-color: var(--grove-success);
+}
+
+/* Warning Card */
+.grove-card--warning {
+  border-color: var(--grove-warning-subtle);
+  background-color: var(--grove-warning-subtle-bg, #fefce8);
+}
+
+.grove-card--warning .grove-card-header {
+  background-color: var(--grove-warning-subtle);
+  border-bottom-color: var(--grove-warning);
+}
+
+/* Error Card */
+.grove-card--error {
+  border-color: var(--grove-error-subtle);
+  background-color: var(--grove-error-subtle-bg, #fef2f2);
+}
+
+.grove-card--error .grove-card-header {
+  background-color: var(--grove-error-subtle);
+  border-bottom-color: var(--grove-error);
+}
+
+/* Info Card */
+.grove-card--info {
+  border-color: var(--grove-info-subtle);
+  background-color: var(--grove-info-subtle-bg, #f0f9ff);
+}
+
+.grove-card--info .grove-card-header {
+  background-color: var(--grove-info-subtle);
+  border-bottom-color: var(--grove-info);
+}
+
+/* ===== GROVE CARD SIZES ===== */
+
+/* Compact Card */
+.grove-card--compact .grove-card-content {
+  padding: var(--space-4);
+}
+
+.grove-card--compact .grove-card-header {
+  padding: var(--space-4) var(--space-4) var(--space-3) var(--space-4);
+}
+
+/* Large Card */
+.grove-card--large .grove-card-content {
+  padding: var(--space-8);
+}
+
+.grove-card--large .grove-card-header {
+  padding: var(--space-8) var(--space-8) var(--space-6) var(--space-8);
+}

@@ -1,0 +1,23 @@
+/**
+ * Component Demo Styles - HydroML
+ * Extracted from core/templates/core/demos/component_demo.html
+ */
+
+.component-demo {
+    border: 2px dashed var(--color-border-secondary);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin: var(--space-4) 0;
+    background: var(--color-background-tertiary);
+}
+
+.component-demo h4 {
+    margin-top: 0;
+    color: var(--color-brand-primary);
+}
+
+.demo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-6);
+}

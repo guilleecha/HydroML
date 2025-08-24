@@ -3,6 +3,7 @@ from django.urls import path
 # Importamos todos nuestros módulos de vistas
 from .views import visualization_views, fusion_views
 from .views.preparation_controller import data_preparer_page
+from .views.data_studio_views import data_studio_debug
 from .views.api.pagination_api import data_studio_pagination_api
 from .views.feature_engineering_views import feature_engineering_page
 from .views.missing_data_views import run_deep_missing_analysis_api, missing_data_results_page
@@ -12,10 +13,11 @@ from .views.api import (
     execute_sql_api, get_query_history_api, get_datasource_columns
 )
 from .views.api.column_flags_api import get_column_flags_api
-# Import new session and transformation API views
-from .views.api.session_api_views import (
+# Import refactored session API views
+from .views.api.session_api import (
     initialize_session, get_session_status, undo_operation, redo_operation,
-    clear_session, save_as_new_datasource
+    clear_session, save_as_new_datasource, get_column_statistics,
+    rename_column, change_column_type, fill_missing_values
 )
 from .views.api.transformation_api_views import (
     apply_missing_data_imputation, apply_feature_encoding, apply_feature_scaling,
@@ -36,6 +38,11 @@ urlpatterns = [
     path('studio/<uuid:pk>/',
          data_preparer_page,
          name='data_studio_page'),
+
+    # --- Debug version of Data Studio for progressive enhancement ---
+    path('studio/<uuid:pk>/debug/',
+         data_studio_debug,
+         name='data_studio_debug'),
 
     # --- Data Studio Pagination API ---
     path('api/studio/<uuid:pk>/data/',
@@ -127,6 +134,23 @@ urlpatterns = [
     path('api/studio/<uuid:datasource_id>/session/save/',
          save_as_new_datasource,
          name='save_as_new_datasource'),
+
+    # --- New Session Integration API for Toolbox Operations ---
+    path('api/studio/<uuid:datasource_id>/session/column-statistics/',
+         get_column_statistics,
+         name='get_column_statistics'),
+
+    path('api/studio/<uuid:datasource_id>/session/rename-column/',
+         rename_column,
+         name='rename_column'),
+
+    path('api/studio/<uuid:datasource_id>/session/change-column-type/',
+         change_column_type,
+         name='change_column_type'),
+
+    path('api/studio/<uuid:datasource_id>/session/fill-missing-values/',
+         fill_missing_values,
+         name='fill_missing_values'),
 
     # --- Data Studio Transformation API ---
     path('api/studio/<uuid:datasource_id>/transform/imputation/',

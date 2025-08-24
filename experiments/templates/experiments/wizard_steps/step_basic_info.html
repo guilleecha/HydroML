@@ -1,0 +1,209 @@
+{% load static %}
+{% load tailwind_filters %}
+
+<!-- Step 1: Basic Information -->
+<div class="space-y-6">
+    <!-- Experiment Name -->
+    <div>
+        <label for="experiment-name" class="wizard-form-label">
+            Nombre del Experimento <span class="text-red-500">*</span>
+        </label>
+        <input type="text" 
+               id="experiment-name" 
+               x-model="formData.name"
+               placeholder="Ej: Predicción de ventas con Random Forest"
+               class="wizard-form-input"
+               maxlength="100"
+               required>
+        <p class="wizard-form-help">
+            Nombre descriptivo que identifique este experimento
+        </p>
+    </div>
+    
+    <!-- Experiment Description -->
+    <div>
+        <label for="experiment-description" class="wizard-form-label">
+            Descripción
+        </label>
+        <textarea id="experiment-description" 
+                  x-model="formData.description"
+                  rows="4"
+                  placeholder="Describe el objetivo de este experimento, las hipótesis a probar, o cualquier información relevante..."
+                  class="wizard-form-textarea"></textarea>
+        <p class="wizard-form-help">
+            Información adicional sobre el experimento (opcional)
+        </p>
+    </div>
+    
+    <!-- Workspace Selection -->
+    <div>
+        <label class="wizard-form-label">
+            Workspace de Destino <span class="text-red-500">*</span>
+        </label>
+        
+        <!-- Workspace Selector Component -->
+        <div x-data="workspaceSelector()" x-init="loadWorkspaces()">
+            <!-- Loading State -->
+            <div x-show="isLoading" class="wizard-loading-container">
+                <div class="text-center">
+                    <svg class="wizard-loading-spinner" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="wizard-loading-text">Cargando workspaces...</p>
+                </div>
+            </div>
+            
+            <!-- Radio Buttons for ≤5 workspaces -->
+            <div x-show="!isLoading && availableWorkspaces.length > 0 && availableWorkspaces.length <= 5">
+                <div class="space-y-3">
+                    <template x-for="workspace in availableWorkspaces" :key="workspace.id">
+                        <label class="wizard-workspace-card"
+                               :class="{ 'wizard-workspace-card--selected': formData.project === workspace.id }">
+                            <input type="radio" 
+                                   name="project" 
+                                   :value="workspace.id" 
+                                   x-model="formData.project"
+                                   class="wizard-workspace-radio">
+                            <div class="ml-3">
+                                <div class="wizard-workspace-title" x-text="workspace.name"></div>
+                                <div class="wizard-workspace-description" x-text="workspace.description || 'Sin descripción'"></div>
+                                <div x-show="workspace.experiments_count !== undefined" class="wizard-workspace-stats">
+                                    <span x-text="workspace.experiments_count || 0"></span> experimentos
+                                </div>
+                            </div>
+                        </label>
+                    </template>
+                </div>
+            </div>
+            
+            <!-- Dropdown for >5 workspaces -->
+            <div x-show="!isLoading && availableWorkspaces.length > 5">
+                <select x-model="formData.project" class="wizard-form-select">
+                    <option value="">Selecciona un workspace...</option>
+                    <template x-for="workspace in availableWorkspaces" :key="workspace.id">
+                        <option :value="workspace.id" x-text="`${workspace.name} (${workspace.experiments_count || 0} experimentos)`"></option>
+                    </template>
+                </select>
+            </div>
+            
+            <!-- No Workspaces Message -->
+            <div x-show="!isLoading && availableWorkspaces.length === 0" class="wizard-warning-section">
+                <div class="flex items-center">
+                    <svg class="wizard-warning-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <div>
+                        <p class="wizard-warning-title">
+                            No tienes workspaces disponibles
+                        </p>
+                        <p class="wizard-warning-text">
+                            Necesitas crear un workspace antes de poder crear experimentos.
+                        </p>
+                        <a href="#" class="inline-flex items-center mt-2 text-sm font-medium text-yellow-800 dark:text-yellow-200 hover:text-yellow-900 dark:hover:text-yellow-100 underline">
+                            Crear nuevo workspace
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Error State -->
+            <div x-show="hasError" class="wizard-error-section">
+                <div class="flex items-center">
+                    <svg class="wizard-error-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM9 9a1 1 0 0 0 0 2v3a1 1 0 0 0 1 1h1a1 1 0 1 0 0-2v-3a1 1 0 0 0-1-1H9z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="wizard-error-text" x-text="errorMessage"></span>
+                </div>
+            </div>
+        </div>
+        
+        <p class="wizard-form-help">
+            Selecciona el workspace donde se guardará este experimento
+        </p>
+    </div>
+    
+    <!-- Quick Tips Section -->
+    <div class="wizard-tips-section">
+        <div class="flex items-start">
+            <svg class="wizard-tips-icon" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM9 9a1 1 0 0 0 0 2v3a1 1 0 0 0 1 1h1a1 1 0 1 0 0-2v-3a1 1 0 0 0-1-1H9z" clip-rule="evenodd"></path>
+            </svg>
+            <div>
+                <h4 class="wizard-tips-title">💡 Consejos para un buen experimento:</h4>
+                <ul class="wizard-tips-list">
+                    <li>• Usa nombres descriptivos que incluyan el algoritmo y objetivo</li>
+                    <li>• Documenta tu hipótesis en la descripción</li>
+                    <li>• Organiza experimentos relacionados en el mismo workspace</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Preview Section (if needed) -->
+    <div x-show="formData.name && formData.project" class="wizard-info-section">
+        <h4 class="wizard-info-title">📋 Resumen del experimento:</h4>
+        <div class="wizard-info-content">
+            <div><span class="font-medium">Nombre:</span> <span x-text="formData.name"></span></div>
+            <div x-show="formData.description">
+                <span class="font-medium">Descripción:</span> 
+                <span x-text="formData.description.substring(0, 100) + (formData.description.length > 100 ? '...' : '')"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Workspace Selector Component
+function workspaceSelector() {
+    return {
+        availableWorkspaces: [],
+        isLoading: false,
+        hasError: false,
+        errorMessage: '',
+        
+        async loadWorkspaces() {
+            this.isLoading = true;
+            this.hasError = false;
+            
+            try {
+                // This would typically fetch from an API
+                // For now, we'll simulate with static data
+                await new Promise(resolve => setTimeout(resolve, 500)); // Simulate loading
+                
+                // Mock workspace data - replace with actual API call
+                this.availableWorkspaces = [
+                    {
+                        id: '1',
+                        name: 'Análisis de Ventas',
+                        description: 'Experimentos relacionados con predicción de ventas',
+                        experiments_count: 5
+                    },
+                    {
+                        id: '2', 
+                        name: 'Predicción de Demanda',
+                        description: 'Modelos de forecasting de demanda',
+                        experiments_count: 3
+                    },
+                    {
+                        id: '3',
+                        name: 'Análisis de Clientes',
+                        description: 'Segmentación y análisis de comportamiento',
+                        experiments_count: 8
+                    }
+                ];
+                
+            } catch (error) {
+                console.error('Error loading workspaces:', error);
+                this.hasError = true;
+                this.errorMessage = 'Error al cargar los workspaces disponibles';
+            } finally {
+                this.isLoading = false;
+            }
+        }
+    };
+}
+</script>

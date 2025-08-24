@@ -1,0 +1,135 @@
+/**
+ * Data Studio Extensions for Grove Components
+ * Specific styling extensions for Data Studio functionality
+ * Built on top of Grove Design System base components
+ */
+
+/* ===== DATA STUDIO SIDEBAR HEADER EXTENSIONS ===== */
+
+.grove-sidebar-header--data-studio {
+    background-color: var(--grove-blue-50);
+    border-bottom: 1px solid var(--grove-blue-200);
+}
+
+.dark .grove-sidebar-header--data-studio {
+    background-color: rgba(30, 58, 138, 0.2);
+    border-bottom-color: var(--grove-blue-800);
+}
+
+.grove-sidebar-header--data-studio .grove-sidebar-title {
+    color: var(--grove-blue-900);
+}
+
+.dark .grove-sidebar-header--data-studio .grove-sidebar-title {
+    color: var(--grove-blue-100);
+}
+
+.grove-sidebar-description {
+    margin-top: var(--space-1);
+    font-size: var(--font-size-sm);
+    color: var(--grove-blue-700);
+}
+
+.dark .grove-sidebar-description {
+    color: var(--grove-blue-300);
+}
+
+/* ===== DATA STUDIO SESSION STATUS EXTENSIONS ===== */
+
+.grove-sidebar-footer--session {
+    background-color: var(--grove-gray-50);
+}
+
+.dark .grove-sidebar-footer--session {
+    background-color: var(--grove-gray-800);
+}
+
+.grove-session-status {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.grove-session-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.grove-session-label {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--grove-gray-500);
+}
+
+.dark .grove-session-label {
+    color: var(--grove-gray-400);
+}
+
+.grove-session-value {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+}
+
+.grove-session-value--active {
+    color: var(--grove-green-600);
+}
+
+.grove-session-value--inactive {
+    color: var(--grove-gray-500);
+}
+
+.dark .grove-session-value--active {
+    color: var(--grove-green-400);
+}
+
+.dark .grove-session-value--inactive {
+    color: var(--grove-gray-400);
+}
+
+.grove-session-actions {
+    display: flex;
+    gap: var(--space-1);
+}
+
+.grove-sidebar-btn--session:hover {
+    background-color: var(--grove-gray-200);
+    color: var(--grove-gray-600);
+}
+
+.dark .grove-sidebar-btn--session:hover {
+    background-color: var(--grove-gray-600);
+    color: var(--grove-gray-200);
+}
+
+/* ===== DATA STUDIO COLLAPSE BUTTON EXTENSIONS ===== */
+
+.grove-sidebar-btn--collapse {
+    color: var(--grove-blue-600);
+}
+
+.dark .grove-sidebar-btn--collapse {
+    color: var(--grove-blue-400);
+}
+
+.grove-sidebar-btn--collapse:hover {
+    background-color: var(--grove-blue-100);
+    color: var(--grove-blue-700);
+}
+
+.dark .grove-sidebar-btn--collapse:hover {
+    background-color: var(--grove-blue-800);
+    color: var(--grove-blue-200);
+}
+
+/* ===== DATA STUDIO SPECIFIC COLLAPSED STATE ===== */
+
+/* Adjust collapsed sidebar for Data Studio */
+.grove-sidebar--collapsed .grove-session-info {
+    display: none;
+}
+
+.grove-sidebar--collapsed .grove-session-actions {
+    justify-content: center;
+    width: 100%;
+}

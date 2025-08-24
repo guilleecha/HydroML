@@ -1,0 +1,446 @@
+{% load tailwind_filters %}
+
+<div class="space-y-6">
+    
+    <form method="post" enctype="multipart/form-data" 
+          {% if project %}action="{% url 'projects:datasource_upload_form_partial' %}?project_id={{ project.id }}"{% endif %}
+          x-data="datasourceUploadForm('{{ project.id|default:'' }}')"
+          @submit.prevent="handleSubmit">
+        {% csrf_token %}
+        
+        <!-- Success/Error Messages -->
+        <div x-show="showSuccess"
+             class="mb-4 p-4 bg-success-50 dark:bg-darcula-string/10 border border-success-200 dark:border-darcula-string/30 rounded-lg">
+            <div class="flex">
+                <svg class="h-5 w-5 text-success-400 dark:text-darcula-string" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="ml-3">
+                    <p class="text-sm text-success-700 dark:text-darcula-string">
+                        ¡Fuente de datos creada exitosamente! Redirigiendo...
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div x-show="showError"
+             class="mb-4 p-4 bg-danger-50 dark:bg-darcula-error/10 border border-danger-200 dark:border-darcula-error/30 rounded-lg">
+            <div class="flex">
+                <svg class="h-5 w-5 text-danger-400 dark:text-darcula-error" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="ml-3">
+                    <p class="text-sm text-danger-700 dark:text-darcula-error" x-text="errorMessage"></p>
+                </div>
+            </div>
+        </div>
+        
+        
+        <!-- Two-Column Layout for Form Fields -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Left Column: Form Fields -->
+            <div class="space-y-6">
+                <div class="bg-background-secondary dark:bg-darcula-background rounded-lg p-6 border border-border-default dark:border-darcula-border h-full">
+                    <h4 class="text-sm font-semibold text-foreground-default dark:text-darcula-foreground mb-4 flex items-center">
+                        <svg class="h-4 w-4 mr-2 text-brand-500 dark:text-darcula-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Información de la Fuente de Datos
+                    </h4>
+                    
+                    <div class="space-y-4">
+                        {% for field in form %}
+                            {% if field.name != 'project' and field.name != 'file' and field.name != 'projects' %}
+                                <div class="form-field">
+                                    <label for="{{ field.id_for_label }}" 
+                                           class="block text-sm font-medium text-foreground-default dark:text-darcula-foreground mb-2">
+                                        {{ field.label }}
+                                        {% if field.field.required %}
+                                            <span class="text-danger-500 dark:text-darcula-error">*</span>
+                                        {% endif %}
+                                    </label>
+                                    
+                                    {% if field.help_text %}
+                                        <p class="text-xs text-foreground-muted dark:text-darcula-foreground-muted mb-2">
+                                            {{ field.help_text }}
+                                        </p>
+                                    {% endif %}
+                                    
+                                    <div class="relative">
+                                        {% if field.field.widget.input_type == 'textarea' %}
+                                            <textarea 
+                                                name="{{ field.name }}"
+                                                id="{{ field.id_for_label }}"
+                                                rows="12"
+                                                class="block w-full rounded-lg border border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background text-foreground-default dark:text-darcula-foreground placeholder-foreground-muted dark:placeholder-darcula-foreground-muted focus:border-brand-500 dark:focus:border-darcula-accent focus:ring-brand-500 dark:focus:ring-darcula-accent sm:text-sm transition-colors resize-y min-h-[240px]"
+                                                placeholder="{{ field.field.widget.attrs.placeholder|default:'Describe brevemente esta fuente de datos: origen, contenido, propósito, etc.' }}"
+                                                {% if field.field.required %}required{% endif %}>{{ field.value|default:'' }}</textarea>
+                                        {% else %}
+                                            <input 
+                                                type="{{ field.field.widget.input_type|default:'text' }}"
+                                                name="{{ field.name }}"
+                                                id="{{ field.id_for_label }}"
+                                                value="{{ field.value|default:'' }}"
+                                                class="block w-full rounded-lg border border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background text-foreground-default dark:text-darcula-foreground placeholder-foreground-muted dark:placeholder-darcula-foreground-muted focus:border-brand-500 dark:focus:border-darcula-accent focus:ring-brand-500 dark:focus:ring-darcula-accent sm:text-sm transition-colors"
+                                                placeholder="{{ field.field.widget.attrs.placeholder|default:'Ingresa un nombre descriptivo...' }}"
+                                                {% if field.field.required %}required{% endif %} />
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if field.errors %}
+                                        <div class="mt-2 space-y-1">
+                                            {% for error in field.errors %}
+                                                <p class="text-sm text-danger-600 dark:text-darcula-error">{{ error }}</p>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column: File Upload Zone -->
+            <div class="space-y-6">
+                <div class="bg-background-secondary dark:bg-darcula-background rounded-lg p-6 border border-border-default dark:border-darcula-border h-full">
+                    <h4 class="text-sm font-semibold text-foreground-default dark:text-darcula-foreground mb-4 flex items-center">
+                        <svg class="h-4 w-4 mr-2 text-brand-500 dark:text-darcula-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        Archivo de Datos
+                    </h4>
+                    
+                    {% for field in form %}
+                        {% if field.field.widget.input_type == 'file' %}
+                            <div class="file-upload-zone" 
+                                 x-data="{ 
+                                     isDragging: false, 
+                                     fileName: '',
+                                     fileSize: '',
+                                     isValidFile: false,
+                                     dragEnter() { this.isDragging = true; },
+                                     dragLeave() { this.isDragging = false; },
+                                     drop(event) { 
+                                         this.isDragging = false;
+                                         this.handleFiles(event.dataTransfer.files);
+                                     },
+                                     handleFiles(files) {
+                                         if (files.length > 0) {
+                                             const file = files[0];
+                                             this.fileName = file.name;
+                                             this.fileSize = this.formatFileSize(file.size);
+                                             this.isValidFile = this.validateFile(file);
+                                             
+                                             // Set the file in the input
+                                             const input = this.$refs.fileInput;
+                                             const dt = new DataTransfer();
+                                             dt.items.add(file);
+                                             input.files = dt.files;
+                                         }
+                                     },
+                                     formatFileSize(bytes) {
+                                         if (bytes === 0) return '0 Bytes';
+                                         const k = 1024;
+                                         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                                         const i = Math.floor(Math.log(bytes) / Math.log(k));
+                                         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+                                     },
+                                     validateFile(file) {
+                                         const allowedTypes = ['csv', 'xlsx', 'xls', 'json', 'parquet'];
+                                         const fileExt = file.name.split('.').pop().toLowerCase();
+                                         return allowedTypes.includes(fileExt) && file.size <= 100 * 1024 * 1024;
+                                     }
+                                 }"
+                                 @dragover.prevent="dragEnter()"
+                                 @dragleave.prevent="dragLeave()"
+                                 @drop.prevent="drop($event)">
+                                
+                                <div class="relative">
+                                    <input type="file" 
+                                           x-ref="fileInput"
+                                           name="{{ field.name }}"
+                                           id="{{ field.id_for_label }}"
+                                           accept=".csv,.xlsx,.xls,.json,.parquet"
+                                           class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                           @change="handleFiles($event.target.files)" />
+                                    
+                                    <div class="relative min-h-[240px] flex flex-col justify-center items-center px-6 py-8 border-2 border-dashed rounded-lg transition-all duration-200"
+                                         :class="{
+                                             'border-brand-400 dark:border-darcula-accent bg-brand-50 dark:bg-darcula-accent/10': isDragging,
+                                             'border-success-400 dark:border-darcula-string bg-success-50 dark:bg-darcula-string/10': fileName && isValidFile,
+                                             'border-danger-400 dark:border-darcula-error bg-danger-50 dark:bg-darcula-error/10': fileName && !isValidFile,
+                                             'border-border-default dark:border-darcula-border hover:border-brand-300 dark:hover:border-darcula-accent/50': !isDragging && !fileName
+                                         }">
+                                        
+                                        <!-- Upload Icon -->
+                                        <div class="text-center" x-show="!fileName">
+                                            <svg class="mx-auto h-16 w-16 text-foreground-muted dark:text-darcula-foreground-muted mb-4" 
+                                                 :class="{ 'text-brand-500 dark:text-darcula-accent': isDragging }"
+                                                 stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                            </svg>
+                                            <div class="space-y-2">
+                                                <p class="text-lg font-medium text-foreground-default dark:text-darcula-foreground">
+                                                    <span x-show="!isDragging">Arrastra tu archivo aquí</span>
+                                                    <span x-show="isDragging" class="text-brand-600 dark:text-darcula-accent">Suelta el archivo</span>
+                                                </p>
+                                                <p class="text-sm text-foreground-muted dark:text-darcula-foreground-muted">
+                                                    o <span class="text-brand-600 dark:text-darcula-accent font-medium cursor-pointer hover:text-brand-700 dark:hover:text-darcula-accent/80">haz clic para seleccionar</span>
+                                                </p>
+                                                <p class="text-xs text-foreground-muted dark:text-darcula-foreground-muted">
+                                                    Formatos soportados: CSV, Excel (.xlsx, .xls), JSON, Parquet
+                                                </p>
+                                                <p class="text-xs text-foreground-muted dark:text-darcula-foreground-muted">
+                                                    Tamaño máximo: 100MB
+                                                </p>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- File Preview -->
+                                        <div class="text-center w-full" x-show="fileName">
+                                            <div class="flex flex-col items-center">
+                                                <!-- File Icon -->
+                                                <div class="mb-4">
+                                                    <svg x-show="isValidFile" class="h-16 w-16 text-success-500 dark:text-darcula-string" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    <svg x-show="!isValidFile" class="h-16 w-16 text-danger-500 dark:text-darcula-error" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                </div>
+                                                
+                                                <!-- File Info -->
+                                                <div class="space-y-2">
+                                                    <p class="text-lg font-medium text-foreground-default dark:text-darcula-foreground break-all" x-text="fileName"></p>
+                                                    <p class="text-sm text-foreground-muted dark:text-darcula-foreground-muted" x-text="fileSize"></p>
+                                                    <div x-show="isValidFile" class="grove-badge grove-badge--success grove-badge--sm">
+                                                        <span class="grove-badge__text">
+                                                        <svg class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                        Archivo válido
+                                                        </span>
+                                                    </div>
+                                                    <div x-show="!isValidFile" class="grove-badge grove-badge--error grove-badge--sm">
+                                                        <span class="grove-badge__text">
+                                                        <svg class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                        Archivo no válido
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Remove File Button -->
+                                                <button type="button" 
+                                                        @click="fileName = ''; fileSize = ''; isValidFile = false; $refs.fileInput.value = ''"
+                                                        class="mt-4 inline-flex items-center px-3 py-1 text-xs font-medium text-foreground-muted dark:text-darcula-foreground-muted hover:text-danger-600 dark:hover:text-darcula-error transition-colors">
+                                                    <svg class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                    Remover archivo
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if field.errors %}
+                                <div class="mt-4 space-y-1">
+                                    {% for error in field.errors %}
+                                        <p class="text-sm text-danger-600 dark:text-darcula-error flex items-center">
+                                            <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            {{ error }}
+                                        </p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Full Width Workspace Selector -->
+        {% if show_project_selection %}
+            <div class="bg-background-secondary dark:bg-darcula-background rounded-lg p-6 border border-border-default dark:border-darcula-border">
+                <h4 class="text-sm font-semibold text-foreground-default dark:text-darcula-foreground mb-4 flex items-center">
+                    <svg class="h-4 w-4 mr-2 text-brand-500 dark:text-darcula-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-2m-2 0H7m14 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2z" />
+                    </svg>
+                    Workspaces de Destino
+                </h4>
+                
+                <div x-data="workspaceSelector()" x-init="init({% if project %}'{{ project.id }}'{% else %}null{% endif %}, [{% for proj in user_projects %}{ id: '{{ proj.id }}', name: '{{ proj.name|escapejs }}' }{% if not forloop.last %},{% endif %}{% endfor %}])">
+                
+                    <!-- Warning Modal -->
+                    <div x-show="showWarning" 
+                         class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" 
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100">
+                        <div class="bg-background-primary dark:bg-darcula-background rounded-lg p-6 max-w-md mx-4 border border-border-default dark:border-darcula-border">
+                            <div class="flex items-start space-x-3">
+                                <svg class="h-6 w-6 text-warning-500 dark:text-darcula-warning flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                </svg>
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-medium text-foreground-default dark:text-darcula-foreground">
+                                        ¿Remover todos los workspaces?
+                                    </h3>
+                                    <p class="mt-2 text-sm text-foreground-muted dark:text-darcula-foreground-muted">
+                                        Esto eliminará todos los workspaces de la lista. Los datos se subirán sin asignar a ningún workspace.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="mt-6 flex justify-end space-x-3">
+                                <button type="button" @click="cancelClearAll()"
+                                        class="px-4 py-2 text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted bg-background-secondary dark:bg-darcula-background border border-border-default dark:border-darcula-border rounded-lg hover:bg-background-tertiary dark:hover:bg-darcula-background-lighter">
+                                    Cancelar
+                                </button>
+                                <button type="button" @click="confirmClearAll()"
+                                        class="px-4 py-2 text-sm font-medium text-white bg-warning-600 dark:bg-darcula-warning border border-transparent rounded-lg hover:bg-warning-700 dark:hover:bg-darcula-warning/80">
+                                    Remover Todos
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Two-column layout for workspace management -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Left: Selected Workspaces List -->
+                        <div class="space-y-3">
+                            <!-- Header with Clear All option -->
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium text-foreground-default dark:text-darcula-foreground">
+                                    Workspaces Seleccionados
+                                    <span class="ml-2 text-xs text-foreground-muted dark:text-darcula-foreground-muted" x-text="`(${selectedWorkspaces.length})`"></span>
+                                </span>
+                                <button type="button" @click="clearAll()" 
+                                        x-show="selectedWorkspaces.length > 0"
+                                        class="text-xs text-foreground-muted dark:text-darcula-foreground-muted hover:text-danger-600 dark:hover:text-darcula-error transition-colors">
+                                    Sin asignar a workspace
+                                </button>
+                            </div>
+                            
+                            <!-- Empty state -->
+                            <div x-show="selectedWorkspaces.length === 0" 
+                                 class="p-4 border-2 border-dashed border-border-default dark:border-darcula-border rounded-lg text-center">
+                                <svg class="h-8 w-8 mx-auto text-foreground-muted dark:text-darcula-foreground-muted mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-2m-2 0H7m14 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2z" />
+                                </svg>
+                                <p class="text-sm text-foreground-muted dark:text-darcula-foreground-muted">
+                                    Sin workspaces asignados
+                                </p>
+                                <p class="text-xs text-foreground-muted dark:text-darcula-foreground-muted mt-1">
+                                    Los datos se subirán sin asignar. Podrás asignarlos después.
+                                </p>
+                            </div>
+                            
+                            <!-- Selected workspaces -->
+                            <template x-for="workspaceId in selectedWorkspaces" :key="workspaceId">
+                                <div class="flex items-center justify-between p-3 bg-brand-50 dark:bg-darcula-accent/10 border border-brand-200 dark:border-darcula-accent/30 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <svg class="h-4 w-4 text-brand-500 dark:text-darcula-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-2m-2 0H7m14 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2z" />
+                                        </svg>
+                                        <span class="text-sm font-medium text-brand-700 dark:text-darcula-accent" x-text="getWorkspaceName(workspaceId)"></span>
+                                    </div>
+                                    <button type="button" @click="removeWorkspace(workspaceId)"
+                                            class="text-foreground-muted dark:text-darcula-foreground-muted hover:text-danger-600 dark:hover:text-darcula-error transition-colors">
+                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+                        
+                        <!-- Right: Add Workspace Section -->
+                        <div class="space-y-3">
+                            <span class="text-sm font-medium text-foreground-default dark:text-darcula-foreground">
+                                Agregar Workspace
+                            </span>
+                            
+                            <div x-show="getAvailableWorkspaces().length > 0">
+                                <div class="flex items-center space-x-3">
+                                    <select x-ref="workspaceSelect" 
+                                            class="flex-1 text-sm rounded-lg border border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background text-foreground-default dark:text-darcula-foreground focus:border-brand-500 dark:focus:border-darcula-accent focus:ring-brand-500 dark:focus:ring-darcula-accent">
+                                        <option value="">Seleccionar workspace...</option>
+                                        <template x-for="workspace in getAvailableWorkspaces()" :key="workspace.id">
+                                            <option :value="workspace.id" x-text="workspace.name"></option>
+                                        </template>
+                                    </select>
+                                    <button type="button" 
+                                            @click="addWorkspace($refs.workspaceSelect.value); $refs.workspaceSelect.value = ''"
+                                            :disabled="!$refs.workspaceSelect.value"
+                                            class="flex-shrink-0 inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-brand-600 dark:bg-darcula-accent border border-transparent rounded-lg hover:bg-brand-700 dark:hover:bg-darcula-accent/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                        <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                        </svg>
+                                        Agregar
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- No more workspaces available -->
+                            <div x-show="getAvailableWorkspaces().length === 0" 
+                                 class="p-3 bg-background-tertiary dark:bg-darcula-background-lighter rounded-lg text-center">
+                                <p class="text-sm text-foreground-muted dark:text-darcula-foreground-muted">
+                                    Todos los workspaces disponibles han sido seleccionados
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Hidden project field if not showing selection -->
+        {% if not show_project_selection and project %}
+            {% for field in form %}
+                {% if field.name == 'projects' %}
+                    <input type="hidden" name="projects" value="{{ project.id }}" />
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+        
+        <!-- Form actions -->
+        <div class="flex justify-end space-x-3 pt-6 border-t border-border-default dark:border-darcula-border">
+            <button type="button" 
+                    @click="$dispatch('close-upload-panel')"
+                    class="px-4 py-2 text-sm font-medium text-foreground-muted dark:text-darcula-foreground-muted bg-background-secondary dark:bg-darcula-background border border-border-default dark:border-darcula-border rounded-lg hover:bg-background-tertiary dark:hover:bg-darcula-background-lighter focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 dark:focus:ring-darcula-accent transition-colors">
+                Cancelar
+            </button>
+            <button type="submit" 
+                    :disabled="submitting"
+                    :class="{ 'opacity-50 cursor-not-allowed': submitting }"
+                    class="px-6 py-3 text-sm font-medium text-white bg-brand-600 dark:bg-darcula-accent border border-transparent rounded-lg hover:bg-brand-700 dark:hover:bg-darcula-accent/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 dark:focus:ring-darcula-accent transition-all duration-200 min-w-[160px]">
+                <span x-show="!submitting" class="flex items-center justify-center">
+                    <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    {% if object %}
+                        Actualizar Fuente
+                    {% else %}
+                        Subir Archivo
+                    {% endif %}
+                </span>
+                <span x-show="submitting" class="flex items-center justify-center">
+                    <svg class="animate-spin h-4 w-4 mr-2 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span x-data="{ dots: '' }" 
+                          x-init="setInterval(() => { dots = dots.length >= 3 ? '' : dots + '.' }, 500)"
+                          x-text="'Procesando' + dots">
+                    </span>
+                </span>
+            </button>
+        </div>
+    </form>
+</div>

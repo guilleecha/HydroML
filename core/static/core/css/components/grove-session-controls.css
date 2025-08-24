@@ -1,0 +1,371 @@
+/**
+ * Grove Session Controls - Recording/Transport Style UI
+ * Visual indicators for Data Studio session management
+ */
+
+/* ===== SESSION ROWS LAYOUT ===== */
+
+.grove-session-row {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background: var(--grove-gray-50);
+    border: 1px solid var(--grove-gray-200);
+}
+
+.grove-session-row:first-child {
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    border-bottom: none;
+}
+
+.grove-session-row:last-child {
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.grove-session-row--status {
+    gap: 0.375rem;
+    justify-content: center;
+    align-items: stretch;
+    min-height: 3rem;
+    padding: 0.75rem;
+}
+
+.grove-session-row--controls {
+    gap: 0.5rem;
+    justify-content: space-between;
+    background: var(--grove-gray-100);
+    padding: 0.5rem 0.6rem;
+}
+
+.dark .grove-session-row {
+    background: var(--grove-gray-800);
+    border-color: var(--grove-gray-700);
+}
+
+.dark .grove-session-row--controls {
+    background: var(--grove-gray-700);
+}
+
+.grove-session-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 100%;
+    min-height: 2.5rem;
+    flex: 1;
+}
+
+.grove-rec-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.grove-rec-dot--active {
+    background: #ef4444; /* red-500 */
+    animation: pulse-record 1.5s ease-in-out infinite;
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
+}
+
+.grove-rec-dot--inactive {
+    background: var(--grove-gray-400);
+}
+
+.grove-rec-dot--paused {
+    background: #f59e0b; /* yellow-500 */
+    animation: pulse-pause 2s ease-in-out infinite;
+}
+
+@keyframes pulse-record {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(1.1);
+    }
+}
+
+@keyframes pulse-pause {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+.grove-rec-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #dc2626; /* red-600 */
+    text-transform: uppercase;
+}
+
+.grove-session-info {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    height: 100%;
+    min-height: 2.5rem;
+    flex: 1;
+}
+
+.grove-session-counter {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--grove-gray-900);
+    font-family: ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
+}
+
+.dark .grove-session-counter {
+    color: var(--grove-gray-100);
+}
+
+.grove-session-status-text {
+    font-size: 0.75rem;
+    color: var(--grove-gray-600);
+    text-transform: capitalize;
+}
+
+.dark .grove-session-status-text {
+    color: var(--grove-gray-400);
+}
+
+/* ===== TRANSPORT CONTROLS ===== */
+
+.grove-session-transport {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+.grove-transport-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.875rem;
+    height: 1.875rem;
+    border: none;
+    border-radius: var(--radius-md);
+    background: var(--grove-gray-200);
+    color: var(--grove-gray-700);
+    transition: all 0.15s ease;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.dark .grove-transport-btn {
+    background: var(--grove-gray-600);
+    color: var(--grove-gray-300);
+}
+
+.grove-transport-btn:hover:not(:disabled) {
+    background: var(--grove-gray-200);
+    color: var(--grove-gray-900);
+    transform: translateY(-1px);
+}
+
+.grove-transport-btn:active:not(:disabled) {
+    transform: translateY(0);
+    background: var(--grove-gray-300);
+}
+
+.grove-transport-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.dark .grove-transport-btn {
+    color: var(--grove-gray-300);
+}
+
+.dark .grove-transport-btn:hover:not(:disabled) {
+    background: var(--grove-gray-600);
+    color: var(--grove-gray-100);
+}
+
+.dark .grove-transport-btn:active:not(:disabled) {
+    background: var(--grove-gray-500);
+}
+
+/* Transport Button Variants */
+.grove-transport-btn--stop {
+    color: #dc2626; /* red-600 */
+}
+
+.grove-transport-btn--stop:hover:not(:disabled) {
+    background: #fef2f2; /* red-50 */
+    color: #991b1b; /* red-800 */
+}
+
+.dark .grove-transport-btn--stop {
+    color: #f87171; /* red-400 */
+}
+
+.dark .grove-transport-btn--stop:hover:not(:disabled) {
+    background: rgba(220, 38, 38, 0.2);
+    color: #fca5a5; /* red-300 */
+}
+
+.grove-transport-btn--undo:not(:disabled) {
+    color: #2563eb; /* blue-600 */
+}
+
+.grove-transport-btn--redo:not(:disabled) {
+    color: #2563eb; /* blue-600 */
+}
+
+/* ===== SESSION ACTIONS ===== */
+
+.grove-session-action {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.375rem 0.5rem;
+    border: 1px solid var(--grove-gray-300);
+    border-radius: var(--radius-md);
+    background: var(--grove-gray-50);
+    color: var(--grove-gray-700);
+    font-size: 0.75rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.grove-session-action:hover {
+    background: var(--grove-gray-100);
+    border-color: var(--grove-gray-400);
+    color: var(--grove-gray-900);
+}
+
+.grove-session-action:active {
+    background: var(--grove-gray-200);
+    transform: translateY(1px);
+}
+
+.dark .grove-session-action {
+    background: var(--grove-gray-700);
+    border-color: var(--grove-gray-600);
+    color: var(--grove-gray-300);
+}
+
+.dark .grove-session-action:hover {
+    background: var(--grove-gray-600);
+    border-color: var(--grove-gray-500);
+    color: var(--grove-gray-100);
+}
+
+.dark .grove-session-action:active {
+    background: var(--grove-gray-500);
+}
+
+.grove-session-action--save {
+    color: var(--grove-blue-700);
+    border-color: var(--grove-blue-200);
+    background: var(--grove-blue-50);
+}
+
+.grove-session-action--save:hover {
+    background: var(--grove-blue-100);
+    border-color: var(--grove-blue-300);
+    color: var(--grove-blue-800);
+}
+
+.dark .grove-session-action--save {
+    color: var(--grove-blue-400);
+    border-color: var(--grove-blue-700);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.dark .grove-session-action--save:hover {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: var(--grove-blue-600);
+    color: var(--grove-blue-300);
+}
+
+.grove-action-label {
+    font-weight: 600;
+}
+
+/* ===== RESPONSIVE BEHAVIOR ===== */
+
+@media (max-width: 768px) {
+    .grove-session-row--status {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+    }
+    
+    .grove-session-transport {
+        justify-content: center;
+    }
+    
+    .grove-action-label {
+        display: none;
+    }
+    
+    .grove-session-action {
+        padding: 0.375rem;
+        justify-content: center;
+    }
+}
+
+/* ===== ACCESSIBILITY ===== */
+
+.grove-transport-btn:focus,
+.grove-session-action:focus {
+    outline: 2px solid var(--grove-blue-500);
+    outline-offset: 2px;
+}
+
+.grove-transport-btn:focus-visible,
+.grove-session-action:focus-visible {
+    outline: 2px solid var(--grove-blue-500);
+    outline-offset: 2px;
+}
+
+/* Hide focus outline for mouse users */
+.grove-transport-btn:focus:not(:focus-visible),
+.grove-session-action:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* ===== STATUS VARIANTS ===== */
+
+/* Session Inactive State */
+.grove-session-status--inactive .grove-rec-dot {
+    background: var(--grove-gray-400);
+    animation: none;
+    box-shadow: none;
+}
+
+.grove-session-status--inactive .grove-rec-label {
+    color: var(--grove-gray-500);
+}
+
+.grove-session-status--inactive .grove-session-status-text {
+    color: var(--grove-gray-500);
+}
+
+/* Session Paused State */
+.grove-session-status--paused .grove-rec-dot {
+    background: #f59e0b; /* yellow-500 */
+    animation: pulse-pause 2s ease-in-out infinite;
+}
+
+.grove-session-status--paused .grove-rec-label {
+    color: #d97706; /* yellow-600 */
+}
+
+.grove-session-status--paused .grove-rec-label::after {
+    content: " PAUSE";
+}

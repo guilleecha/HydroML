@@ -1,0 +1,70 @@
+{% extends "core/base_main.html" %}
+{% load static tabler_icons %}
+
+{% block page_title %}Workspaces{% endblock %}
+
+{% block page_heading %}Workspaces{% endblock %}
+
+{% csrf_token %}
+
+{% block header_actions %}
+<button @click="openNewProjectPanel()" 
+       class="grove-btn grove-btn--primary grove-btn--sm">
+    {% include 'core/components/grove_icon.html' with icon='plus' %}
+    New
+</button>
+{% endblock %}
+
+{% block content %}
+{% if projects %}
+    <div class="space-y-3">
+        {% for project in projects %}
+            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                            {% include 'core/components/grove_icon.html' with icon='folder' size='md' class='text-blue-600 dark:text-blue-400' %}
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-2">
+                                <a href="{% url 'projects:project_detail' pk=project.pk %}" 
+                                   class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
+                                    {{ project.name }}
+                                </a>
+                            </div>
+                            {% if project.description %}
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ project.description|truncatechars:80 }}</p>
+                            {% endif %}
+                            <div class="flex items-center space-x-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                <span>{{ project.datasources.count }} data sources</span>
+                                <span>{{ project.experiments.count }} experiments</span>
+                                <span>{{ project.created_at|date:"M d, Y" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="confirmDeleteProject({{ project.pk }}, '{{ project.name|escapejs }}')" 
+                               class="text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                               title="Delete workspace">
+                            {% include 'core/components/grove_icon.html' with icon='trash' %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+        {% tabler_icon_outline 'folder' 'mx-auto h-12 w-12 text-gray-400' %}
+        <h3 class="mt-4 text-sm font-medium text-gray-900 dark:text-gray-100">No workspaces</h3>
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Create your first workspace to get started.</p>
+        <button @click="openNewProjectPanel()" 
+               class="mt-4 grove-btn grove-btn--primary">
+            {% include 'core/components/grove_icon.html' with icon='plus' %}
+            Create Workspace
+        </button>
+    </div>
+{% endif %}
+
+<script src="{% static 'projects/js/project_list.js' %}"></script>
+{% endblock %}

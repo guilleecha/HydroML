@@ -1,0 +1,257 @@
+/**
+ * Grove Navigation Section Component
+ * Collapsible navigation sections for Grove Design System
+ * Used within sidebars and navigation areas
+ */
+
+/* ===== GROVE NAV SECTION BASE ===== */
+
+.grove-nav-section {
+    border-bottom: 1px solid var(--grove-gray-200);
+}
+
+.dark .grove-nav-section {
+    border-bottom-color: var(--grove-gray-700);
+}
+
+.grove-nav-section:last-child {
+    border-bottom: none;
+}
+
+/* ===== GROVE NAV SECTION HEADER ===== */
+
+.grove-nav-section-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--grove-gray-700);
+    background-color: transparent;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.dark .grove-nav-section-header {
+    color: var(--grove-gray-300);
+}
+
+.grove-nav-section-header:hover {
+    background-color: var(--grove-gray-50);
+    color: var(--grove-gray-900);
+}
+
+.dark .grove-nav-section-header:hover {
+    background-color: var(--grove-gray-800);
+    color: var(--grove-gray-100);
+}
+
+/* ===== GROVE NAV SECTION ICON ===== */
+
+.grove-nav-section-icon {
+    width: var(--space-5);
+    height: var(--space-5);
+    margin-right: var(--space-3);
+    flex-shrink: 0;
+}
+
+/* Section Icon Color Variants */
+.grove-nav-section-icon--primary {
+    color: var(--grove-blue-500);
+}
+
+.grove-nav-section-icon--success {
+    color: var(--grove-green-500);
+}
+
+.grove-nav-section-icon--warning {
+    color: var(--grove-yellow-500);
+}
+
+.grove-nav-section-icon--error {
+    color: var(--grove-red-500);
+}
+
+.grove-nav-section-icon--purple {
+    color: var(--grove-purple-500);
+}
+
+.grove-nav-section-icon--orange {
+    color: var(--grove-orange-500);
+}
+
+/* ===== GROVE NAV SECTION CHEVRON ===== */
+
+.grove-nav-section-chevron {
+    width: var(--space-4);
+    height: var(--space-4);
+    margin-left: auto;
+    transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.grove-nav-section-chevron--expanded {
+    transform: rotate(90deg);
+}
+
+/* ===== GROVE NAV SECTION CONTENT ===== */
+
+.grove-nav-section-content {
+    background-color: var(--grove-gray-25);
+    border-top: 1px solid var(--grove-gray-100);
+}
+
+.dark .grove-nav-section-content {
+    background-color: var(--grove-gray-850);
+    border-top-color: var(--grove-gray-800);
+}
+
+/* ===== GROVE NAV ITEM ===== */
+
+.grove-nav-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding: var(--space-3) var(--space-6);
+    font-size: var(--font-size-sm);
+    color: var(--grove-gray-600);
+    background-color: transparent;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+    text-decoration: none;
+}
+
+.dark .grove-nav-item {
+    color: var(--grove-gray-400);
+}
+
+.grove-nav-item:hover {
+    background-color: var(--grove-blue-50);
+    color: var(--grove-blue-700);
+}
+
+.dark .grove-nav-item:hover {
+    background-color: var(--grove-blue-900);
+    color: var(--grove-blue-200);
+}
+
+/* Active state */
+.grove-nav-item--active {
+    background-color: var(--grove-blue-100);
+    color: var(--grove-blue-800);
+    font-weight: var(--font-weight-medium);
+}
+
+.dark .grove-nav-item--active {
+    background-color: var(--grove-blue-800);
+    color: var(--grove-blue-100);
+}
+
+/* Disabled state */
+.grove-nav-item:disabled,
+.grove-nav-item--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ===== GROVE NAV ITEM ICON ===== */
+
+.grove-nav-item-icon {
+    width: var(--space-4);
+    height: var(--space-4);
+    margin-right: var(--space-3);
+    flex-shrink: 0;
+}
+
+/* ===== GROVE NAV ITEM BADGE ===== */
+
+.grove-nav-item-badge {
+    margin-left: auto;
+    padding: var(--space-1) var(--space-2);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--grove-gray-600);
+    background-color: var(--grove-gray-200);
+    border-radius: var(--radius-full);
+}
+
+.dark .grove-nav-item-badge {
+    color: var(--grove-gray-300);
+    background-color: var(--grove-gray-700);
+}
+
+/* Badge variants */
+.grove-nav-item-badge--primary {
+    color: var(--grove-white);
+    background-color: var(--grove-blue-500);
+}
+
+.grove-nav-item-badge--success {
+    color: var(--grove-white);
+    background-color: var(--grove-green-500);
+}
+
+.grove-nav-item-badge--warning {
+    color: var(--grove-gray-900);
+    background-color: var(--grove-yellow-400);
+}
+
+.grove-nav-item-badge--error {
+    color: var(--grove-white);
+    background-color: var(--grove-red-500);
+}
+
+/* ===== COLLAPSED SIDEBAR BEHAVIOR ===== */
+
+/* Hide text and chevron when sidebar collapsed */
+.grove-sidebar--collapsed .grove-nav-section-header span:not(.grove-nav-section-icon),
+.grove-sidebar--collapsed .grove-nav-section-chevron {
+    display: none;
+}
+
+/* Center icons when collapsed */
+.grove-sidebar--collapsed .grove-nav-section-header {
+    justify-content: center;
+    padding: var(--space-3) var(--space-2);
+}
+
+.grove-sidebar--collapsed .grove-nav-section-icon {
+    margin-right: 0;
+}
+
+/* Hide section content when collapsed */
+.grove-sidebar--collapsed .grove-nav-section-content {
+    display: none;
+}
+
+/* ===== GROVE NAV LIST VARIANT ===== */
+
+.grove-nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-2) 0;
+}
+
+.grove-nav-list .grove-nav-item {
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    margin: 0 var(--space-2);
+}
+
+/* ===== GROVE NAV DIVIDER ===== */
+
+.grove-nav-divider {
+    height: 1px;
+    background-color: var(--grove-gray-200);
+    margin: var(--space-2) var(--space-4);
+}
+
+.dark .grove-nav-divider {
+    background-color: var(--grove-gray-700);
+}

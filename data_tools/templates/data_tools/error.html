@@ -1,0 +1,80 @@
+{% extends "core/base_main.html" %}
+{% load static %}
+
+{% block page_title %}Error - Data Tools{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-white flex items-center justify-center p-8">
+    <div class="max-w-md w-full">
+        
+        <!-- Error Icon -->
+        <div class="flex justify-center mb-6">
+            <div class="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full">
+                <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z">
+                    </path>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        <div class="text-center">
+            <h1 class="text-2xl font-bold text-gray-900 mb-4">
+                Oops! Algo salió mal
+            </h1>
+            
+            {% if error_message %}
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                    <p class="text-red-800 text-sm">
+                        <strong>Error:</strong> {{ error_message }}
+                    </p>
+                </div>
+            {% endif %}
+
+            {% if debug_info %}
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6 text-left">
+                    <h3 class="font-medium text-gray-900 mb-2">Información de Debug:</h3>
+                    <pre class="text-xs text-gray-600 overflow-x-auto">{{ debug_info }}</pre>
+                </div>
+            {% endif %}
+
+            <p class="text-gray-600 mb-6">
+                Ha ocurrido un error inesperado en Data Tools. 
+                Por favor, intenta nuevamente o regresa a la página principal.
+            </p>
+
+            <!-- Action Buttons -->
+            <div class="space-y-3">
+                <a href="javascript:history.back()" 
+                   class="block w-full bg-blue-600 text-white text-center py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
+                    ← Volver
+                </a>
+                
+                <a href="{% url 'core:data_sources_list' %}" 
+                   class="block w-full bg-gray-100 text-gray-700 text-center py-2 px-4 rounded-md hover:bg-gray-200 transition-colors">
+                    🏠 Data Sources
+                </a>
+                
+                <a href="{% url 'core:dashboard' %}" 
+                   class="block w-full text-gray-500 text-center py-2 px-4 hover:text-gray-700 transition-colors">
+                    Dashboard Principal
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+console.error('🚨 Data Tools Error Page');
+{% if error_message %}
+console.error('Error message:', "{{ error_message|escapejs }}");
+{% endif %}
+{% if debug_info %}
+console.error('Debug info:', "{{ debug_info|escapejs }}");
+{% endif %}
+</script>
+{% endblock %}

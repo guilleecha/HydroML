@@ -1,4 +1,4 @@
-{% extends 'core/base.html' %}
+{% extends 'core/base_main.html' %}
 {% load static %}
 {% load crispy_forms_tags %}
 
@@ -310,10 +310,10 @@
                     
                     <div class="flex gap-3">
                         <a href="{% url 'projects:project_detail' pk=project.pk %}" 
-                           class="btn btn-outline-secondary px-6 py-2 border border-border-default text-foreground-default hover:bg-background-secondary transition-colors rounded-lg">
+                           class="grove-btn grove-btn-outline px-6 py-2 border border-border-default text-foreground-default hover:bg-background-secondary transition-colors rounded-lg">
                             Cancelar
                         </a>
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="grove-btn grove-btn-primary">
                             <svg class="inline-block w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>

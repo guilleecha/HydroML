@@ -1,0 +1,386 @@
+{% load static %}
+{% load tailwind_filters %}
+
+<!-- Step 3: Feature Selection -->
+<div class="space-y-6">
+    <!-- Feature Selection Interface -->
+    <div x-data="featureSelector()" x-init="init()">
+        <!-- Loading Features State -->
+        <div x-show="isLoadingFeatures" class="flex items-center justify-center p-8 bg-gray-50 dark:bg-darcula-background-lighter rounded-lg border-2 border-dashed border-gray-300 dark:border-darcula-border">
+            <div class="text-center">
+                <svg class="animate-spin w-8 h-8 text-gray-400 dark:text-darcula-foreground-muted mx-auto mb-2" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="text-sm text-gray-500 dark:text-darcula-foreground-muted">Analizando variables predictoras...</p>
+            </div>
+        </div>
+        
+        <!-- No Dataset/Target Selected -->
+        <div x-show="!formData.input_datasource || !formData.target_column" 
+             class="p-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg">
+            <div class="flex items-center">
+                <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+                <div>
+                    <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                        Completa los pasos anteriores
+                    </p>
+                    <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                        Necesitas seleccionar un dataset y variable objetivo antes de elegir las variables predictoras.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Feature Selection Interface -->
+        <div x-show="formData.input_datasource && formData.target_column && !isLoadingFeatures && availableFeatures.length > 0">
+            <!-- Search and Filter Bar -->
+            <div class="mb-4 flex flex-col sm:flex-row gap-3">
+                <!-- Search Features -->
+                <div class="flex-1">
+                    <div class="relative">
+                        <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-darcula-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <input type="text" 
+                               x-model="searchTerm"
+                               @input="filterFeatures"
+                               placeholder="Buscar variables por nombre..."
+                               class="pl-10 block w-full border-gray-300 dark:border-darcula-border bg-white dark:bg-darcula-background text-gray-900 dark:text-darcula-foreground rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-darcula-accent dark:focus:border-darcula-accent">
+                    </div>
+                </div>
+                
+                <!-- Feature Type Filter -->
+                <div class="sm:w-48">
+                    <select x-model="typeFilter" 
+                            @change="filterFeatures"
+                            class="block w-full border-gray-300 dark:border-darcula-border bg-white dark:bg-darcula-background text-gray-900 dark:text-darcula-foreground rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-darcula-accent dark:focus:border-darcula-accent">
+                        <option value="">Todos los tipos</option>
+                        <option value="numeric">Numérico</option>
+                        <option value="categorical">Categórico</option>
+                        <option value="boolean">Booleano</option>
+                        <option value="datetime">Fecha/Hora</option>
+                    </select>
+                </div>
+                
+                <!-- Bulk Actions -->
+                <div class="flex gap-2">
+                    <button type="button" 
+                            @click="selectAllFiltered()"
+                            class="px-3 py-2 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
+                        Seleccionar todo
+                    </button>
+                    <button type="button" 
+                            @click="clearAllSelected()"
+                            class="px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-darcula-background-lighter border border-gray-200 dark:border-darcula-border rounded-md hover:bg-gray-100 dark:hover:bg-darcula-background transition-colors">
+                        Limpiar todo
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Selected Features Summary -->
+            <div x-show="selectedFeatures.length > 0" class="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-green-600 dark:text-green-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="text-sm font-medium text-green-800 dark:text-green-200">
+                            <span x-text="selectedFeatures.length"></span> variables seleccionadas
+                        </span>
+                    </div>
+                    <button type="button" 
+                            @click="showSelectedOnly = !showSelectedOnly"
+                            class="text-xs text-green-700 dark:text-green-300 hover:text-green-900 dark:hover:text-green-100 underline">
+                        <span x-text="showSelectedOnly ? 'Mostrar todas' : 'Ver seleccionadas'"></span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Features Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto border border-gray-200 dark:border-darcula-border rounded-lg p-4">
+                <template x-for="feature in filteredFeatures" :key="feature.name">
+                    <label class="flex items-start p-3 border border-gray-200 dark:border-darcula-border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-darcula-background-lighter transition-colors"
+                           :class="{ 'border-blue-500 bg-blue-50 dark:border-darcula-accent dark:bg-darcula-accent/10': selectedFeatures.includes(feature.name) }">
+                        <input type="checkbox" 
+                               :value="feature.name"
+                               x-model="selectedFeatures"
+                               @change="updateFormData"
+                               class="mt-1 text-blue-600 dark:text-darcula-accent focus:ring-blue-500 dark:focus:ring-darcula-accent border-gray-300 dark:border-darcula-border rounded">
+                        <div class="ml-3 flex-1">
+                            <div class="font-medium text-gray-900 dark:text-darcula-foreground" x-text="feature.name"></div>
+                            <div class="text-sm text-gray-600 dark:text-darcula-foreground-muted">
+                                <span x-text="feature.type"></span>
+                                <span class="mx-2">•</span>
+                                <span x-text="feature.unique_values + ' únicos'"></span>
+                                <span x-show="feature.missing_values > 0" class="mx-2 text-yellow-600 dark:text-yellow-400">
+                                    • <span x-text="feature.missing_values + ' faltantes'"></span>
+                                </span>
+                            </div>
+                            <!-- Feature Importance Score (if available) -->
+                            <div x-show="feature.importance_score !== undefined" class="mt-1">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs text-gray-500 dark:text-darcula-foreground-muted">Relevancia:</span>
+                                    <div class="flex-1 bg-gray-200 dark:bg-darcula-background rounded-full h-1.5">
+                                        <div class="bg-blue-500 dark:bg-darcula-accent h-1.5 rounded-full transition-all duration-300"
+                                             :style="`width: ${feature.importance_score * 100}%`"></div>
+                                    </div>
+                                    <span class="text-xs font-medium" 
+                                          :class="feature.importance_score > 0.7 ? 'text-green-600 dark:text-green-400' : 
+                                                  feature.importance_score > 0.4 ? 'text-yellow-600 dark:text-yellow-400' : 
+                                                  'text-gray-500 dark:text-darcula-foreground-muted'"
+                                          x-text="Math.round(feature.importance_score * 100) + '%'"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+                </template>
+            </div>
+            
+            <!-- No Features After Filter -->
+            <div x-show="filteredFeatures.length === 0 && availableFeatures.length > 0" 
+                 class="p-6 text-center text-gray-500 dark:text-darcula-foreground-muted border border-gray-200 dark:border-darcula-border rounded-lg">
+                <svg class="w-12 h-12 mx-auto mb-3 text-gray-400 dark:text-darcula-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <p class="text-sm">No se encontraron variables que coincidan con el filtro</p>
+                <button type="button" 
+                        @click="clearFilters()"
+                        class="mt-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 underline">
+                    Limpiar filtros
+                </button>
+            </div>
+        </div>
+        
+        <!-- Error State -->
+        <div x-show="hasError" 
+             class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-red-600 dark:text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM9 9a1 1 0 0 0 0 2v3a1 1 0 0 0 1 1h1a1 1 0 1 0 0-2v-3a1 1 0 0 0-1-1H9z" clip-rule="evenodd"></path>
+                </svg>
+                <span class="text-sm text-red-800 dark:text-red-200" x-text="errorMessage"></span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Feature Selection Tips -->
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+        <div class="flex items-start">
+            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM9 9a1 1 0 0 0 0 2v3a1 1 0 0 0 1 1h1a1 1 0 1 0 0-2v-3a1 1 0 0 0-1-1H9z" clip-rule="evenodd"></path>
+            </svg>
+            <div>
+                <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">🎯 Consejos para selección de variables:</h4>
+                <ul class="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                    <li>• Selecciona variables que tengan relación lógica con la variable objetivo</li>
+                    <li>• Evita variables con demasiados valores faltantes (>30%)</li>
+                    <li>• Las variables con alta puntuación de relevancia suelen ser mejores predictores</li>
+                    <li>• Incluye al menos 3-5 variables para un modelo robusto</li>
+                    <li>• Evita variables que sean consecuencia del objetivo (data leakage)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Advanced Feature Analysis (Future Enhancement) -->
+    <div class="bg-gray-50 dark:bg-darcula-background-lighter border border-gray-200 dark:border-darcula-border rounded-lg p-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-gray-600 dark:text-darcula-foreground-muted mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+                <span class="text-sm font-medium text-gray-800 dark:text-darcula-foreground">Análisis Avanzado</span>
+            </div>
+            <span class="text-xs text-gray-500 dark:text-darcula-foreground-muted bg-gray-200 dark:bg-darcula-background px-2 py-1 rounded">
+                Próximamente
+            </span>
+        </div>
+        <p class="mt-2 text-xs text-gray-600 dark:text-darcula-foreground-muted">
+            Matriz de correlación, análisis de importancia de variables y detección automática de data leakage estarán disponibles en futuras versiones.
+        </p>
+    </div>
+</div>
+
+<script>
+// Feature Selector Component
+function featureSelector() {
+    return {
+        availableFeatures: [],
+        selectedFeatures: [],
+        filteredFeatures: [],
+        isLoadingFeatures: false,
+        hasError: false,
+        errorMessage: '',
+        searchTerm: '',
+        typeFilter: '',
+        showSelectedOnly: false,
+        
+        init() {
+            // Load features when dataset and target are available
+            this.$watch('formData.input_datasource', () => {
+                if (this.formData.input_datasource && this.formData.target_column) {
+                    this.loadFeatures();
+                }
+            });
+            
+            this.$watch('formData.target_column', () => {
+                if (this.formData.input_datasource && this.formData.target_column) {
+                    this.loadFeatures();
+                }
+            });
+            
+            // Initialize with existing selected features
+            if (this.formData.feature_set && Array.isArray(this.formData.feature_set)) {
+                this.selectedFeatures = [...this.formData.feature_set];
+            }
+        },
+        
+        async loadFeatures() {
+            this.isLoadingFeatures = true;
+            this.hasError = false;
+            
+            try {
+                // Simulate API call for feature analysis
+                await new Promise(resolve => setTimeout(resolve, 1200));
+                
+                // Mock feature data with importance scores - replace with actual API call
+                this.availableFeatures = [
+                    {
+                        name: 'price',
+                        type: 'Numérico',
+                        unique_values: 2450,
+                        missing_values: 5,
+                        importance_score: 0.85
+                    },
+                    {
+                        name: 'customer_age',
+                        type: 'Numérico',
+                        unique_values: 45,
+                        missing_values: 12,
+                        importance_score: 0.72
+                    },
+                    {
+                        name: 'product_category',
+                        type: 'Categórico',
+                        unique_values: 8,
+                        missing_values: 0,
+                        importance_score: 0.68
+                    },
+                    {
+                        name: 'region',
+                        type: 'Categórico',
+                        unique_values: 5,
+                        missing_values: 3,
+                        importance_score: 0.45
+                    },
+                    {
+                        name: 'is_premium_customer',
+                        type: 'Booleano',
+                        unique_values: 2,
+                        missing_values: 0,
+                        importance_score: 0.58
+                    },
+                    {
+                        name: 'purchase_date',
+                        type: 'Fecha/Hora',
+                        unique_values: 1250,
+                        missing_values: 0,
+                        importance_score: 0.32
+                    },
+                    {
+                        name: 'marketing_spend',
+                        type: 'Numérico',
+                        unique_values: 850,
+                        missing_values: 45,
+                        importance_score: 0.41
+                    },
+                    {
+                        name: 'website_visits',
+                        type: 'Numérico',
+                        unique_values: 125,
+                        missing_values: 8,
+                        importance_score: 0.35
+                    }
+                ].filter(feature => feature.name !== this.formData.target_column);
+                
+                // Auto-select top 3 features with highest importance
+                this.autoSelectTopFeatures();
+                
+                this.filterFeatures();
+                
+            } catch (error) {
+                console.error('Error loading features:', error);
+                this.hasError = true;
+                this.errorMessage = 'Error al cargar las variables disponibles';
+            } finally {
+                this.isLoadingFeatures = false;
+            }
+        },
+        
+        autoSelectTopFeatures() {
+            // Auto-select top 3 features if no features are currently selected
+            if (this.selectedFeatures.length === 0) {
+                const topFeatures = this.availableFeatures
+                    .sort((a, b) => (b.importance_score || 0) - (a.importance_score || 0))
+                    .slice(0, 3)
+                    .map(f => f.name);
+                
+                this.selectedFeatures = topFeatures;
+                this.updateFormData();
+            }
+        },
+        
+        filterFeatures() {
+            let filtered = this.availableFeatures;
+            
+            // Filter by search term
+            if (this.searchTerm) {
+                filtered = filtered.filter(feature => 
+                    feature.name.toLowerCase().includes(this.searchTerm.toLowerCase())
+                );
+            }
+            
+            // Filter by type
+            if (this.typeFilter) {
+                filtered = filtered.filter(feature => 
+                    feature.type.toLowerCase().includes(this.typeFilter.toLowerCase())
+                );
+            }
+            
+            // Show only selected if toggled
+            if (this.showSelectedOnly) {
+                filtered = filtered.filter(feature => 
+                    this.selectedFeatures.includes(feature.name)
+                );
+            }
+            
+            this.filteredFeatures = filtered;
+        },
+        
+        selectAllFiltered() {
+            const filteredNames = this.filteredFeatures.map(f => f.name);
+            this.selectedFeatures = [...new Set([...this.selectedFeatures, ...filteredNames])];
+            this.updateFormData();
+        },
+        
+        clearAllSelected() {
+            this.selectedFeatures = [];
+            this.updateFormData();
+        },
+        
+        clearFilters() {
+            this.searchTerm = '';
+            this.typeFilter = '';
+            this.showSelectedOnly = false;
+            this.filterFeatures();
+        },
+        
+        updateFormData() {
+            this.formData.feature_set = [...this.selectedFeatures];
+        }
+    };
+}
+</script>

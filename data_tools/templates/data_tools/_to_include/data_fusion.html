@@ -1,0 +1,440 @@
+{% extends "core/base_main.html" %}
+{% load static %}
+
+{% block extra_js %}
+<script src="{% static 'data_tools/js/data_fusion.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="mx-auto py-8">
+    <!-- Breadcrumbs -->
+    {% if breadcrumbs %}
+    <nav class="mb-8" aria-label="Breadcrumb">
+        <ol class="flex items-center space-x-4">
+            {% for breadcrumb in breadcrumbs %}
+                {% if not forloop.last %}
+                    <li>
+                        <div class="flex items-center">
+                            <a href="{% if breadcrumb.url %}{% url breadcrumb.url breadcrumb.args|first %}{% else %}#{% endif %}" 
+                               class="text-sm font-medium text-gray-500 hover:text-gray-700">
+                                {{ breadcrumb.name }}
+                            </a>
+                            <svg class="flex-shrink-0 h-5 w-5 text-gray-300 ml-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                    </li>
+                {% else %}
+                    <li>
+                        <span class="text-sm font-medium text-gray-900">{{ breadcrumb.name }}</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ol>
+    </nav>
+    {% endif %}
+
+    <!-- Header -->
+    <div class="bg-background-primary dark:bg-darcula-background-darker shadow rounded-lg mb-8 border border-border-default dark:border-darcula-border-light">
+        <div class="px-6 py-4 border-b border-border-default dark:border-darcula-border-light">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 011-1h1a2 2 0 100-4H7a1 1 0 01-1-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <h1 class="text-2xl font-bold text-foreground-default">{{ title }}</h1>
+                    <p class="mt-1 text-sm text-foreground-muted">
+                        Selecciona dos fuentes de datos de tu workspace para combinarlas en un único dataset.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Info -->
+        <div class="px-6 py-4 bg-background-secondary dark:bg-darcula-background">
+            <div class="flex items-center text-sm text-foreground-muted">
+                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                </svg>
+                <span class="font-medium">Workspace:</span>
+                <span class="ml-1">{{ project.name }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="mb-8">
+            {% for message in messages %}
+                <div class="rounded-md p-4 mb-4
+                            {% if message.tags == 'success' %}bg-green-50 border border-green-200
+                            {% elif message.tags == 'error' %}bg-red-50 border border-red-200
+                            {% elif message.tags == 'warning' %}bg-yellow-50 border border-yellow-200
+                            {% else %}bg-blue-50 border border-blue-200{% endif %}">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            {% if message.tags == 'success' %}
+                                <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            {% elif message.tags == 'error' %}
+                                <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                                </svg>
+                            {% else %}
+                                <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                </svg>
+                            {% endif %}
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm
+                                {% if message.tags == 'success' %}text-green-800
+                                {% elif message.tags == 'error' %}text-red-800
+                                {% elif message.tags == 'warning' %}text-yellow-800
+                                {% else %}text-blue-800{% endif %}">
+                                {{ message }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Form -->
+    <div class="bg-background-primary dark:bg-darcula-background-darker shadow rounded-lg border border-border-default dark:border-darcula-border-light">
+        <form method="post" class="p-6">
+            {% csrf_token %}
+            
+            <div class="space-y-6">
+                <!-- Instructions -->
+                <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-blue-800">
+                                Instrucciones
+                            </h3>
+                            <div class="mt-2 text-sm text-blue-700">
+                                <p>Selecciona dos fuentes de datos diferentes de tu workspace que quieras combinar. En el siguiente paso podrás configurar cómo se realiza la fusión.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Fields -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- DataSource A -->
+                    <div>
+                        <label for="{{ form.datasource_a.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.datasource_a.label }}
+                        </label>
+                        {{ form.datasource_a }}
+                        {% if form.datasource_a.errors %}
+                            <div class="mt-2 text-sm text-red-600">
+                                {% for error in form.datasource_a.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if form.datasource_a.help_text %}
+                            <p class="mt-2 text-sm text-gray-500">{{ form.datasource_a.help_text }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- DataSource B -->
+                    <div>
+                        <label for="{{ form.datasource_b.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.datasource_b.label }}
+                        </label>
+                        {{ form.datasource_b }}
+                        {% if form.datasource_b.errors %}
+                            <div class="mt-2 text-sm text-red-600">
+                                {% for error in form.datasource_b.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if form.datasource_b.help_text %}
+                            <p class="mt-2 text-sm text-gray-500">{{ form.datasource_b.help_text }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Non-field errors -->
+                {% if form.non_field_errors %}
+                    <div class="rounded-md bg-red-50 p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-red-800">Error en el formulario</h3>
+                                <div class="mt-2 text-sm text-red-700">
+                                    {% for error in form.non_field_errors %}
+                                        <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Actions -->
+            <div class="mt-8 flex items-center justify-between">
+                <a href="{% url 'projects:project_detail' project.pk %}" 
+                   class="inline-flex items-center px-4 py-2 border border-border-default dark:border-darcula-border-light text-sm font-medium rounded-md text-foreground-muted dark:text-darcula-foreground-muted bg-background-primary dark:bg-darcula-background hover:bg-background-secondary dark:hover:bg-darcula-background-lighter focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-darcula-accent transition-colors">
+                    <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Cancelar
+                </a>
+                
+                <button type="submit" 
+                        class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Cargar Columnas
+                    <svg class="h-4 w-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+            </div>
+        </form>
+
+        <!-- Error Container (Initially Hidden) -->
+        <div id="error-container" class="hidden mt-6 px-6"></div>
+
+        <!-- Loading Indicator (Initially Hidden) -->
+        <div id="loading-indicator" class="hidden mt-6 px-6 py-4 text-center">
+            <div class="flex items-center justify-center">
+                <svg class="animate-spin h-6 w-6 text-blue-600 mr-3" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="text-blue-600 font-medium">Cargando columnas...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Column Selection Section (Initially Hidden) -->
+    <div id="column-selection-section" class="hidden mt-8 bg-background-primary dark:bg-darcula-background-darker shadow rounded-lg border border-border-default dark:border-darcula-border-light">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h2 class="text-lg font-medium text-gray-900">Configurar Fusión de Datos</h2>
+                    <p class="mt-1 text-sm text-gray-600">
+                        Selecciona las columnas que deseas incluir y configura las claves de fusión.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <form id="fusion-config-form" method="post" class="p-6">
+            {% csrf_token %}
+            
+            <div class="space-y-8">
+                <!-- Merge Strategy -->
+                <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-blue-800">Configuración de Fusión</h3>
+                            <div class="mt-2">
+                                <label for="merge-strategy" class="block text-sm font-medium text-blue-700 mb-2">
+                                    Tipo de Fusión:
+                                </label>
+                                <select id="merge-strategy" name="merge_strategy" 
+                                        class="block w-full px-3 py-2 border border-darcula-border-light rounded-md shadow-sm focus:outline-none focus:ring-darcula-accent focus:border-darcula-accent sm:text-sm bg-background-primary dark:bg-darcula-background text-foreground-default dark:text-darcula-foreground">
+                                    <option value="inner">Inner Join - Solo filas que coinciden en ambas fuentes</option>
+                                    <option value="left">Left Join - Todas las filas de la primera fuente</option>
+                                    <option value="right">Right Join - Todas las filas de la segunda fuente</option>
+                                    <option value="outer">Outer Join - Todas las filas de ambas fuentes</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Merge Keys Configuration -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Clave de Fusión</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label for="merge-key-a" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Columna clave en DataSource A:
+                                </label>
+                                <select id="merge-key-a" name="merge_key_a" 
+                                        class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    <option value="">Seleccionar columna clave...</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="merge-key-b" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Columna clave en DataSource B:
+                                </label>
+                                <select id="merge-key-b" name="merge_key_b" 
+                                        class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    <option value="">Seleccionar columna clave...</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Nombre del Dataset Fusionado</h3>
+                        <div>
+                            <label for="fusion-name" class="block text-sm font-medium text-gray-700 mb-2">
+                                Nombre:
+                            </label>
+                            <input type="text" id="fusion-name" name="fusion_name" 
+                                   placeholder="ej: Datos_Hidrologicos_Fusionados"
+                                   class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        </div>
+                        <div class="mt-4">
+                            <label for="fusion-description" class="block text-sm font-medium text-gray-700 mb-2">
+                                Descripción (opcional):
+                            </label>
+                            <textarea id="fusion-description" name="fusion_description" rows="3"
+                                      placeholder="Descripción del dataset fusionado..."
+                                      class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column Selection -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- DataSource A Columns -->
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h3 id="datasource-a-title" class="text-lg font-medium text-gray-900 mb-4">
+                            Columnas de: DataSource A
+                        </h3>
+                        <div>
+                            <label for="columns-datasource-a" class="block text-sm font-medium text-gray-700 mb-2">
+                                Seleccionar columnas a incluir:
+                            </label>
+                            <select id="columns-datasource-a" name="columns_a" multiple 
+                                    class="block w-full h-48 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            </select>
+                            <p class="mt-2 text-xs text-gray-500">
+                                Mantén presionado Ctrl (Cmd en Mac) para seleccionar múltiples columnas.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- DataSource B Columns -->
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h3 id="datasource-b-title" class="text-lg font-medium text-gray-900 mb-4">
+                            Columnas de: DataSource B
+                        </h3>
+                        <div>
+                            <label for="columns-datasource-b" class="block text-sm font-medium text-gray-700 mb-2">
+                                Seleccionar columnas a incluir:
+                            </label>
+                            <select id="columns-datasource-b" name="columns_b" multiple 
+                                    class="block w-full h-48 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            </select>
+                            <p class="mt-2 text-xs text-gray-500">
+                                Mantén presionado Ctrl (Cmd en Mac) para seleccionar múltiples columnas.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Final Actions -->
+            <div class="mt-8 flex items-center justify-between">
+                <button type="button" id="back-to-selection" 
+                        class="inline-flex items-center px-4 py-2 border border-border-default dark:border-darcula-border-light text-sm font-medium rounded-md text-foreground-muted dark:text-darcula-foreground-muted bg-background-primary dark:bg-darcula-background hover:bg-background-secondary dark:hover:bg-darcula-background-lighter focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-darcula-accent transition-colors">
+                    <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Volver a Selección
+                </button>
+                
+                <button type="submit" 
+                        class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 011-1h1a2 2 0 100-4H7a1 1 0 01-1-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"></path>
+                    </svg>
+                    Crear Fusión
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Available DataSources Info -->
+    {% if project.datasources.all %}
+    <div class="mt-8 bg-background-primary dark:bg-darcula-background-darker shadow rounded-lg border border-border-default dark:border-darcula-border-light">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Fuentes de Datos Disponibles</h3>
+            <p class="mt-1 text-sm text-gray-600">Fuentes de datos en este workspace que están listas para fusionar</p>
+        </div>
+        <div class="px-6 py-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for datasource in project.datasources.all %}
+                    {% if datasource.status == 'READY' %}
+                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <svg class="h-6 w-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-3 min-w-0 flex-1">
+                                <p class="text-sm font-medium text-gray-900 truncate">{{ datasource.name }}</p>
+                                <p class="text-sm text-gray-500">{{ datasource.data_type|title }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="mt-8 bg-yellow-50 border border-yellow-200 rounded-md p-4">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                </svg>
+            </div>
+            <div class="ml-3">
+                <h3 class="text-sm font-medium text-yellow-800">No hay fuentes de datos disponibles</h3>
+                <div class="mt-2 text-sm text-yellow-700">
+                    <p>Necesitas tener al menos dos fuentes de datos cargadas en tu workspace para poder realizar una fusión.</p>
+                </div>
+                <div class="mt-3">
+                    <button type="button" 
+                            @click="openUploadPanel(false, 'data_tools')"
+                            class="text-sm font-medium text-yellow-800 underline hover:text-yellow-900 bg-transparent border-none cursor-pointer">
+                        Subir fuente de datos para análisis
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

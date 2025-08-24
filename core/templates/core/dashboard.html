@@ -1,5 +1,5 @@
 {% extends "core/base_main.html" %}
-{% load static %}
+{% load static tabler_icons %}
 
 {% block page_title %}Dashboard - HydroML{% endblock %}
 
@@ -11,6 +11,10 @@
     .stat-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    /* Ensure Grove card content doesn't have double padding */
+    .stat-card .grove-card-content {
+        padding: var(--space-6);
     }
     .pulse-animation {
         animation: pulse 2s infinite;
@@ -25,16 +29,16 @@
 {% block page_heading %}{% endblock %}
 
 {% block content %}
-<div class="flex-1 bg-background-primary">
+<div class="flex-1 bg-white dark:bg-gray-900">
     <!-- Header Section - Minimal Design -->
-    <div class="border-b border-border-default dark:border-darcula-border bg-background-primary dark:bg-darcula-background">
+    <div class="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
         <div class="max-w-7xl mx-auto px-8 py-6">
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-semibold text-foreground-default dark:text-darcula-foreground">
+                    <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
                         Dashboard
                     </h1>
-                    <p class="mt-1 text-sm text-foreground-muted dark:text-darcula-foreground-muted">
+                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
                         Resumen de tu actividad de machine learning
                     </p>
                 </div>
@@ -46,54 +50,48 @@
     <div class="max-w-7xl mx-auto px-8 py-8">
         <!-- Statistics Cards -->
         <div class="mb-8">
-            <h2 class="text-xl font-semibold text-foreground-default dark:text-darcula-foreground mb-6">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
                 Resumen de tu Workspace
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- DataSources Card -->
-                <div class="stat-card bg-white dark:bg-darcula-background-lighter rounded-xl border border-border-default p-6">
-                    <div class="flex items-center justify-between">
+                <div class="grove-card stat-card">
+                    <div class="grove-card-content flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-foreground-muted dark:text-onedark-accent1">Fuentes de Datos</p>
-                            <p class="text-3xl font-bold text-foreground-default dark:text-darcula-foreground mt-1">{{ total_datasources }}</p>
-                            <p class="text-xs text-foreground-muted dark:text-onedark-accent1 mt-1">Datasets disponibles</p>
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Fuentes de Datos</p>
+                            <p class="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">{{ total_datasources }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">Datasets disponibles</p>
                         </div>
-                        <div class="bg-blue-100 dark:bg-darcula-accent/20 rounded-full p-3">
-                            <svg class="w-6 h-6 text-blue-600 dark:text-darcula-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
-                            </svg>
+                        <div class="bg-blue-100 dark:bg-blue-900/20 rounded-full p-3">
+                            {% tabler_icon_outline 'database' 'w-6 h-6 text-blue-600 dark:text-blue-400' %}
                         </div>
                     </div>
                 </div>
 
                 <!-- Experiments Card -->
-                <div class="stat-card bg-white dark:bg-darcula-background-lighter rounded-xl border border-border-default p-6">
-                    <div class="flex items-center justify-between">
+                <div class="grove-card stat-card">
+                    <div class="grove-card-content flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-foreground-muted dark:text-onedark-accent1">Experimentos</p>
-                            <p class="text-3xl font-bold text-foreground-default dark:text-darcula-foreground mt-1">{{ total_experiments }}</p>
-                            <p class="text-xs text-foreground-muted dark:text-onedark-accent1 mt-1">Modelos entrenados</p>
+                            <p class="text-sm font-medium grove-text-secondary">Experimentos</p>
+                            <p class="text-3xl font-bold grove-text-primary mt-1">{{ total_experiments }}</p>
+                            <p class="text-xs grove-text-tertiary mt-1">Modelos entrenados</p>
                         </div>
                         <div class="bg-green-100 dark:bg-darcula-string/20 rounded-full p-3">
-                            <svg class="w-6 h-6 text-green-600 dark:text-darcula-string" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-                            </svg>
+                            {% tabler_icon_outline 'flask' 'w-6 h-6 text-green-600 dark:text-darcula-string' %}
                         </div>
                     </div>
                 </div>
 
                 <!-- Experiment Suites Card -->
-                <div class="stat-card bg-white dark:bg-darcula-background-lighter rounded-xl border border-border-default p-6">
-                    <div class="flex items-center justify-between">
+                <div class="grove-card stat-card">
+                    <div class="grove-card-content flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-foreground-muted dark:text-onedark-accent1">Suites de Experimentos</p>
-                            <p class="text-3xl font-bold text-foreground-default dark:text-darcula-foreground mt-1">{{ total_suites }}</p>
-                            <p class="text-xs text-foreground-muted dark:text-onedark-accent1 mt-1">Estudios automatizados</p>
+                            <p class="text-sm font-medium grove-text-secondary">Suites de Experimentos</p>
+                            <p class="text-3xl font-bold grove-text-primary mt-1">{{ total_suites }}</p>
+                            <p class="text-xs grove-text-tertiary mt-1">Estudios automatizados</p>
                         </div>
                         <div class="bg-purple-100 dark:bg-darcula-keyword/20 rounded-full p-3">
-                            <svg class="w-6 h-6 text-purple-600 dark:text-darcula-keyword" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                            </svg>
+                            {% tabler_icon_outline 'layout-grid' 'w-6 h-6 text-purple-600 dark:text-darcula-keyword' %}
                         </div>
                     </div>
                 </div>
@@ -114,7 +112,7 @@
                 </div>
             </div>
             
-            <div class="p-6" x-data="{ viewMode: localStorage.getItem('dashboardWorkspaceViewMode') || 'grid' }" x-init="$watch('viewMode', value => localStorage.setItem('dashboardWorkspaceViewMode', value))">
+            <div class="p-6" x-init="viewMode = localStorage.getItem('dashboardWorkspaceViewMode') || 'grid'; $watch('viewMode', value => localStorage.setItem('dashboardWorkspaceViewMode', value))">
                 {% if user_projects %}
                 <!-- View Toggle -->
                 <div class="mb-6 flex justify-end">
@@ -122,17 +120,13 @@
                         <button @click="viewMode = 'grid'" 
                                 :class="viewMode === 'grid' ? 'bg-background-primary dark:bg-darcula-background text-foreground-default dark:text-darcula-foreground shadow-sm' : 'text-foreground-muted dark:text-darcula-foreground-muted hover:text-foreground-default dark:hover:text-darcula-foreground'"
                                 class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md transition-colors">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-                            </svg>
+                            {% tabler_icon_outline 'grid-dots' 'w-3 h-3 mr-1' %}
                             Grid
                         </button>
                         <button @click="viewMode = 'list'" 
                                 :class="viewMode === 'list' ? 'bg-background-primary dark:bg-darcula-background text-foreground-default dark:text-darcula-foreground shadow-sm' : 'text-foreground-muted dark:text-darcula-foreground-muted hover:text-foreground-default dark:hover:text-darcula-foreground'"
                                 class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md transition-colors">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
-                            </svg>
+                            {% tabler_icon_outline 'list' 'w-3 h-3 mr-1' %}
                             List
                         </button>
                     </div>
@@ -163,15 +157,11 @@
                             <div class="px-4 pb-3">
                                 <div class="flex items-center space-x-3 text-xs text-foreground-muted dark:text-onedark-accent1">
                                     <div class="flex items-center">
-                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                                        </svg>
+                                        {% tabler_icon_outline 'chart-bar' 'w-3 h-3 mr-1' %}
                                         <span>{{ project.datasources.count }}</span>
                                     </div>
                                     <div class="flex items-center">
-                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-                                        </svg>
+                                        {% tabler_icon_outline 'flask' 'w-3 h-3 mr-1' %}
                                         <span>{{ project.experiments.count }}</span>
                                     </div>
                                 </div>
@@ -182,9 +172,7 @@
                                 <a href="{% url 'projects:project_detail' pk=project.pk %}" 
                                    class="inline-flex items-center justify-center w-full px-3 py-1.5 text-xs font-medium text-foreground-default bg-background-primary border border-border-default rounded-md hover:bg-background-tertiary hover:border-border-muted transition-colors">
                                     Ver Workspace
-                                    <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                    </svg>
+                                    {% tabler_icon_outline 'chevron-right' 'w-3 h-3 ml-1' %}
                                 </a>
                             </div>
                         </div>
@@ -248,10 +236,7 @@
                                 <td class="px-3 py-4">
                                     <a href="{% url 'projects:project_detail' pk=project.pk %}"
                                        class="inline-flex items-center px-2 py-1 border border-border-default rounded text-xs font-medium text-foreground-default dark:text-darcula-foreground bg-background-primary dark:bg-darcula-background hover:bg-background-tertiary dark:hover:bg-darcula-background-lighter transition-colors">
-                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                        </svg>
+                                        {% tabler_icon_outline 'eye' 'w-3 h-3 mr-1' %}
                                         Ver
                                     </a>
                                 </td>
@@ -262,9 +247,7 @@
                 </div>
                 {% else %}
                 <div class="text-center py-12">
-                    <svg class="w-12 h-12 text-foreground-muted dark:text-darcula-foreground-muted mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                    </svg>
+                    {% tabler_icon_outline 'layout-grid' 'w-12 h-12 text-foreground-muted dark:text-darcula-foreground-muted mx-auto mb-4' %}
                     <h3 class="text-lg font-medium text-foreground-default dark:text-darcula-foreground mb-2">
                         No hay workspaces aún
                     </h3>
@@ -274,17 +257,13 @@
                     <div class="flex flex-col sm:flex-row gap-3 justify-center">
                         <button @click="openNewProjectPanel()"
                            class="inline-flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                            </svg>
+                            {% tabler_icon_outline 'plus' 'w-4 h-4 mr-2' %}
                             Crear Primer Workspace
                         </button>
                         <button type="button"
                                 @click="openUploadPanel()"
                                 class="inline-flex items-center px-4 py-2 border border-border-default text-foreground-default dark:text-darcula-foreground hover:bg-background-tertiary dark:hover:bg-darcula-background-lighter font-medium rounded-lg transition-colors">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                            </svg>
+                            {% tabler_icon_outline 'upload' 'w-4 h-4 mr-2' %}
                             Subir Datos
                         </button>
                     </div>
@@ -303,9 +282,7 @@
                 <button @click="openNewProjectPanel()"
                    class="flex items-center p-4 bg-white dark:bg-darcula-background-lighter rounded-lg border border-border-default hover:bg-background-tertiary dark:hover:bg-darcula-background transition-colors group w-full text-left">
                     <div class="bg-brand-100 dark:bg-darcula-accent/20 rounded-lg p-2 mr-3">
-                        <svg class="w-5 h-5 text-brand-600 dark:text-darcula-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                        </svg>
+                        {% tabler_icon_outline 'plus' 'w-5 h-5 text-brand-600 dark:text-darcula-accent' %}
                     </div>
                     <div>
                         <div class="text-sm font-medium text-foreground-default dark:text-darcula-foreground group-hover:text-brand-600 dark:group-hover:text-darcula-accent">
@@ -321,9 +298,7 @@
                         @click="openUploadPanel()"
                         class="flex items-center p-4 bg-white dark:bg-darcula-background-lighter rounded-lg border border-border-default hover:bg-background-tertiary dark:hover:bg-darcula-background transition-colors group">
                     <div class="bg-blue-100 dark:bg-darcula-accent/20 rounded-lg p-2 mr-3">
-                        <svg class="w-5 h-5 text-blue-600 dark:text-darcula-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                        </svg>
+                        {% tabler_icon_outline 'upload' 'w-5 h-5 text-blue-600 dark:text-darcula-accent' %}
                     </div>
                     <div>
                         <div class="text-sm font-medium text-foreground-default dark:text-darcula-foreground group-hover:text-blue-600 dark:group-hover:text-darcula-accent">
@@ -338,9 +313,7 @@
                 <a href="{% url 'experiments:public_experiment_list' %}"
                    class="flex items-center p-4 bg-white dark:bg-darcula-background-lighter rounded-lg border border-border-default hover:bg-background-tertiary dark:hover:bg-darcula-background transition-colors group">
                     <div class="bg-green-100 dark:bg-darcula-string/20 rounded-lg p-2 mr-3">
-                        <svg class="w-5 h-5 text-green-600 dark:text-darcula-string" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-                        </svg>
+                        {% tabler_icon_outline 'flask' 'w-5 h-5 text-green-600 dark:text-darcula-string' %}
                     </div>
                     <div>
                         <div class="text-sm font-medium text-foreground-default dark:text-darcula-foreground group-hover:text-green-600 dark:group-hover:text-darcula-string">
@@ -355,9 +328,7 @@
                 <a href="{% url 'core:help' %}"
                    class="flex items-center p-4 bg-white dark:bg-darcula-background-lighter rounded-lg border border-border-default hover:bg-background-tertiary dark:hover:bg-darcula-background transition-colors group">
                     <div class="bg-purple-100 dark:bg-darcula-keyword/20 rounded-lg p-2 mr-3">
-                        <svg class="w-5 h-5 text-purple-600 dark:text-darcula-keyword" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
+                        {% tabler_icon_outline 'help-circle' 'w-5 h-5 text-purple-600 dark:text-darcula-keyword' %}
                     </div>
                     <div>
                         <div class="text-sm font-medium text-foreground-default dark:text-darcula-foreground group-hover:text-purple-600 dark:group-hover:text-darcula-keyword">
@@ -395,9 +366,7 @@
                     <div class="flex space-x-2 mt-auto">
                         <a href="https://docs.python.org" target="_blank" 
                            class="flex items-center px-2 py-1 text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                            </svg>
+                            {% tabler_icon_outline 'book' 'w-3 h-3 mr-1' %}
                             Docs
                         </a>
                         <a href="https://github.com/python/cpython" target="_blank" 
@@ -422,9 +391,7 @@
                     <div class="flex space-x-2 mt-auto">
                         <a href="https://docs.djangoproject.com" target="_blank" 
                            class="flex items-center px-2 py-1 text-xs bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                            </svg>
+                            {% tabler_icon_outline 'book' 'w-3 h-3 mr-1' %}
                             Docs
                         </a>
                         <a href="https://github.com/django/django" target="_blank" 
@@ -449,9 +416,7 @@
                     <div class="flex space-x-2 mt-auto">
                         <a href="https://pandas.pydata.org/docs/" target="_blank" 
                            class="flex items-center px-2 py-1 text-xs bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                            </svg>
+                            {% tabler_icon_outline 'book' 'w-3 h-3 mr-1' %}
                             Docs
                         </a>
                         <a href="https://github.com/pandas-dev/pandas" target="_blank" 
@@ -476,9 +441,7 @@
                     <div class="flex space-x-2 mt-auto">
                         <a href="https://scikit-learn.org/stable/" target="_blank" 
                            class="flex items-center px-2 py-1 text-xs bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded hover:bg-orange-100 dark:hover:bg-orange-900/50 transition-colors">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                            </svg>
+                            {% tabler_icon_outline 'book' 'w-3 h-3 mr-1' %}
                             Docs
                         </a>
                         <a href="https://github.com/scikit-learn/scikit-learn" target="_blank" 
@@ -503,9 +466,7 @@
                     <div class="flex space-x-2 mt-auto">
                         <a href="https://docs.celeryproject.org" target="_blank" 
                            class="flex items-center px-2 py-1 text-xs bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                            </svg>
+                            {% tabler_icon_outline 'book' 'w-3 h-3 mr-1' %}
                             Docs
                         </a>
                         <a href="https://github.com/celery/celery" target="_blank" 
@@ -530,9 +491,7 @@
                     <div class="flex space-x-2 mt-auto">
                         <a href="https://docs.docker.com" target="_blank" 
                            class="flex items-center px-2 py-1 text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                            </svg>
+                            {% tabler_icon_outline 'book' 'w-3 h-3 mr-1' %}
                             Docs
                         </a>
                         <a href="https://github.com/docker/docker-ce" target="_blank" 
@@ -557,16 +516,12 @@
                     <div class="flex space-x-2 mt-auto">
                         <a href="https://plotly.com/python/" target="_blank" 
                            class="flex items-center px-2 py-1 text-xs bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                            </svg>
+                            {% tabler_icon_outline 'book' 'w-3 h-3 mr-1' %}
                             Docs
                         </a>
                         <a href="https://github.com/plotly/plotly.py" target="_blank" 
                            class="flex items-center px-2 py-1 text-xs bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                            </svg>
+                            {% tabler_icon_filled 'brand-github' 'w-3 h-3 mr-1' %}
                             GitHub
                         </a>
                     </div>
@@ -584,9 +539,7 @@
                     <div class="flex space-x-2 mt-auto">
                         <a href="https://mlflow.org/docs/latest/index.html" target="_blank" 
                            class="flex items-center px-2 py-1 text-xs bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 rounded hover:bg-cyan-100 dark:hover:bg-cyan-900/50 transition-colors">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                            </svg>
+                            {% tabler_icon_outline 'book' 'w-3 h-3 mr-1' %}
                             Docs
                         </a>
                         <a href="https://github.com/mlflow/mlflow" target="_blank" 
@@ -611,9 +564,7 @@
                     <div class="flex space-x-2 mt-auto">
                         <a href="https://tailwindcss.com/docs" target="_blank" 
                            class="flex items-center px-2 py-1 text-xs bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 rounded hover:bg-teal-100 dark:hover:bg-teal-900/50 transition-colors">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                            </svg>
+                            {% tabler_icon_outline 'book' 'w-3 h-3 mr-1' %}
                             Docs
                         </a>
                         <a href="https://github.com/tailwindlabs/tailwindcss" target="_blank" 
@@ -668,18 +619,14 @@
                             <div class="mb-4 space-y-2">
                                 <!-- Model Type -->
                                 <div class="flex items-center text-sm text-foreground-secondary dark:text-darcula-foreground-muted">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                                    </svg>
+                                    {% tabler_icon_outline 'device-laptop' 'w-4 h-4 mr-2' %}
                                     {{ experiment.model_name }}
                                 </div>
                                 
                                 <!-- Performance Metric -->
                                 {% if experiment.results %}
                                     <div class="flex items-center text-sm text-foreground-secondary dark:text-darcula-foreground-muted">
-                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                                        </svg>
+                                        {% tabler_icon_outline 'chart-bar' 'w-4 h-4 mr-2' %}
                                         {% if experiment.results.r2_score %}
                                             R² Score: {{ experiment.results.r2_score|floatformat:3 }}
                                         {% elif experiment.results.accuracy %}
@@ -696,9 +643,7 @@
                                 
                                 <!-- Publication Date -->
                                 <div class="flex items-center text-sm text-foreground-muted dark:text-darcula-foreground-muted">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
+                                    {% tabler_icon_outline 'clock' 'w-4 h-4 mr-2' %}
                                     {% if experiment.published_at %}
                                         {{ experiment.published_at|date:"d M, Y" }}
                                     {% else %}
@@ -722,10 +667,7 @@
                             <div class="flex justify-center">
                                 <a href="{% url 'experiments:ml_experiment_detail' pk=experiment.pk %}" 
                                    class="inline-flex items-center px-3 py-2 text-sm font-semibold text-foreground-default bg-background-tertiary border border-border-default rounded-lg hover:bg-background-secondary transition-colors">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                    </svg>
+                                    {% tabler_icon_outline 'eye' 'w-4 h-4 mr-2' %}
                                     Ver Detalles
                                 </a>
                             </div>
@@ -735,9 +677,7 @@
             {% else %}
                 <!-- Empty State -->
                 <div class="text-center py-12 bg-white dark:bg-darcula-background-lighter rounded-xl border-2 border-dashed border-border-muted dark:border-darcula-border">
-                    <svg class="mx-auto h-12 w-12 text-foreground-muted dark:text-darcula-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                    </svg>
+                    {% tabler_icon_outline 'device-laptop' 'mx-auto h-12 w-12 text-foreground-muted dark:text-darcula-foreground-muted' %}
                     <h4 class="mt-2 text-sm font-medium text-foreground-default dark:text-darcula-foreground">No hay experimentos públicos</h4>
                     <p class="mt-1 text-sm text-foreground-muted dark:text-darcula-foreground-muted">
                         Aún no hay experimentos compartidos por la comunidad.
@@ -745,9 +685,7 @@
                     <div class="mt-6">
                         <a href="{% url 'experiments:public_experiment_list' %}" 
                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gray-800 dark:bg-gray-700 border border-gray-800 dark:border-gray-700 rounded-lg hover:bg-gray-900 dark:hover:bg-gray-600 transition-colors">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
+                            {% tabler_icon_outline 'info-circle' 'w-4 h-4 mr-2' %}
                             Explorar Galería
                         </a>
                     </div>

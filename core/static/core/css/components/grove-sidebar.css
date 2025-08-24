@@ -1,0 +1,240 @@
+/**
+ * Grove Sidebar Component
+ * Base sidebar component for Grove Design System
+ * Provides layout structure for fixed and overlay sidebars
+ */
+
+/* ===== GROVE SIDEBAR BASE ===== */
+
+.grove-sidebar {
+    position: sticky;
+    top: var(--space-4); /* Stick to top with margin */
+    width: calc(16rem - var(--space-4)); /* Adjust width for margin */
+    height: calc(100vh - 128px - var(--space-8)); /* Full viewport height minus headbar and margins */
+    background-color: var(--grove-white);
+    border: 1px solid var(--grove-gray-200);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    transition: all var(--duration-medium) var(--ease-out);
+    overflow: hidden; /* Ensure content respects rounded corners */
+    margin-left: var(--space-4); /* Left margin */
+    margin-top: var(--space-4); /* Top margin */
+    margin-bottom: var(--space-4); /* Bottom margin */
+}
+
+.dark .grove-sidebar {
+    background-color: var(--grove-gray-800);
+    border-color: var(--grove-gray-700);
+}
+
+/* Sidebar variants */
+.grove-sidebar--left {
+    left: var(--space-4); /* Maintain left margin */
+}
+
+.grove-sidebar--right {
+    right: var(--space-4); /* Right margin for right sidebar */
+    left: auto;
+}
+
+/* Dark mode border color handled by main .dark .grove-sidebar rule */
+
+.grove-sidebar--overlay {
+    z-index: 50;
+}
+
+/* Collapsed state */
+.grove-sidebar--collapsed {
+    width: calc(4rem - var(--space-4)); /* Adjust collapsed width for margin */
+}
+
+/* ===== GROVE SIDEBAR LAYOUT WRAPPER ===== */
+
+.grove-sidebar-layout {
+    display: flex;
+    min-height: calc(100vh - 128px - 4rem); /* Full height minus headbar and base padding */
+    background-color: var(--grove-gray-50);
+    width: calc(100% + 4rem); /* Extend to counteract base template padding */
+    margin: -2rem -2rem 0 -2rem; /* Negative margin to counteract base container padding */
+    position: relative;
+}
+
+.dark .grove-sidebar-layout {
+    background-color: var(--grove-gray-900);
+}
+
+/* Main content adjustment for left sidebar */
+.grove-sidebar-layout .grove-main-content {
+    flex: 1;
+    min-height: calc(100vh - 128px); /* Match layout height */
+    background-color: var(--grove-white);
+    overflow-y: auto; /* Allow independent scrolling */
+    transition: margin-left var(--duration-medium) var(--ease-out);
+}
+
+.dark .grove-sidebar-layout .grove-main-content {
+    background-color: var(--grove-gray-900);
+}
+
+/* Adjust main content when sidebar collapsed */
+.grove-sidebar--collapsed + .grove-main-content {
+    margin-left: 4rem;
+}
+
+/* Main content adjustment for right sidebar */
+.grove-sidebar--right ~ .grove-main-content {
+    margin-left: 0;
+    margin-right: 16rem;
+}
+
+.grove-sidebar--right.grove-sidebar--collapsed ~ .grove-main-content {
+    margin-right: 4rem;
+}
+
+/* ===== GROVE SIDEBAR HEADER ===== */
+
+.grove-sidebar-header {
+    background-color: var(--grove-gray-50);
+    border-bottom: 1px solid var(--grove-gray-200);
+    padding: var(--space-4);
+    flex-shrink: 0;
+}
+
+.dark .grove-sidebar-header {
+    background-color: var(--grove-gray-850);
+    border-bottom-color: var(--grove-gray-700);
+}
+
+.grove-sidebar-header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.grove-sidebar-title {
+    display: flex;
+    align-items: center;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--grove-gray-900);
+}
+
+.dark .grove-sidebar-title {
+    color: var(--grove-gray-100);
+}
+
+.grove-sidebar-title-icon {
+    width: var(--space-5);
+    height: var(--space-5);
+    margin-right: var(--space-2);
+    flex-shrink: 0;
+}
+
+/* ===== GROVE SIDEBAR BODY ===== */
+
+.grove-sidebar-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-2) 0;
+}
+
+/* ===== GROVE SIDEBAR FOOTER ===== */
+
+.grove-sidebar-footer {
+    border-top: 1px solid var(--grove-gray-200);
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--grove-gray-50);
+    flex-shrink: 0;
+}
+
+.dark .grove-sidebar-footer {
+    border-top-color: var(--grove-gray-700);
+    background-color: var(--grove-gray-800);
+}
+
+/* ===== GROVE SIDEBAR BUTTONS ===== */
+
+.grove-sidebar-btn {
+    padding: var(--space-1);
+    border-radius: var(--radius-md);
+    background-color: transparent;
+    color: var(--grove-gray-600);
+    border: none;
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.dark .grove-sidebar-btn {
+    color: var(--grove-gray-400);
+}
+
+.grove-sidebar-btn:hover {
+    background-color: var(--grove-gray-100);
+    color: var(--grove-gray-700);
+}
+
+.dark .grove-sidebar-btn:hover {
+    background-color: var(--grove-gray-700);
+    color: var(--grove-gray-200);
+}
+
+.grove-sidebar-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ===== RESPONSIVE BEHAVIOR ===== */
+
+/* Mobile responsive - hide sidebar by default */
+@media (max-width: 768px) {
+    .grove-sidebar {
+        top: calc(128px + var(--space-2)); /* Smaller margin on mobile */
+        left: var(--space-2);
+        right: var(--space-2);
+        bottom: var(--space-2);
+        width: calc(100% - var(--space-4)); /* Full width minus margins */
+        transform: translateX(calc(-100% - var(--space-4))); /* Account for margins in transform */
+        transition: transform var(--duration-medium) var(--ease-out);
+    }
+    
+    .grove-sidebar--right {
+        transform: translateX(calc(100% + var(--space-4)));
+    }
+    
+    .grove-sidebar--mobile-open {
+        transform: translateX(0);
+    }
+    
+    .grove-sidebar-layout .grove-main-content {
+        margin-left: 0;
+        margin-right: 0;
+    }
+    
+    .grove-sidebar--collapsed + .grove-main-content,
+    .grove-sidebar--right.grove-sidebar--collapsed ~ .grove-main-content {
+        margin-left: 0;
+        margin-right: 0;
+    }
+}
+
+/* ===== COLLAPSED STATE BEHAVIOR ===== */
+
+/* Hide text content when collapsed */
+.grove-sidebar--collapsed .grove-sidebar-title span:not(.grove-sidebar-title-icon),
+.grove-sidebar--collapsed .grove-sidebar-footer .grove-sidebar-footer-text {
+    display: none;
+}
+
+/* Center content when collapsed */
+.grove-sidebar--collapsed .grove-sidebar-header-content {
+    justify-content: center;
+}
+
+.grove-sidebar--collapsed .grove-sidebar-footer {
+    padding: var(--space-2);
+    display: flex;
+    justify-content: center;
+}

@@ -1,0 +1,25 @@
+{% load tabler_icons %}
+{% comment %}
+Grove Icon Component
+
+Usage:
+  {% include 'core/components/grove_icon.html' with icon='check' size='sm' %}
+  {% include 'core/components/grove_icon.html' with icon='plus' %}
+
+Parameters:
+  - icon: Tabler icon name (required)
+  - size: xs|sm|md|lg|xl (default: sm)
+  - class: Additional CSS classes (optional)
+{% endcomment %}
+
+{% if size == 'xs' %}
+  {% tabler_icon_outline icon|default:'help' 'grove-icon grove-icon--xs' %}
+{% elif size == 'md' %}
+  {% tabler_icon_outline icon|default:'help' 'grove-icon grove-icon--md' %}
+{% elif size == 'lg' %}
+  {% tabler_icon_outline icon|default:'help' 'grove-icon grove-icon--lg' %}
+{% elif size == 'xl' %}
+  {% tabler_icon_outline icon|default:'help' 'grove-icon grove-icon--xl' %}
+{% else %}
+  {% tabler_icon_outline icon|default:'help' 'grove-icon grove-icon--sm' %}
+{% endif %}

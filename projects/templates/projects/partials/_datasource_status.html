@@ -1,0 +1,41 @@
+{% comment %}
+  DataSource Status Component
+  
+  Usage:
+    {% include 'projects/partials/_datasource_status.html' with status='READY' %}
+    {% include 'projects/partials/_datasource_status.html' with status='PROCESSING' %}
+  
+  Parameters:
+    - status: DataSource status (READY, PROCESSING, ERROR, etc.)
+    - size: Badge size (xs, sm, md, lg) - default: sm
+{% endcomment %}
+
+{% load static %}
+
+{% with status_upper=status|upper %}
+  {% if status_upper == 'READY' %}
+    <span class="grove-badge grove-badge--success grove-badge--{{ size|default:'sm' }}">
+      <span class="grove-badge__text">Ready</span>
+    </span>
+  {% elif status_upper == 'PROCESSING' %}
+    <span class="grove-badge grove-badge--warning grove-badge--{{ size|default:'sm' }}">
+      <span class="grove-badge__text">Processing</span>
+    </span>
+  {% elif status_upper == 'ERROR' %}
+    <span class="grove-badge grove-badge--error grove-badge--{{ size|default:'sm' }}">
+      <span class="grove-badge__text">Error</span>
+    </span>
+  {% elif status_upper == 'PENDING' %}
+    <span class="grove-badge grove-badge--default grove-badge--{{ size|default:'sm' }}">
+      <span class="grove-badge__text">Pending</span>
+    </span>
+  {% elif status_upper == 'FAILED' %}
+    <span class="grove-badge grove-badge--error grove-badge--{{ size|default:'sm' }}">
+      <span class="grove-badge__text">Failed</span>
+    </span>
+  {% else %}
+    <span class="grove-badge grove-badge--default grove-badge--{{ size|default:'sm' }}">
+      <span class="grove-badge__text">{{ status|capfirst|default:'Unknown' }}</span>
+    </span>
+  {% endif %}
+{% endwith %}

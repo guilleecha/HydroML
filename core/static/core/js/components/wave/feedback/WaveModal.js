@@ -454,10 +454,10 @@ class WaveModal extends BaseComponent {
             content: options.message || 'Are you sure you want to continue?',
             footer: `
                 <div class="flex justify-end gap-3">
-                    <button class="wave-modal-cancel btn btn-secondary">
+                    <button class="wave-modal-cancel grove-btn grove-btn-secondary">
                         ${options.cancelText || 'Cancel'}
                     </button>
-                    <button class="wave-modal-confirm btn btn-primary">
+                    <button class="wave-modal-confirm grove-btn grove-btn-primary">
                         ${options.confirmText || 'Confirm'}
                     </button>
                 </div>
@@ -490,7 +490,7 @@ class WaveModal extends BaseComponent {
             content: options.message || 'Alert message',
             footer: `
                 <div class="flex justify-end">
-                    <button class="wave-modal-ok btn btn-primary">
+                    <button class="wave-modal-ok grove-btn grove-btn-primary">
                         ${options.okText || 'OK'}
                     </button>
                 </div>

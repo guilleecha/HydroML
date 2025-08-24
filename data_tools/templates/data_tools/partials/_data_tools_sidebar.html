@@ -1,0 +1,154 @@
+{% load tabler_icons %}
+<!-- Data Studio Fixed Left Sidebar -->
+<aside class="grove-sidebar grove-sidebar--left" 
+       x-data="{ 
+         activeSection: null,
+         isCollapsed: window.innerWidth < 768,
+         toggleCollapse() { this.isCollapsed = !this.isCollapsed }
+       }"
+       :class="{ 'grove-sidebar--collapsed': isCollapsed }">
+    
+    <!-- Include Sidebar Header -->
+    {% include "data_tools/partials/_data_studio_sidebar_header.html" %}
+    
+    <!-- Sidebar Navigation -->
+    <nav class="grove-sidebar-body">
+        
+        <!-- Data Quality Section -->
+        <div class="grove-nav-section">
+            <button @click="activeSection = activeSection === 'quality' ? null : 'quality'" 
+                    class="grove-nav-section-header">
+                {% tabler_icon_outline 'alert-triangle' 'grove-nav-section-icon grove-nav-section-icon--warning' %}
+                <span x-show="!isCollapsed" x-cloak>Data Quality</span>
+                <span x-show="!isCollapsed" x-cloak :class="{ 'grove-nav-section-chevron--expanded': activeSection === 'quality' }">{% tabler_icon_outline 'chevron-right' 'grove-nav-section-chevron' %}</span>
+            </button>
+            <div x-show="activeSection === 'quality' && !isCollapsed" x-cloak class="grove-nav-section-content">
+                <button class="grove-nav-item" data-action="analyze-missing">
+                    {% tabler_icon_outline 'chart-bar' 'grove-nav-item-icon' %}
+                    <span>Analyze Missing Values</span>
+                </button>
+                <button class="grove-nav-item" data-action="quick-nan-cleanup">
+                    {% tabler_icon_outline 'trash' 'grove-nav-item-icon' %}
+                    <span>Quick NaN Cleanup</span>
+                </button>
+                <button class="grove-nav-item" data-action="impute-missing">
+                    {% tabler_icon_outline 'info-circle' 'grove-nav-item-icon' %}
+                    <span>Impute Missing Data</span>
+                </button>
+                <button class="grove-nav-item" data-action="quality-pipeline">
+                    {% tabler_icon_outline 'bulb' 'grove-nav-item-icon' %}
+                    <span>Quality Pipeline</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Transformations Section -->
+        <div class="grove-nav-section">
+            <button @click="activeSection = activeSection === 'features' ? null : 'features'" 
+                    class="grove-nav-section-header">
+                {% tabler_icon_outline 'filter' 'grove-nav-section-icon grove-nav-section-icon--primary' %}
+                <span x-show="!isCollapsed" x-cloak>Transformations</span>
+                <span x-show="!isCollapsed" x-cloak :class="{ 'grove-nav-section-chevron--expanded': activeSection === 'features' }">{% tabler_icon_outline 'chevron-right' 'grove-nav-section-chevron' %}</span>
+            </button>
+            <div x-show="activeSection === 'features' && !isCollapsed" x-cloak class="grove-nav-section-content">
+                <button class="grove-nav-item" data-action="feature-encoding">
+                    {% tabler_icon_outline 'tag' 'grove-nav-item-icon' %}
+                    <span>Feature Encoding</span>
+                </button>
+                <button class="grove-nav-item" data-action="feature-scaling">
+                    {% tabler_icon_outline 'arrows-sort' 'grove-nav-item-icon' %}
+                    <span>Feature Scaling</span>
+                </button>
+                <button class="grove-nav-item" data-action="outlier-treatment">
+                    {% tabler_icon_outline 'chart-dots' 'grove-nav-item-icon' %}
+                    <span>Outlier Treatment</span>
+                </button>
+                <button class="grove-nav-item" data-action="math-features">
+                    {% tabler_icon_outline 'calculator' 'grove-nav-item-icon' %}
+                    <span>Math Features</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Column Operations Section -->
+        <div class="grove-nav-section">
+            <button @click="activeSection = activeSection === 'columns' ? null : 'columns'" 
+                    class="grove-nav-section-header">
+                {% tabler_icon_outline 'columns' 'grove-nav-section-icon grove-nav-section-icon--success' %}
+                <span x-show="!isCollapsed" x-cloak>Columns</span>
+                <span x-show="!isCollapsed" x-cloak :class="{ 'grove-nav-section-chevron--expanded': activeSection === 'columns' }">{% tabler_icon_outline 'chevron-right' 'grove-nav-section-chevron' %}</span>
+            </button>
+            <div x-show="activeSection === 'columns' && !isCollapsed" x-cloak class="grove-nav-section-content">
+                <button class="grove-nav-item" data-action="rename-columns">
+                    {% tabler_icon_outline 'edit' 'grove-nav-item-icon' %}
+                    <span>Rename Columns</span>
+                </button>
+                <button class="grove-nav-item" data-action="drop-columns">
+                    {% tabler_icon_outline 'trash' 'grove-nav-item-icon' %}
+                    <span>Drop Columns</span>
+                </button>
+                <button class="grove-nav-item" data-action="duplicate-columns">
+                    {% tabler_icon_outline 'copy' 'grove-nav-item-icon' %}
+                    <span>Duplicate Columns</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Export Section -->
+        <div class="grove-nav-section">
+            <button @click="activeSection = activeSection === 'export' ? null : 'export'" 
+                    class="grove-nav-section-header">
+                {% tabler_icon_outline 'download' 'grove-nav-section-icon grove-nav-section-icon--purple' %}
+                <span x-show="!isCollapsed" x-cloak>Export</span>
+                <span x-show="!isCollapsed" x-cloak :class="{ 'grove-nav-section-chevron--expanded': activeSection === 'export' }">{% tabler_icon_outline 'chevron-right' 'grove-nav-section-chevron' %}</span>
+            </button>
+            <div x-show="activeSection === 'export' && !isCollapsed" x-cloak class="grove-nav-section-content">
+                <button class="grove-nav-item" data-action="export-csv">
+                    {% tabler_icon_outline 'file-text' 'grove-nav-item-icon' %}
+                    <span>Export CSV</span>
+                </button>
+                <button class="grove-nav-item" data-action="export-json">
+                    {% tabler_icon_outline 'file-code' 'grove-nav-item-icon' %}
+                    <span>Export JSON</span>
+                </button>
+                <button class="grove-nav-item" data-action="export-excel">
+                    {% tabler_icon_outline 'file-spreadsheet' 'grove-nav-item-icon' %}
+                    <span>Export Excel</span>
+                </button>
+                <button class="grove-nav-item" data-action="export-jobs">
+                    {% tabler_icon_outline 'clipboard-list' 'grove-nav-item-icon' %}
+                    <span>Export Jobs</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Advanced Tools Section -->
+        <div class="grove-nav-section">
+            <button @click="activeSection = activeSection === 'advanced' ? null : 'advanced'" 
+                    class="grove-nav-section-header">
+                {% tabler_icon_outline 'settings' 'grove-nav-section-icon grove-nav-section-icon--orange' %}
+                <span x-show="!isCollapsed" x-cloak>Advanced</span>
+                <span x-show="!isCollapsed" x-cloak :class="{ 'grove-nav-section-chevron--expanded': activeSection === 'advanced' }">{% tabler_icon_outline 'chevron-right' 'grove-nav-section-chevron' %}</span>
+            </button>
+            <div x-show="activeSection === 'advanced' && !isCollapsed" x-cloak class="grove-nav-section-content">
+                <button class="grove-nav-item" data-action="sql-queries">
+                    {% tabler_icon_outline 'terminal' 'grove-nav-item-icon' %}
+                    <span>SQL Queries</span>
+                </button>
+                <button class="grove-nav-item" data-action="bulk-operations">
+                    {% tabler_icon_outline 'list' 'grove-nav-item-icon' %}
+                    <span>Bulk Operations</span>
+                </button>
+                <button class="grove-nav-item" data-action="session-history">
+                    {% tabler_icon_outline 'clock' 'grove-nav-item-icon' %}
+                    <span>Session History</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    
+    <!-- Include Session Status Footer -->
+    {% include "data_tools/partials/_data_studio_session_status.html" %}
+
+</aside>

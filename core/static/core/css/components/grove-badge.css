@@ -1,0 +1,391 @@
+/**
+ * Grove Badge Component
+ * 
+ * Professional badge component with semantic variants
+ * Part of the Grove Design System for HydroML
+ */
+
+/* ===== GROVE BADGE BASE ===== */
+
+.grove-badge {
+  /* Layout */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Typography */
+  font-family: var(--font-family-sans);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  text-decoration: none;
+  white-space: nowrap;
+  
+  /* Spacing */
+  gap: var(--space-1-5);
+  
+  /* Appearance */
+  border: 1px solid transparent;
+  cursor: default;
+  outline: none;
+  
+  /* Transitions */
+  transition: var(--transition-colors), var(--transition-shadow);
+  
+  /* Interaction States */
+  user-select: none;
+}
+
+.grove-badge:focus-visible {
+  box-shadow: var(--shadow-focus);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.grove-badge--clickable {
+  cursor: pointer;
+}
+
+.grove-badge--clickable:hover {
+  opacity: 0.8;
+}
+
+/* ===== GROVE BADGE VARIANTS ===== */
+
+/* Default Badge */
+.grove-badge--default {
+  background-color: var(--grove-gray-100);
+  color: var(--grove-gray-800);
+  border-color: var(--grove-gray-200);
+}
+
+.grove-badge--default.grove-badge--outlined {
+  background-color: var(--grove-white);
+  border-color: var(--grove-gray-300);
+}
+
+/* Success Badge */
+.grove-badge--success {
+  background-color: var(--grove-success-subtle);
+  color: var(--grove-success-dark);
+  border-color: var(--grove-success);
+}
+
+.grove-badge--success.grove-badge--outlined {
+  background-color: var(--grove-white);
+  color: var(--grove-success);
+  border-color: var(--grove-success);
+}
+
+/* Warning Badge */
+.grove-badge--warning {
+  background-color: var(--grove-warning-subtle);
+  color: var(--grove-warning-dark);
+  border-color: var(--grove-warning);
+}
+
+.grove-badge--warning.grove-badge--outlined {
+  background-color: var(--grove-white);
+  color: var(--grove-warning);
+  border-color: var(--grove-warning);
+}
+
+/* Error Badge */
+.grove-badge--error {
+  background-color: var(--grove-error-subtle);
+  color: var(--grove-error-dark);
+  border-color: var(--grove-error);
+}
+
+.grove-badge--error.grove-badge--outlined {
+  background-color: var(--grove-white);
+  color: var(--grove-error);
+  border-color: var(--grove-error);
+}
+
+/* Info Badge */
+.grove-badge--info {
+  background-color: var(--grove-info-subtle);
+  color: var(--grove-info-dark);
+  border-color: var(--grove-info);
+}
+
+.grove-badge--info.grove-badge--outlined {
+  background-color: var(--grove-white);
+  color: var(--grove-info);
+  border-color: var(--grove-info);
+}
+
+/* Brand Badge */
+.grove-badge--brand {
+  background-color: var(--grove-brand-primary-subtle);
+  color: var(--grove-brand-primary-dark);
+  border-color: var(--grove-brand-primary);
+}
+
+.grove-badge--brand.grove-badge--outlined {
+  background-color: var(--grove-white);
+  color: var(--grove-brand-primary);
+  border-color: var(--grove-brand-primary);
+}
+
+/* Classification Colors */
+.grove-badge--purple {
+  background-color: var(--grove-purple-100);
+  color: var(--grove-purple-800);
+  border-color: var(--grove-purple-200);
+}
+
+.grove-badge--pink {
+  background-color: var(--grove-pink-100);
+  color: var(--grove-pink-800);
+  border-color: var(--grove-pink-200);
+}
+
+.grove-badge--indigo {
+  background-color: var(--grove-indigo-100);
+  color: var(--grove-indigo-800);
+  border-color: var(--grove-indigo-200);
+}
+
+.grove-badge--teal {
+  background-color: var(--grove-teal-100);
+  color: var(--grove-teal-800);
+  border-color: var(--grove-teal-200);
+}
+
+.grove-badge--orange {
+  background-color: var(--grove-orange-100);
+  color: var(--grove-orange-800);
+  border-color: var(--grove-orange-200);
+}
+
+/* ===== GROVE BADGE SIZES ===== */
+
+/* Extra Small Badge */
+.grove-badge--xs {
+  padding: var(--space-1) var(--space-1-5);
+  font-size: var(--font-size-xs);
+  border-radius: var(--radius-sm);
+  gap: var(--space-1);
+}
+
+/* Small Badge */
+.grove-badge--sm {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  border-radius: var(--radius-md);
+  gap: var(--space-1);
+}
+
+/* Medium Badge (default) */
+.grove-badge--md {
+  padding: var(--space-1-5) var(--space-2-5);
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-md);
+  gap: var(--space-1-5);
+}
+
+/* Large Badge */
+.grove-badge--lg {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-base);
+  border-radius: var(--radius-lg);
+  gap: var(--space-2);
+}
+
+/* ===== GROVE BADGE MODIFIERS ===== */
+
+/* Outlined Badge */
+.grove-badge--outlined {
+  background-color: transparent;
+}
+
+/* Dismissible Badge */
+.grove-badge--dismissible {
+  padding-right: var(--space-1);
+}
+
+.grove-badge--dismissible.grove-badge--xs {
+  padding-right: var(--space-0-5);
+}
+
+.grove-badge--dismissible.grove-badge--lg {
+  padding-right: var(--space-2);
+}
+
+/* Dot Badge */
+.grove-badge--dot {
+  padding-left: var(--space-1);
+}
+
+/* ===== GROVE BADGE COMPONENTS ===== */
+
+/* Badge Icon */
+.grove-badge__icon {
+  flex-shrink: 0;
+}
+
+.grove-badge--xs .grove-badge__icon {
+  width: var(--space-3);
+  height: var(--space-3);
+}
+
+.grove-badge--sm .grove-badge__icon {
+  width: var(--space-3-5);
+  height: var(--space-3-5);
+}
+
+.grove-badge--md .grove-badge__icon {
+  width: var(--space-4);
+  height: var(--space-4);
+}
+
+.grove-badge--lg .grove-badge__icon {
+  width: var(--space-5);
+  height: var(--space-5);
+}
+
+/* Badge Dot */
+.grove-badge__dot {
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  background-color: currentColor;
+  opacity: 0.75;
+}
+
+.grove-badge--xs .grove-badge__dot {
+  width: var(--space-1-5);
+  height: var(--space-1-5);
+}
+
+.grove-badge--sm .grove-badge__dot {
+  width: var(--space-2);
+  height: var(--space-2);
+}
+
+.grove-badge--md .grove-badge__dot {
+  width: var(--space-2-5);
+  height: var(--space-2-5);
+}
+
+.grove-badge--lg .grove-badge__dot {
+  width: var(--space-3);
+  height: var(--space-3);
+}
+
+/* Badge Text */
+.grove-badge__text {
+  flex: 1;
+  min-width: 0; /* Allow text truncation */
+}
+
+/* Badge Dismiss Button */
+.grove-badge__dismiss {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: var(--space-1);
+  padding: var(--space-0-5);
+  border: none;
+  background: transparent;
+  color: currentColor;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: var(--transition-colors);
+}
+
+.grove-badge__dismiss:hover {
+  opacity: 0.7;
+}
+
+.grove-badge__dismiss:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+}
+
+.grove-badge--xs .grove-badge__dismiss {
+  margin-left: var(--space-0-5);
+}
+
+.grove-badge--lg .grove-badge__dismiss {
+  margin-left: var(--space-1-5);
+}
+
+.grove-badge__dismiss-icon {
+  width: var(--space-3);
+  height: var(--space-3);
+  flex-shrink: 0;
+}
+
+.grove-badge--xs .grove-badge__dismiss-icon {
+  width: var(--space-2-5);
+  height: var(--space-2-5);
+}
+
+.grove-badge--lg .grove-badge__dismiss-icon {
+  width: var(--space-3-5);
+  height: var(--space-3-5);
+}
+
+/* ===== GROVE BADGE ANIMATIONS ===== */
+
+/* Dismiss Animation */
+.grove-badge--dismissing {
+  animation: grove-badge-dismiss 200ms ease-out forwards;
+}
+
+@keyframes grove-badge-dismiss {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+/* ===== DARK THEME OVERRIDES ===== */
+
+[data-theme="dark"] .grove-badge--default,
+.dark .grove-badge--default {
+  background-color: var(--grove-gray-800);
+  color: var(--grove-gray-200);
+  border-color: var(--grove-gray-700);
+}
+
+[data-theme="dark"] .grove-badge--default.grove-badge--outlined,
+.dark .grove-badge--default.grove-badge--outlined {
+  background-color: var(--grove-gray-900);
+  border-color: var(--grove-gray-600);
+}
+
+[data-theme="dark"] .grove-badge--success,
+.dark .grove-badge--success {
+  background-color: var(--grove-success-subtle-dark);
+  color: var(--grove-success-light);
+}
+
+[data-theme="dark"] .grove-badge--warning,
+.dark .grove-badge--warning {
+  background-color: var(--grove-warning-subtle-dark);
+  color: var(--grove-warning-light);
+}
+
+[data-theme="dark"] .grove-badge--error,
+.dark .grove-badge--error {
+  background-color: var(--grove-error-subtle-dark);
+  color: var(--grove-error-light);
+}
+
+[data-theme="dark"] .grove-badge--info,
+.dark .grove-badge--info {
+  background-color: var(--grove-info-subtle-dark);
+  color: var(--grove-info-light);
+}
+
+[data-theme="dark"] .grove-badge--brand,
+.dark .grove-badge--brand {
+  background-color: var(--grove-brand-primary-subtle-dark);
+  color: var(--grove-brand-primary-light);
+}

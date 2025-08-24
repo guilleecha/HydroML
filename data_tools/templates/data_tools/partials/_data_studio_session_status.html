@@ -1,0 +1,51 @@
+{% load tabler_icons %}
+<!-- Data Studio Session Status Footer -->
+<div class="grove-sidebar-footer grove-sidebar-footer--session">
+    <div class="grove-session-status" x-show="!isCollapsed" x-cloak>
+        <!-- Row 1: Recording Status + Counter -->
+        <div class="grove-session-row grove-session-row--status">
+            <div class="grove-session-indicator grove-session-indicator--recording">
+                <div class="grove-rec-dot grove-rec-dot--active"></div>
+                <span class="grove-rec-label">REC</span>
+            </div>
+            <div class="grove-session-info">
+                <span class="grove-session-counter" data-operations-count="0">0 ops</span>
+                <span class="grove-session-status-text">Active</span>
+            </div>
+        </div>
+        
+        <!-- Row 2: Transport Controls + Save -->
+        <div class="grove-session-row grove-session-row--controls">
+            <!-- Transport Controls -->
+            <div class="grove-session-transport">
+                <button class="grove-transport-btn grove-transport-btn--undo" 
+                        data-action="undo" 
+                        title="Undo last operation (⌘Z)"
+                        disabled>
+                    {% tabler_icon 'player-skip-back' 'w-3.5 h-3.5' %}
+                </button>
+                
+                <button class="grove-transport-btn grove-transport-btn--stop" 
+                        data-action="clear-session" 
+                        title="Stop recording & clear session">
+                    {% tabler_icon 'player-stop' 'w-3.5 h-3.5' %}
+                </button>
+                
+                <button class="grove-transport-btn grove-transport-btn--redo" 
+                        data-action="redo" 
+                        title="Redo last undone operation (⌘⇧Z)"
+                        disabled>
+                    {% tabler_icon 'player-skip-forward' 'w-3.5 h-3.5' %}
+                </button>
+            </div>
+            
+            <!-- Save Button -->
+            <button class="grove-session-action grove-session-action--save" 
+                    data-action="save-session" 
+                    title="Save current state as new dataset">
+                {% tabler_icon 'device-floppy' 'w-3.5 h-3.5' %}
+                <span class="grove-action-label">Save</span>
+            </button>
+        </div>
+    </div>
+</div>

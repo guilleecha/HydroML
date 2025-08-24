@@ -21,11 +21,13 @@
 <script src="{% static 'core/js/theme/ThemeManager.js' %}"></script>
 <script src="{% static 'core/js/theme/ThemeController.js' %}"></script>
 
-<!-- Wave Components Library -->
+<!-- Grove Components Library -->
+<script src="{% static 'core/js/components/grove/GroveBadge.js' %}"></script>
+
+<!-- Wave Components Library (Legacy) -->
 <script src="{% static 'core/js/components/wave/forms/WaveInput.js' %}"></script>
 <script src="{% static 'core/js/components/wave/forms/WaveButton.js' %}"></script>
 <script src="{% static 'core/js/components/wave/forms/WaveSelect.js' %}"></script>
-<script src="{% static 'core/js/components/wave/interactive/WaveBadge.js' %}"></script>
 <script src="{% static 'core/js/components/wave/interactive/WaveDropdown.js' %}"></script>
 <script src="{% static 'core/js/components/wave/data/WaveTable.js' %}"></script>
 <script src="{% static 'core/js/components/wave/navigation/WaveTabs.js' %}"></script>
@@ -34,8 +36,8 @@
 <script src="{% static 'core/js/components/wave/feedback/WaveToast.js' %}"></script>
 <script src="{% static 'core/js/components/wave/wave-components.js' %}"></script>
 
-<!-- Legacy Theme Switcher (for backward compatibility) -->
-<script src="{% static 'core/js/theme-switcher.js' %}"></script>
+<!-- Legacy Theme Switcher (for backward compatibility) - DISABLED to prevent conflict with multiple theme systems -->
+<!-- <script src="{% static 'core/js/theme-switcher.js' %}"></script> -->
 
 <!-- Load Alpine.js modular components -->
 <script src="{% static 'js/alpine/hydro-ml-app.js' %}"></script>
@@ -45,6 +47,11 @@
 
 <!-- Load main app.js before Alpine.js -->
 <script src="{% static 'js/app.js' %}"></script>
+
+<!-- Alpine.js x-cloak CSS to prevent FOUC -->
+<style>
+    [x-cloak] { display: none !important; }
+</style>
 
 <!-- Alpine.js for interactivity -->
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
