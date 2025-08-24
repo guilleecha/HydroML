@@ -4,184 +4,324 @@
  */
 
 .tanstack-table-container {
-    @apply bg-white border border-gray-200 rounded-lg shadow-sm;
+    background-color: var(--grove-white);
+    border: 1px solid var(--grove-gray-200);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
 }
 
 .tanstack-table-header {
-    @apply px-6 py-4 border-b border-gray-200;
+    padding: var(--space-6) var(--space-6) var(--space-4) var(--space-6);
+    border-bottom: 1px solid var(--grove-gray-200);
 }
 
 .tanstack-table-title {
-    @apply text-lg font-semibold text-gray-900;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--grove-text-primary);
 }
 
 .tanstack-table-subtitle {
-    @apply text-sm text-gray-600 mt-1;
+    font-size: var(--font-size-sm);
+    color: var(--grove-text-secondary);
+    margin-top: var(--space-1);
 }
 
 .tanstack-table-controls {
-    @apply flex flex-col sm:flex-row gap-4 mb-4;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+}
+
+@media (min-width: 640px) {
+    .tanstack-table-controls {
+        flex-direction: row;
+    }
 }
 
 .tanstack-table-search {
-    @apply flex-1;
+    flex: 1;
 }
 
 .tanstack-table-search input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--grove-border-secondary);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    outline: none;
+}
+
+.tanstack-table-search input:focus {
+    border-color: var(--grove-brand-primary);
+    box-shadow: var(--shadow-focus);
 }
 
 .tanstack-table-page-size {
-    @apply flex items-center gap-2;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
 }
 
 .tanstack-table-page-size label {
-    @apply text-sm text-gray-700;
+    font-size: var(--font-size-sm);
+    color: var(--grove-text-secondary);
 }
 
 .tanstack-table-page-size select {
-    @apply px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--grove-border-secondary);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    outline: none;
+}
+
+.tanstack-table-page-size select:focus {
+    border-color: var(--grove-brand-primary);
+    box-shadow: var(--shadow-focus);
 }
 
 .tanstack-table-wrapper {
-    @apply overflow-x-auto border border-gray-200 rounded-lg;
+    overflow-x: auto;
+    border: 1px solid var(--grove-gray-200);
+    border-radius: var(--radius-lg);
 }
 
 .tanstack-table {
-    @apply min-w-full divide-y divide-gray-200;
+    min-width: 100%;
+    border-top: 1px solid var(--grove-gray-200);
 }
 
 .tanstack-table thead {
-    @apply bg-gray-50;
+    background-color: var(--grove-gray-50);
 }
 
 .tanstack-table th {
-    @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors;
+    padding: var(--space-3) var(--space-6);
+    text-align: left;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--grove-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wider);
+    cursor: pointer;
+    transition-property: var(--duration-normal);
+    transition-duration: var(--duration-normal);
+}
+
+.tanstack-table th:hover {
+    background-color: var(--grove-gray-100);
 }
 
 .tanstack-table th.sortable {
-    @apply cursor-pointer;
+    cursor: pointer;
 }
 
 .tanstack-table th .sort-indicator {
-    @apply flex items-center space-x-1;
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
 }
 
 .tanstack-table th .sort-icon {
-    @apply text-gray-400 transition-colors;
+    color: var(--grove-text-placeholder);
+    transition-property: color;
+    transition-duration: var(--duration-normal);
 }
 
 .tanstack-table th .sort-icon.active {
-    @apply text-blue-600;
+    color: var(--grove-brand-primary);
 }
 
 .tanstack-table tbody {
-    @apply bg-white divide-y divide-gray-200;
+    background-color: var(--grove-white);
 }
 
-.tanstack-table tr {
-    @apply hover:bg-gray-50 transition-colors;
+.tanstack-table tbody tr {
+    border-top: 1px solid var(--grove-gray-200);
+    transition-property: background-color;
+    transition-duration: var(--duration-normal);
+}
+
+.tanstack-table tbody tr:hover {
+    background-color: var(--grove-gray-50);
 }
 
 .tanstack-table td {
-    @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900;
+    padding: var(--space-4) var(--space-6);
+    white-space: nowrap;
+    font-size: var(--font-size-sm);
+    color: var(--grove-text-primary);
 }
 
 .tanstack-table-pagination {
-    @apply flex flex-col sm:flex-row items-center justify-between gap-4 mt-4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+}
+
+@media (min-width: 640px) {
+    .tanstack-table-pagination {
+        flex-direction: row;
+    }
 }
 
 .tanstack-table-page-info {
-    @apply text-sm text-gray-700;
+    font-size: var(--font-size-sm);
+    color: var(--grove-text-secondary);
 }
 
 .tanstack-table-pagination-controls {
-    @apply flex items-center gap-2;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
 }
 
 .tanstack-table-pagination-btn {
-    @apply px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--grove-border-secondary);
+    border-radius: var(--radius-md);
+    background-color: var(--grove-white);
+    color: var(--grove-text-primary);
+    transition-property: background-color;
+    transition-duration: var(--duration-normal);
+    cursor: pointer;
+}
+
+.tanstack-table-pagination-btn:hover:not(:disabled) {
+    background-color: var(--grove-gray-50);
+}
+
+.tanstack-table-pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .tanstack-table-page-input-group {
-    @apply flex items-center gap-2;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
 }
 
 .tanstack-table-page-input {
-    @apply w-16 px-2 py-1 text-sm border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-blue-500;
+    width: var(--space-16);
+    padding: var(--space-1) var(--space-2);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--grove-border-secondary);
+    border-radius: var(--radius-base);
+    text-align: center;
+    outline: none;
+}
+
+.tanstack-table-page-input:focus {
+    border-color: var(--grove-brand-primary);
+    box-shadow: var(--shadow-focus);
 }
 
 .tanstack-table-loading {
-    @apply flex items-center justify-center py-8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-8) 0;
 }
 
 .tanstack-table-empty {
-    @apply text-center py-8 text-gray-500;
+    text-align: center;
+    padding: var(--space-8) 0;
+    color: var(--grove-text-tertiary);
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-    .dark .tanstack-table-container {
-        @apply bg-gray-800 border-gray-700;
-    }
-    
-    .dark .tanstack-table-header {
-        @apply border-gray-700;
-    }
-    
-    .dark .tanstack-table-title {
-        @apply text-gray-100;
-    }
-    
-    .dark .tanstack-table-subtitle {
-        @apply text-gray-400;
-    }
-    
-    .dark .tanstack-table-search input {
-        @apply bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400;
-    }
-    
-    .dark .tanstack-table-page-size label {
-        @apply text-gray-300;
-    }
-    
-    .dark .tanstack-table-page-size select {
-        @apply bg-gray-700 border-gray-600 text-gray-100;
-    }
-    
-    .dark .tanstack-table {
-        @apply divide-gray-700;
-    }
-    
-    .dark .tanstack-table thead {
-        @apply bg-gray-700;
-    }
-    
-    .dark .tanstack-table th {
-        @apply text-gray-300 hover:bg-gray-600;
-    }
-    
-    .dark .tanstack-table tbody {
-        @apply bg-gray-800 divide-gray-700;
-    }
-    
-    .dark .tanstack-table tr {
-        @apply hover:bg-gray-700;
-    }
-    
-    .dark .tanstack-table td {
-        @apply text-gray-100;
-    }
-    
-    .dark .tanstack-table-page-info {
-        @apply text-gray-300;
-    }
-    
-    .dark .tanstack-table-pagination-btn {
-        @apply border-gray-600 hover:bg-gray-700 text-gray-300;
-    }
-    
-    .dark .tanstack-table-page-input {
-        @apply bg-gray-700 border-gray-600 text-gray-100;
-    }
+/* Dark mode support using Grove design tokens */
+.dark .tanstack-table-container {
+    background-color: var(--grove-bg-primary-dark);
+    border-color: var(--grove-border-primary-dark);
+}
+
+.dark .tanstack-table-header {
+    border-bottom-color: var(--grove-border-primary-dark);
+}
+
+.dark .tanstack-table-title {
+    color: var(--grove-text-primary-dark);
+}
+
+.dark .tanstack-table-subtitle {
+    color: var(--grove-text-secondary-dark);
+}
+
+.dark .tanstack-table-search input {
+    background-color: var(--grove-bg-secondary-dark);
+    border-color: var(--grove-border-secondary-dark);
+    color: var(--grove-text-primary-dark);
+}
+
+.dark .tanstack-table-search input::placeholder {
+    color: var(--grove-text-placeholder-dark);
+}
+
+.dark .tanstack-table-page-size label {
+    color: var(--grove-text-secondary-dark);
+}
+
+.dark .tanstack-table-page-size select {
+    background-color: var(--grove-bg-secondary-dark);
+    border-color: var(--grove-border-secondary-dark);
+    color: var(--grove-text-primary-dark);
+}
+
+.dark .tanstack-table {
+    border-top-color: var(--grove-border-primary-dark);
+}
+
+.dark .tanstack-table thead {
+    background-color: var(--grove-bg-tertiary-dark);
+}
+
+.dark .tanstack-table th {
+    color: var(--grove-text-tertiary-dark);
+}
+
+.dark .tanstack-table th:hover {
+    background-color: var(--grove-bg-quaternary-dark);
+}
+
+.dark .tanstack-table tbody {
+    background-color: var(--grove-bg-primary-dark);
+}
+
+.dark .tanstack-table tbody tr {
+    border-top-color: var(--grove-border-primary-dark);
+}
+
+.dark .tanstack-table tbody tr:hover {
+    background-color: var(--grove-bg-secondary-dark);
+}
+
+.dark .tanstack-table td {
+    color: var(--grove-text-primary-dark);
+}
+
+.dark .tanstack-table-page-info {
+    color: var(--grove-text-secondary-dark);
+}
+
+.dark .tanstack-table-pagination-btn {
+    background-color: var(--grove-bg-secondary-dark);
+    border-color: var(--grove-border-secondary-dark);
+    color: var(--grove-text-primary-dark);
+}
+
+.dark .tanstack-table-pagination-btn:hover:not(:disabled) {
+    background-color: var(--grove-bg-tertiary-dark);
+}
+
+.dark .tanstack-table-page-input {
+    background-color: var(--grove-bg-secondary-dark);
+    border-color: var(--grove-border-secondary-dark);
+    color: var(--grove-text-primary-dark);
 }

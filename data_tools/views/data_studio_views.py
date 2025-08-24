@@ -15,6 +15,9 @@ from django.core.files.base import ContentFile
 from projects.models import DataSource
 from core.utils.breadcrumbs import create_basic_breadcrumbs
 from data_tools.services.data_analysis_service import calculate_nullity_report
+from data_tools.services.session_manager import (
+    get_session_manager, SessionConfig
+)
 from data_tools.services.session_service import (
     session_exists, load_current_dataframe, get_session_path
 )
@@ -59,15 +62,48 @@ def data_studio_page(request, pk):
                 'error_message': 'Failed to load data from source file.'
             })
 
-        # Check if active session exists
-        has_active_session = session_exists(datasource, request.user)
+        # Initialize unified session manager
+        session_config = SessionConfig.from_user_preferences(request.user)
+        session_manager = get_session_manager(
+            user_id=request.user.id, 
+            datasource_id=datasource.id, 
+            config=session_config
+        )
+        
+        # Check if unified session exists, fallback to legacy system
+        has_active_session = session_manager.session_exists()
         session_data = None
         
         if has_active_session:
-            session_path = get_session_path(datasource, request.user)
-            session_df = load_current_dataframe(session_path)
+            # Use unified session data
+            session_df = session_manager.get_current_dataframe()
             if session_df is not None:
-                df = session_df  # Use session data instead of original
+                df = session_df
+                session_data = session_manager.get_session_info()
+        else:
+            # Fallback to legacy file-based session check
+            legacy_session_exists = session_exists(datasource, request.user)
+            if legacy_session_exists:
+                session_path = get_session_path(datasource, request.user)
+                session_df = load_current_dataframe(session_path)
+                if session_df is not None:
+                    # Migrate legacy session to unified system
+                    if session_manager.initialize_session(df, force=False):
+                        if session_manager.apply_transformation(
+                            session_df, 
+                            "legacy_migration", 
+                            {"source": "file_based_session"}
+                        ):
+                            df = session_df
+                            session_data = session_manager.get_session_info()
+                            has_active_session = True
+                            logger.info(f"Migrated legacy session for user {request.user.id}, datasource {datasource.id}")
+        
+        # Initialize new session if none exists and we have data
+        if not has_active_session and df is not None:
+            if session_manager.initialize_session(df, force=False):
+                session_data = session_manager.get_session_info()
+                has_active_session = True
 
         # Generate automated analysis
         automated_analysis = generate_data_analysis(df)
@@ -91,35 +127,8 @@ def data_studio_page(request, pk):
             sample_data = []
         grid_data_json = json.dumps(sample_data, default=str)
         
-        # Prepare optimized column definitions for AG Grid with proper sizing
-        column_defs = []
-        for col in df.columns:
-            # Determine column type for better filtering and rendering
-            col_dtype = str(df[col].dtype)
-            col_def = {
-                'field': col,
-                'headerName': col,
-                'filter': True,
-                'sortable': True,
-                'resizable': True,
-                'flex': 1,  # Allow flexible sizing
-                'minWidth': 100,  # Minimum width to ensure readability
-                'maxWidth': 300,  # Maximum width to prevent over-stretching
-            }
-            
-            # Set specific filter types based on data type (without custom types to avoid warnings)
-            if 'int' in col_dtype or 'float' in col_dtype:
-                col_def['filter'] = 'agNumberColumnFilter'
-                col_def['cellDataType'] = 'number'
-            elif 'datetime' in col_dtype or 'date' in col_dtype:
-                col_def['filter'] = 'agDateColumnFilter'
-                col_def['cellDataType'] = 'date'
-            else:
-                col_def['filter'] = 'agTextColumnFilter'
-                col_def['cellDataType'] = 'text'
-            
-            column_defs.append(col_def)
-        
+        # Prepare column definitions for TanStack Table (simple string array)
+        column_defs = list(df.columns) if not df.empty else []
         column_defs_json = json.dumps(column_defs)
 
         # Prepare sample data for HTML table (like debug version)
@@ -140,6 +149,16 @@ def data_studio_page(request, pk):
             'column_defs_json': column_defs_json,
             'sample_data': sample_data,  # For HTML table in new template
             'breadcrumb_path': f'@{request.user.username}/Data Sources/{datasource.name}',  # For base template breadcrumb
+            # Unified session context
+            'session_manager_data': {
+                'user_id': request.user.id,
+                'datasource_id': datasource.id,
+                'session_info': session_data,
+                'can_undo': session_data.get('can_undo', False) if session_data else False,
+                'can_redo': session_data.get('can_redo', False) if session_data else False,
+                'current_step': session_data.get('current_step', 0) if session_data else 0,
+                'total_operations': session_data.get('total_operations', 0) if session_data else 0,
+            }
         }
 
         return render(request, 'data_tools/data_studio.html', context)

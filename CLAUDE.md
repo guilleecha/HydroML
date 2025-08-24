@@ -208,18 +208,37 @@ docker-compose exec web flake8 .
 - **pathlib**: Use for file and path manipulation
 - **Sentry**: Integrated for error handling and monitoring
 
+## 🎨 Grove Design System Guidelines
+
 ### Component Library Strategy
-- **Always check Grove components first**: Search `core/static/core/css/components/` before creating new CSS
-- **Grove over Wave**: Use Grove Design System components (modern) over Wave components (legacy)
+- **Grove Design System is PRIMARY**: Always use Grove components for new features
 - **Component Hierarchy**:
-  1. **Grove components** - Primary system with design tokens
-  2. **Specialized components** - Domain-specific (data-studio, ml-wizard)
-  3. **Wave components** - Legacy only, avoid for new features
-- **Before creating new CSS**: Search existing components in this order:
-  1. Grove system (`grove-*.css`)
-  2. Specialized components (`*-components.css`) 
-  3. Wave legacy (`wave-components.css`)
-- **CSS best practices**: Use semantic class names, design tokens, avoid Tailwind utilities in templates
+  1. **Grove components** - Primary system with design tokens (`grove-*.css`)
+  2. **Specialized components** - Domain-specific extensions (`data-studio-*.css`, `ml-wizard.css`)
+  3. **Wave components** - Legacy only, migrate to Grove when possible
+  
+### Grove Component Usage
+- **Grove Card System**: Use `grove-card`, `grove-card-content`, `grove-card-header` for all containers
+- **Semantic Variants**: Apply state variants with `grove-card--error`, `grove-card--warning`, etc.
+- **Design Tokens**: Use CSS custom properties (`--grove-*`, `--radius-*`, `--space-*`) instead of hardcoded values
+- **Global Loading**: Grove CSS is loaded in `core/templates/core/base_main.html`
+
+### Migration from Wave to Grove
+- **Replace containers**: `bg-white dark:bg-gray-800 rounded-lg` → `grove-card`
+- **Use semantic classes**: Replace utility combinations with Grove components
+- **Remove @apply directives**: Replace with standard CSS properties and design tokens
+- **Maintain functionality**: Keep non-styling utilities (`hidden`, `transition-*`, layout classes)
+
+### Development Guidelines
+- **Check existing Grove components first**: Search `core/static/core/css/components/grove-*.css`
+- **Follow semantic patterns**: Use descriptive class names that indicate purpose
+- **Preserve accessibility**: Maintain WCAG compliance in all Grove implementations
+- **Test both themes**: Verify light and dark mode compatibility
+
+### Grove Documentation
+- **Implementation Guide**: `.claude/context/grove-design-system-implementation-summary.md`
+- **Component Reference**: `.claude/context/grove-card-component-reference.md`
+- **Migration Guide**: `.claude/context/wave-to-grove-migration-guide.md`
 
 ## ABSOLUTE RULES:
 
@@ -234,8 +253,3 @@ docker-compose exec web flake8 .
 - NO MIXED CONCERNS - Don't put validation logic inside API handlers, database queries inside UI components, etc. instead of proper separation
 - NO RESOURCE LEAKS - Don't forget to close database connections, clear timeouts, remove event listeners, or clean up file handles
 
-# important-instruction-reminders
-Do what has been asked; nothing more, nothing less.
-NEVER create files unless they're absolutely necessary for achieving your goal.
-ALWAYS prefer editing an existing file to creating a new one.
-NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.

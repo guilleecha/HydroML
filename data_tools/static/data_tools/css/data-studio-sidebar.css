@@ -1,0 +1,410 @@
+/**
+ * Data Studio Fixed Left Sidebar Component
+ * Grove Design System compliant fixed sidebar for data manipulation tools
+ * Two-column layout: Fixed sidebar + Main content area
+ */
+
+/* ===== DATA STUDIO FIXED SIDEBAR LAYOUT ===== */
+
+.data-studio-layout {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--grove-gray-50);
+}
+
+.dark .data-studio-layout {
+    background-color: var(--grove-gray-900);
+}
+
+/* Fixed Left Sidebar */
+.data-studio-sidebar-fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 16rem; /* 256px */
+    background-color: var(--grove-white);
+    border-right: 1px solid var(--grove-gray-200);
+    box-shadow: var(--shadow-sm);
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    transition: width var(--duration-medium) var(--ease-out);
+}
+
+.dark .data-studio-sidebar-fixed {
+    background-color: var(--grove-gray-800);
+    border-right-color: var(--grove-gray-700);
+}
+
+/* Collapsed state */
+.data-studio-sidebar--collapsed {
+    width: 4rem; /* 64px - collapsed width */
+}
+
+/* Main content area adjustment */
+.data-studio-main-content {
+    margin-left: 16rem; /* Match sidebar width */
+    flex: 1;
+    min-height: 100vh;
+    background-color: var(--grove-white);
+    transition: margin-left var(--duration-medium) var(--ease-out);
+}
+
+.dark .data-studio-main-content {
+    background-color: var(--grove-gray-900);
+}
+
+/* Adjust main content when sidebar collapsed */
+.data-studio-sidebar--collapsed + .data-studio-main-content {
+    margin-left: 4rem;
+}
+
+/* Mobile responsive - hide sidebar by default */
+@media (max-width: 768px) {
+    .data-studio-sidebar-fixed {
+        transform: translateX(-100%);
+        transition: transform var(--duration-medium) var(--ease-out);
+    }
+    
+    .data-studio-sidebar--mobile-open {
+        transform: translateX(0);
+    }
+    
+    .data-studio-main-content {
+        margin-left: 0;
+    }
+    
+    .data-studio-sidebar--collapsed + .data-studio-main-content {
+        margin-left: 0;
+    }
+}
+
+/* ===== SIDEBAR HEADER ===== */
+
+.data-studio-sidebar-header {
+    background-color: var(--grove-blue-50);
+    border-bottom: 1px solid var(--grove-blue-200);
+    padding: var(--space-4);
+    flex-shrink: 0;
+}
+
+.dark .data-studio-sidebar-header {
+    background-color: rgba(30, 58, 138, 0.2);
+    border-bottom-color: var(--grove-blue-800);
+}
+
+.data-studio-sidebar-header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.data-studio-sidebar-title {
+    display: flex;
+    align-items: center;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--grove-blue-900);
+}
+
+.dark .data-studio-sidebar-title {
+    color: var(--grove-blue-100);
+}
+
+.data-studio-sidebar-title-icon {
+    width: var(--space-5);
+    height: var(--space-5);
+    margin-right: var(--space-2);
+    flex-shrink: 0;
+}
+
+/* Collapse button */
+.data-studio-sidebar-collapse-btn {
+    padding: var(--space-1);
+    border-radius: var(--radius-md);
+    background-color: transparent;
+    color: var(--grove-blue-600);
+    transition: all var(--duration-fast) var(--ease-out);
+    border: none;
+    cursor: pointer;
+}
+
+.data-studio-sidebar-collapse-btn:hover {
+    background-color: var(--grove-blue-100);
+    color: var(--grove-blue-700);
+}
+
+.dark .data-studio-sidebar-collapse-btn {
+    color: var(--grove-blue-400);
+}
+
+.dark .data-studio-sidebar-collapse-btn:hover {
+    background-color: var(--grove-blue-800);
+    color: var(--grove-blue-200);
+}
+
+.data-studio-sidebar-description {
+    margin-top: var(--space-1);
+    font-size: var(--font-size-sm);
+    color: var(--grove-blue-700);
+}
+
+.dark .data-studio-sidebar-description {
+    color: var(--grove-blue-300);
+}
+
+/* ===== SIDEBAR NAVIGATION ===== */
+
+.data-studio-sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-2) 0;
+}
+
+/* Navigation Sections */
+.data-studio-nav-section {
+    border-bottom: 1px solid var(--grove-gray-200);
+}
+
+.dark .data-studio-nav-section {
+    border-bottom-color: var(--grove-gray-700);
+}
+
+.data-studio-nav-section:last-child {
+    border-bottom: none;
+}
+
+/* Section Headers (Collapsible) */
+.data-studio-section-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--grove-gray-700);
+    background-color: transparent;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.dark .data-studio-section-header {
+    color: var(--grove-gray-300);
+}
+
+.data-studio-section-header:hover {
+    background-color: var(--grove-gray-50);
+    color: var(--grove-gray-900);
+}
+
+.dark .data-studio-section-header:hover {
+    background-color: var(--grove-gray-800);
+    color: var(--grove-gray-100);
+}
+
+/* Section Icons */
+.data-studio-section-icon {
+    width: var(--space-5);
+    height: var(--space-5);
+    margin-right: var(--space-3);
+    flex-shrink: 0;
+}
+
+/* Section Icon Colors */
+.data-studio-section-icon--warning {
+    color: var(--grove-yellow-500);
+}
+
+.data-studio-section-icon--blue {
+    color: var(--grove-blue-500);
+}
+
+.data-studio-section-icon--green {
+    color: var(--grove-green-500);
+}
+
+.data-studio-section-icon--purple {
+    color: var(--grove-purple-500);
+}
+
+.data-studio-section-icon--orange {
+    color: var(--grove-orange-500);
+}
+
+/* Section Chevron */
+.data-studio-section-chevron {
+    width: var(--space-4);
+    height: var(--space-4);
+    margin-left: auto;
+    transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.data-studio-section-chevron.rotate-90 {
+    transform: rotate(90deg);
+}
+
+/* Section Items Container */
+.data-studio-section-items {
+    background-color: var(--grove-gray-25);
+}
+
+.dark .data-studio-section-items {
+    background-color: var(--grove-gray-850);
+}
+
+/* Tool Items */
+.data-studio-tool-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding: var(--space-3) var(--space-6);
+    font-size: var(--font-size-sm);
+    color: var(--grove-gray-600);
+    background-color: transparent;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.dark .data-studio-tool-item {
+    color: var(--grove-gray-400);
+}
+
+.data-studio-tool-item:hover {
+    background-color: var(--grove-blue-50);
+    color: var(--grove-blue-700);
+}
+
+.dark .data-studio-tool-item:hover {
+    background-color: var(--grove-blue-900);
+    color: var(--grove-blue-200);
+}
+
+/* Tool Item Icons */
+.data-studio-tool-icon {
+    width: var(--space-4);
+    height: var(--space-4);
+    margin-right: var(--space-3);
+    flex-shrink: 0;
+}
+
+/* ===== SIDEBAR FOOTER ===== */
+
+.data-studio-sidebar-footer {
+    border-top: 1px solid var(--grove-gray-200);
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--grove-gray-50);
+    flex-shrink: 0;
+}
+
+.dark .data-studio-sidebar-footer {
+    border-top-color: var(--grove-gray-700);
+    background-color: var(--grove-gray-800);
+}
+
+/* Session Status */
+.data-studio-session-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+}
+
+.data-studio-session-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.data-studio-session-label {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--grove-gray-500);
+}
+
+.dark .data-studio-session-label {
+    color: var(--grove-gray-400);
+}
+
+.data-studio-session-value {
+    font-size: var(--font-size-xs);
+    color: var(--grove-green-600);
+    font-weight: var(--font-weight-medium);
+}
+
+.dark .data-studio-session-value {
+    color: var(--grove-green-400);
+}
+
+/* Session Action Buttons */
+.data-studio-session-actions {
+    display: flex;
+    gap: var(--space-1);
+}
+
+.data-studio-session-btn {
+    padding: var(--space-1);
+    border-radius: var(--radius-md);
+    background-color: transparent;
+    color: var(--grove-gray-400);
+    border: none;
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.data-studio-session-btn:hover {
+    background-color: var(--grove-gray-200);
+    color: var(--grove-gray-600);
+}
+
+.dark .data-studio-session-btn:hover {
+    background-color: var(--grove-gray-600);
+    color: var(--grove-gray-200);
+}
+
+.data-studio-session-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ===== COLLAPSED STATE STYLES ===== */
+
+/* Hide text when collapsed */
+.data-studio-sidebar--collapsed .data-studio-sidebar-title span,
+.data-studio-sidebar--collapsed .data-studio-sidebar-description,
+.data-studio-sidebar--collapsed .data-studio-section-chevron {
+    display: none;
+}
+
+/* Adjust icon-only sections when collapsed */
+.data-studio-sidebar--collapsed .data-studio-section-header {
+    justify-content: center;
+    padding: var(--space-3) var(--space-2);
+}
+
+.data-studio-sidebar--collapsed .data-studio-section-icon {
+    margin-right: 0;
+}
+
+/* Hide section items when collapsed */
+.data-studio-sidebar--collapsed .data-studio-section-items {
+    display: none;
+}
+
+/* Adjust footer when collapsed */
+.data-studio-sidebar--collapsed .data-studio-sidebar-footer {
+    padding: var(--space-2);
+}
+
+.data-studio-sidebar--collapsed .data-studio-session-info {
+    display: none;
+}
+
+.data-studio-sidebar--collapsed .data-studio-session-actions {
+    justify-content: center;
+    width: 100%;
+}

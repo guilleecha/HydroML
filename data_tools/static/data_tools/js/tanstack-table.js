@@ -1,23 +1,32 @@
 /**
  * TanStack Table Component for HydroML
- * Vanilla JavaScript implementation for data tables
+ * Simplified vanilla JavaScript implementation with proper CDN integration
  */
 
 class HydroMLTanStackTable {
     constructor(containerId, options = {}) {
         this.containerId = containerId;
         this.options = {
-            pageSize: 10,
+            pageSize: 25,
             enableSorting: true,
             enableFiltering: true,
             enablePagination: true,
-            debugMode: false,
+            debugMode: true,
             ...options
         };
         
         this.table = null;
         this.data = [];
         this.columns = [];
+        this.state = {
+            columnPinning: {},
+            pagination: { pageIndex: 0, pageSize: this.options.pageSize },
+            globalFilter: '',
+            sorting: [],
+            columnSizing: {},
+            columnVisibility: {},
+            columnFilters: []
+        };
         
         console.log('🚀 HydroMLTanStackTable inicializada:', { containerId, options: this.options });
     }
@@ -29,12 +38,10 @@ class HydroMLTanStackTable {
         this.data = data || [];
         this.columns = columns || [];
         
-        if (this.options.debugMode) {
-            console.log('📊 Datos recibidos:', { 
-                dataLength: this.data.length, 
-                columnsLength: this.columns.length 
-            });
-        }
+        console.log('📊 Datos recibidos:', { 
+            dataLength: this.data.length, 
+            columnsLength: this.columns.length 
+        });
         
         if (!this.data || this.data.length === 0) {
             console.warn('⚠️ No hay datos para mostrar en la tabla');
@@ -53,6 +60,23 @@ class HydroMLTanStackTable {
      * Create TanStack Table instance
      */
     createTable() {
+        // Wait for TanStack Table library to load
+        if (typeof window.TableCore === 'undefined') {
+            console.warn('⚠️ TanStack Table library not loaded yet, waiting for bootstrap...');
+            // Listen for the ready event from bootstrap
+            window.addEventListener('tanstack-table-ready', () => {
+                if (window.TableCore) {
+                    this.createTable();
+                } else {
+                    console.error('❌ TanStack Table bootstrap failed');
+                    this.renderError(new Error('TanStack Table library not available'));
+                }
+            }, { once: true });
+            return;
+        }
+
+        const { createTable, getCoreRowModel, getPaginationRowModel, getSortedRowModel, getFilteredRowModel } = window.TableCore;
+        
         // Create column definitions
         const columnDefs = this.columns.map(columnName => ({
             id: columnName,
@@ -60,32 +84,56 @@ class HydroMLTanStackTable {
             header: columnName,
             cell: info => {
                 const value = info.getValue();
-                return value !== null && value !== undefined ? String(value).slice(0, 50) : '-';
+                return value !== null && value !== undefined ? String(value).slice(0, 100) : '-';
             },
             enableSorting: this.options.enableSorting,
             enableColumnFilter: this.options.enableFiltering,
+            // TanStack v8+ column sizing configuration
+            size: 150,
+            minSize: 50,
+            maxSize: 300,
+            enableResizing: false,
         }));
 
-        if (this.options.debugMode) {
-            console.log('📋 Columnas definidas:', columnDefs.length);
-        }
+        console.log('📋 Columnas definidas:', columnDefs.length);
 
         // Create table instance
-        this.table = TableCore.createTable({
-            data: this.data,
-            columns: columnDefs,
-            getCoreRowModel: TableCore.getCoreRowModel(),
-            getPaginationRowModel: TableCore.getPaginationRowModel(),
-            getSortedRowModel: TableCore.getSortedRowModel(),
-            getFilteredRowModel: TableCore.getFilteredRowModel(),
-            globalFilterFn: 'includesString',
-            initialState: {
-                pagination: {
-                    pageSize: this.options.pageSize
-                }
-            },
-            debugTable: this.options.debugMode,
-        });
+        try {
+            this.table = createTable({
+                data: this.data,
+                columns: columnDefs,
+                getCoreRowModel: getCoreRowModel(),
+                getPaginationRowModel: getPaginationRowModel(),
+                getSortedRowModel: getSortedRowModel(),
+                getFilteredRowModel: getFilteredRowModel(),
+                state: this.state,
+                columnResizeMode: 'onChange',
+                enableColumnResizing: false,
+                debugAll: true,
+                onStateChange: (updater) => {
+                    const newState = typeof updater === 'function' ? updater(this.state) : updater;
+                    this.state = { ...this.state, ...newState };
+                    this.render();
+                },
+                onGlobalFilterChange: (globalFilter) => {
+                    this.state.globalFilter = globalFilter;
+                    this.state.pagination.pageIndex = 0; // Reset to first page
+                },
+                onPaginationChange: (pagination) => {
+                    this.state.pagination = typeof pagination === 'function' ? pagination(this.state.pagination) : pagination;
+                },
+                onSortingChange: (sorting) => {
+                    this.state.sorting = typeof sorting === 'function' ? sorting(this.state.sorting) : sorting;
+                },
+                globalFilterFn: 'includesString',
+                debugTable: this.options.debugMode,
+            });
+            
+            console.log('✅ TanStack Table instance created successfully');
+        } catch (error) {
+            console.error('❌ Error creating TanStack Table:', error);
+            this.renderError(error);
+        }
     }
 
     /**
@@ -194,18 +242,20 @@ class HydroMLTanStackTable {
                 const th = document.createElement('th');
                 th.className = 'tanstack-table th';
                 
-                if (header.column.getCanSort()) {
+                if (header.column.getCanSort && header.column.getCanSort()) {
                     th.classList.add('sortable');
                     th.addEventListener('click', () => {
-                        header.column.toggleSorting();
-                        this.render();
+                        if (header.column.toggleSorting) {
+                            header.column.toggleSorting();
+                            this.render();
+                        }
                     });
                 }
                 
                 th.innerHTML = `
                     <div class="sort-indicator">
                         <span>${header.isPlaceholder ? '' : header.column.columnDef.header}</span>
-                        ${header.column.getIsSorted() ? 
+                        ${(header.column.getIsSorted && header.column.getIsSorted()) ? 
                             (header.column.getIsSorted() === 'desc' ? 
                                 '<span class="sort-icon active">↓</span>' : 
                                 '<span class="sort-icon active">↑</span>') : 
@@ -229,6 +279,12 @@ class HydroMLTanStackTable {
         if (!tableElement) return;
 
         const tbody = tableElement.querySelector('tbody');
+        
+        // Clear loading state explicitly
+        const loadingRow = tbody.querySelector('#table-loading-row');
+        if (loadingRow) {
+            loadingRow.remove();
+        }
         tbody.innerHTML = '';
         
         this.table.getRowModel().rows.forEach(row => {
@@ -266,6 +322,12 @@ class HydroMLTanStackTable {
             pageInfo.textContent = `${startRow}-${endRow} de ${totalRows}`;
         }
 
+        // Update row count display
+        const tableRowCount = container.querySelector('#table-row-count');
+        if (tableRowCount) {
+            tableRowCount.textContent = `${totalRows} rows`;
+        }
+
         const totalPagesSpan = container.querySelector('#totalPages');
         if (totalPagesSpan) {
             totalPagesSpan.textContent = totalPages;
@@ -295,9 +357,35 @@ class HydroMLTanStackTable {
         const container = document.getElementById(this.containerId);
         if (!container) return;
 
+        // Update row count for empty state
+        const tableRowCount = container.querySelector('#table-row-count');
+        if (tableRowCount) {
+            tableRowCount.textContent = '0 rows';
+        }
+
         container.innerHTML = `
-            <div class="tanstack-table-empty">
+            <div class="flex items-center justify-center h-32 text-gray-500">
                 <p>No hay datos disponibles para mostrar</p>
+            </div>
+        `;
+    }
+
+    /**
+     * Render error state
+     */
+    renderError(error) {
+        const container = document.getElementById(this.containerId);
+        if (!container) return;
+
+        // Update row count for error state
+        const tableRowCount = container.querySelector('#table-row-count');
+        if (tableRowCount) {
+            tableRowCount.textContent = 'Error loading';
+        }
+
+        container.innerHTML = `
+            <div class="flex items-center justify-center h-32 text-red-500">
+                <p>Error cargando la tabla: ${error.message}</p>
             </div>
         `;
     }
@@ -317,7 +405,7 @@ class HydroMLTanStackTable {
      * Get current table state
      */
     getState() {
-        return this.table ? this.table.getState() : null;
+        return this.table ? this.table.getState() : this.state;
     }
 
     /**
@@ -330,3 +418,55 @@ class HydroMLTanStackTable {
 
 // Export for global usage
 window.HydroMLTanStackTable = HydroMLTanStackTable;
+
+// Initialize function exposed globally for CDN callback
+window.initializeTanStackTable = function() {
+    console.log('🚀 TanStack Table initialization called');
+    
+    // Wait for data to be available
+    function initializeTable() {
+        if (window.gridRowData && window.columnDefsData && window.TableCore) {
+            console.log('📊 Initializing TanStack Table with data:', {
+                rows: window.gridRowData.length,
+                columns: window.columnDefsData.length
+            });
+            
+            // Initialize table
+            const tableInstance = new HydroMLTanStackTable('tanstack-table-container', {
+                pageSize: 25,
+                debugMode: true
+            });
+            
+            tableInstance.init(window.gridRowData, window.columnDefsData);
+            
+            // Store globally for debugging
+            window.hydroMLTable = tableInstance;
+            
+        } else {
+            console.log('⏳ Waiting for data and library to load...');
+            setTimeout(initializeTable, 100);
+        }
+    }
+    
+    // Start initialization
+    initializeTable();
+};
+
+// Auto-initialize when DOM is ready (fallback if CDN callback doesn't work)
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOM loaded, checking for TanStack Table...');
+    
+    // Try immediate initialization if library is already loaded
+    if (window.TableCore) {
+        window.initializeTanStackTable();
+    } else {
+        // Wait for library to load
+        setTimeout(() => {
+            if (window.TableCore) {
+                window.initializeTanStackTable();
+            } else {
+                console.warn('⚠️ TanStack Table library still not loaded after DOM ready');
+            }
+        }, 500);
+    }
+});

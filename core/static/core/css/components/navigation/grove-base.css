@@ -1,0 +1,79 @@
+/**
+ * Grove Navigation Base
+ * Core navigation foundation and variables
+ * Part of the Grove Design System for HydroML
+ */
+
+/* ===== NAVIGATION BASE VARIABLES ===== */
+:root {
+  /* Navigation Heights */
+  --grove-nav-height: 4rem;
+  --grove-nav-item-height: 3rem;
+  
+  /* Navigation Colors */
+  --grove-nav-bg: var(--grove-bg-primary);
+  --grove-nav-border: var(--grove-border-primary);
+  --grove-nav-text: var(--grove-text-primary);
+  --grove-nav-text-secondary: var(--grove-text-secondary);
+  
+  /* Navigation Spacing */
+  --grove-nav-padding: var(--space-4);
+  --grove-nav-gap: var(--space-3);
+}
+
+/* ===== BASE NAVIGATION CONTAINER ===== */
+.grove-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--grove-nav-height);
+  padding: 0 var(--grove-nav-padding);
+  background-color: var(--grove-nav-bg);
+  border-bottom: 1px solid var(--grove-nav-border);
+}
+
+/* ===== NAVIGATION BRAND ===== */
+.grove-nav__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: var(--font-weight-semibold);
+  color: var(--grove-nav-text);
+}
+
+/* ===== NAVIGATION LIST ===== */
+.grove-nav__list {
+  display: flex;
+  align-items: center;
+  gap: var(--grove-nav-gap);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* ===== NAVIGATION ITEM BASE ===== */
+.grove-nav__item {
+  position: relative;
+}
+
+.grove-nav__link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  height: var(--grove-nav-item-height);
+  color: var(--grove-nav-text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.grove-nav__link:hover {
+  background-color: var(--grove-bg-secondary);
+  color: var(--grove-nav-text);
+}
+
+.grove-nav__link--active {
+  background-color: var(--grove-bg-accent);
+  color: var(--grove-text-inverse);
+}

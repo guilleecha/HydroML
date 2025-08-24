@@ -1,0 +1,241 @@
+{% extends "core/base_main.html" %}
+{% load static tabler_icons %}
+
+{% block page_title %}{{ project.name }}{% endblock %}
+
+{% block page_heading %}{{ project.name }}{% endblock %}
+
+{% block header_actions %}
+<div class="flex items-center space-x-2">
+    <button type="button" 
+            @click="openUploadPanel()"
+            class="grove-btn grove-btn--secondary grove-btn--sm">
+        {% tabler_icon_outline 'plus' 'w-4 h-4' %}
+        Add Data
+    </button>
+    <button type="button" 
+            @click="openNewExperimentPanel()"
+            class="grove-btn grove-btn--primary grove-btn--sm">
+        {% tabler_icon_outline 'bulb' 'w-4 h-4' %}
+        New Experiment
+    </button>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<!-- Project Navigation Tabs -->
+<div class="mb-6">
+    <nav class="flex space-x-8">
+        <a href="{% url 'projects:project_detail' project.pk %}" 
+           class="pb-3 text-sm font-medium border-b-2 {% if not request.GET.tab %}border-blue-500 text-blue-600 dark:text-blue-400{% else %}border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200{% endif %}">
+            {% include 'core/components/grove_icon.html' with icon='chart-bar' %}
+            Data ({{ datasources.count }})
+        </a>
+        <a href="{% url 'projects:project_detail' project.pk %}?tab=experiments" 
+           class="pb-3 text-sm font-medium border-b-2 {% if request.GET.tab == 'experiments' %}border-blue-500 text-blue-600 dark:text-blue-400{% else %}border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200{% endif %}">
+            {% include 'core/components/grove_icon.html' with icon='flask' %}
+            Experiments ({{ ml_activities|length }})
+        </a>
+    </nav>
+</div>
+
+{% if not request.GET.tab %}
+    <!-- Data Sources Section -->
+    <div class="space-y-4">
+        {% if datasources %}
+            <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-800">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rows</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Columns</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created</th>
+                            <th class="relative px-4 py-3"><span class="sr-only">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        {% for ds in datasources %}
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <td class="px-4 py-4">
+                                <div class="flex items-center">
+                                    {% include 'core/components/grove_icon.html' with icon='chart-bar' class='text-blue-500' %}
+                                    <div>
+                                        <a href="{% url 'data_tools:data_studio_page' pk=ds.pk %}" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
+                                            {{ ds.name }}
+                                        </a>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ ds.filename }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-4">
+                                {% include 'projects/partials/_datasource_status.html' with status=ds.status %}
+                            </td>
+                            <td class="px-4 py-4 text-sm text-gray-900 dark:text-gray-100">
+                                {% if ds.total_rows %}{{ ds.total_rows|floatformat:0 }}{% else %}-{% endif %}
+                            </td>
+                            <td class="px-4 py-4 text-sm text-gray-900 dark:text-gray-100">
+                                {% if ds.total_columns %}{{ ds.total_columns|floatformat:0 }}{% else %}-{% endif %}
+                            </td>
+                            <td class="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                {{ ds.uploaded_at|date:"M d, Y" }}
+                            </td>
+                            <td class="px-4 py-4 text-right text-sm">
+                                <div class="flex items-center justify-end space-x-2">
+                                    <a href="{% url 'projects:datasource_update' pk=ds.pk %}" 
+                                       class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                       title="Edit">
+                                        {% include 'core/components/grove_icon.html' with icon='edit' %}
+                                    </a>
+                                    <a href="{% url 'projects:datasource_delete' pk=ds.pk %}" 
+                                       class="text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                                       title="Delete">
+                                        {% include 'core/components/grove_icon.html' with icon='trash' %}
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+                {% tabler_icon_outline 'chart-bar' 'mx-auto h-12 w-12 text-gray-400' %}
+                <h3 class="mt-4 text-sm font-medium text-gray-900 dark:text-gray-100">No data sources</h3>
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Upload your first data file to get started.</p>
+                <button type="button" 
+                        @click="openUploadPanel()"
+                        class="mt-4 grove-btn grove-btn--primary">
+                    {% include 'core/components/grove_icon.html' with icon='upload' %}
+                    Upload Data
+                </button>
+            </div>
+        {% endif %}
+    </div>
+
+{% elif request.GET.tab == 'experiments' %}
+    <!-- Experiments Section -->
+    <div class="space-y-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <button type="button" 
+                        @click="openNewSuitePanel()"
+                        class="grove-btn grove-btn--secondary grove-btn--sm">
+                    {% include 'core/components/grove_icon.html' with icon='box' %}
+                    New Suite
+                </button>
+                <button type="button" 
+                        @click="openNewExperimentPanel()"
+                        class="grove-btn grove-btn--primary grove-btn--sm">
+                    {% tabler_icon_outline 'plus' 'w-4 h-4' %}
+                    New Experiment
+                </button>
+            </div>
+        </div>
+
+        {% if ml_activities %}
+            <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-800">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created</th>
+                            <th class="relative px-4 py-3"><span class="sr-only">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        {% for activity in ml_activities %}
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <td class="px-4 py-4">
+                                <div class="flex items-center">
+                                    {% if activity.type == 'experiment' %}
+                                        <div class="bg-blue-100 dark:bg-blue-900/20 rounded-full p-1 mr-3">
+                                            {% include 'core/components/grove_icon.html' with icon='flask' size='xs' class='text-blue-600 dark:text-blue-400' %}
+                                        </div>
+                                    {% else %}
+                                        <div class="bg-purple-100 dark:bg-purple-900/20 rounded-full p-1 mr-3">
+                                            {% include 'core/components/grove_icon.html' with icon='box' size='xs' class='text-purple-600 dark:text-purple-400' %}
+                                        </div>
+                                    {% endif %}
+                                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                                        {{ activity.type_display }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-4">
+                                <div>
+                                    <a href="{{ activity.url }}" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
+                                        {{ activity.name }}
+                                    </a>
+                                    {% if activity.type == 'suite' and activity.study_type_display %}
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ activity.study_type_display }}</p>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="px-4 py-4">
+                                {% include 'projects/partials/_activity_status.html' with status=activity.status %}
+                            </td>
+                            <td class="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                {{ activity.description|truncatechars:60 }}
+                                {% if activity.type == 'suite' and activity.experiment_count %}
+                                    <span class="block text-xs text-gray-400 dark:text-gray-500">{{ activity.experiment_count }} experiments</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                {{ activity.created_at|date:"M d, Y" }}
+                            </td>
+                            <td class="px-4 py-4 text-right text-sm">
+                                <div class="flex items-center justify-end space-x-2">
+                                    <a href="{{ activity.url }}" 
+                                       class="text-blue-600 dark:text-blue-400 hover:underline text-sm">
+                                        View
+                                    </a>
+                                    {% if activity.type == 'experiment' and activity.status == 'DRAFT' %}
+                                        <a href="{% url 'experiments:ml_experiment_update' pk=activity.object.pk %}" 
+                                           class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-sm">
+                                            Edit
+                                        </a>
+                                    {% elif activity.type == 'suite' and activity.status == 'DRAFT' %}
+                                        <a href="{% url 'experiments:suite_run' pk=activity.object.pk %}" 
+                                           class="text-green-600 dark:text-green-400 hover:underline text-sm">
+                                            Run
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+                {% tabler_icon_outline 'flask' 'mx-auto h-12 w-12 text-gray-400' %}
+                <h3 class="mt-4 text-sm font-medium text-gray-900 dark:text-gray-100">No experiments</h3>
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Start by creating your first ML experiment.</p>
+                <div class="mt-4 space-x-3">
+                    <button type="button" 
+                            @click="openNewExperimentPanel()"
+                            class="grove-btn grove-btn--primary">
+                        {% include 'core/components/grove_icon.html' with icon='flask' %}
+                        Create Experiment
+                    </button>
+                    <button type="button" 
+                            @click="openNewSuitePanel()"
+                            class="grove-btn grove-btn--secondary">
+                        {% include 'core/components/grove_icon.html' with icon='box' %}
+                        Create Suite
+                    </button>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endif %}
+
+{% endblock %}

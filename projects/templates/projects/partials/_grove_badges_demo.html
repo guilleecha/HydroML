@@ -1,0 +1,255 @@
+{% comment %}
+Demostración de Grove Badges para reemplazar implementaciones existentes
+Este archivo muestra cómo migrar de badges personalizadas a Grove Design System
+{% endcomment %}
+
+{% load tabler_icons %}
+
+<div class="grove-card grove-card--large">
+    <div class="grove-card-header">
+        <h3 class="grove-card-title">Grove Badges Demo - Reemplazo de Badges Existentes</h3>
+    </div>
+    <div class="grove-card-content space-y-6">
+        
+        <!-- ANTES: Badges personalizadas -->
+        <div class="space-y-4">
+            <h4 class="font-medium text-foreground-default">❌ ANTES: Badges personalizadas (inconsistentes)</h4>
+            
+            <!-- Badge personalizada de status - inconsistente -->
+            <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-success-100 text-success-800 border border-success-200">
+                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Completado
+            </div>
+            
+            <!-- Badge personalizada de tipo de archivo - inconsistente -->
+            <div class="inline-flex items-center px-2 py-1 rounded-md text-xs bg-blue-50 text-blue-700 border border-blue-200 ml-2">
+                CSV
+            </div>
+            
+            <!-- Badge personalizada de calidad - inconsistente -->
+            <div class="inline-flex items-center px-2.5 py-1 rounded-lg text-sm font-semibold bg-warning-100 text-warning-800 ml-2">
+                <div class="w-2 h-2 bg-warning-500 rounded-full mr-2"></div>
+                Calidad Media
+            </div>
+        </div>
+
+        <hr class="border-grove-border-primary">
+        
+        <!-- DESPUÉS: Grove Badges - consistente y profesional -->
+        <div class="space-y-4">
+            <h4 class="font-medium text-foreground-default">✅ DESPUÉS: Grove Design System Badges (consistente)</h4>
+            
+            <!-- Grove Badge de Status -->
+            <span class="grove-badge grove-badge--success grove-badge--sm" 
+                  data-grove-badge='{"variant": "success", "size": "sm", "icon": "check"}'>
+                {% tabler_icons "check" class="grove-badge__icon" %}
+                <span class="grove-badge__text">Completado</span>
+            </span>
+            
+            <!-- Grove Badge de Tipo de Archivo -->
+            <span class="grove-badge grove-badge--info grove-badge--sm grove-badge--outlined">
+                {% tabler_icons "file-text" class="grove-badge__icon" %}
+                <span class="grove-badge__text">CSV</span>
+            </span>
+            
+            <!-- Grove Badge de Calidad con Dot -->
+            <span class="grove-badge grove-badge--warning grove-badge--sm grove-badge--dot">
+                <span class="grove-badge__dot"></span>
+                <span class="grove-badge__text">Calidad Media</span>
+            </span>
+        </div>
+
+        <hr class="border-grove-border-primary">
+        
+        <!-- DEMOSTRACIÓN: Todas las variantes Grove -->
+        <div class="space-y-4">
+            <h4 class="font-medium text-foreground-default">🎨 Grove Badge Variants</h4>
+            
+            <!-- Semantic Variants -->
+            <div class="flex flex-wrap gap-2 mb-4">
+                <span class="grove-badge grove-badge--default grove-badge--sm">
+                    <span class="grove-badge__text">Default</span>
+                </span>
+                <span class="grove-badge grove-badge--success grove-badge--sm">
+                    {% tabler_icons "check" class="grove-badge__icon" %}
+                    <span class="grove-badge__text">Success</span>
+                </span>
+                <span class="grove-badge grove-badge--warning grove-badge--sm">
+                    {% tabler_icons "alert-triangle" class="grove-badge__icon" %}
+                    <span class="grove-badge__text">Warning</span>
+                </span>
+                <span class="grove-badge grove-badge--error grove-badge--sm">
+                    {% tabler_icons "alert-circle" class="grove-badge__icon" %}
+                    <span class="grove-badge__text">Error</span>
+                </span>
+                <span class="grove-badge grove-badge--info grove-badge--sm">
+                    {% tabler_icons "info-circle" class="grove-badge__icon" %}
+                    <span class="grove-badge__text">Info</span>
+                </span>
+                <span class="grove-badge grove-badge--brand grove-badge--sm">
+                    {% tabler_icons "star" class="grove-badge__icon" %}
+                    <span class="grove-badge__text">Brand</span>
+                </span>
+            </div>
+            
+            <!-- Classification Colors -->
+            <div class="flex flex-wrap gap-2 mb-4">
+                <span class="grove-badge grove-badge--purple grove-badge--xs">Purple</span>
+                <span class="grove-badge grove-badge--pink grove-badge--xs">Pink</span>
+                <span class="grove-badge grove-badge--indigo grove-badge--xs">Indigo</span>
+                <span class="grove-badge grove-badge--teal grove-badge--xs">Teal</span>
+                <span class="grove-badge grove-badge--orange grove-badge--xs">Orange</span>
+            </div>
+            
+            <!-- Sizes -->
+            <div class="flex flex-wrap items-center gap-2 mb-4">
+                <span class="grove-badge grove-badge--success grove-badge--xs">XS</span>
+                <span class="grove-badge grove-badge--success grove-badge--sm">SM</span>
+                <span class="grove-badge grove-badge--success grove-badge--md">MD</span>
+                <span class="grove-badge grove-badge--success grove-badge--lg">LG</span>
+            </div>
+            
+            <!-- Outlined Variants -->
+            <div class="flex flex-wrap gap-2 mb-4">
+                <span class="grove-badge grove-badge--success grove-badge--sm grove-badge--outlined">
+                    <span class="grove-badge__text">Success Outlined</span>
+                </span>
+                <span class="grove-badge grove-badge--warning grove-badge--sm grove-badge--outlined">
+                    <span class="grove-badge__text">Warning Outlined</span>
+                </span>
+                <span class="grove-badge grove-badge--error grove-badge--sm grove-badge--outlined">
+                    <span class="grove-badge__text">Error Outlined</span>
+                </span>
+            </div>
+            
+            <!-- Interactive Dismissible Badges -->
+            <div class="flex flex-wrap gap-2 mb-4">
+                <span class="grove-badge grove-badge--indigo grove-badge--sm grove-badge--dismissible" 
+                      data-grove-badge='{"variant": "indigo", "size": "sm", "dismissible": true}'>
+                    {% tabler_icons "tag" class="grove-badge__icon" %}
+                    <span class="grove-badge__text">Machine Learning</span>
+                    <button class="grove-badge__dismiss" aria-label="Remove tag">
+                        {% tabler_icons "x" class="grove-badge__dismiss-icon" %}
+                    </button>
+                </span>
+                
+                <span class="grove-badge grove-badge--teal grove-badge--sm grove-badge--dismissible" 
+                      data-grove-badge='{"variant": "teal", "size": "sm", "dismissible": true}'>
+                    {% tabler_icons "database" class="grove-badge__icon" %}
+                    <span class="grove-badge__text">Data Analysis</span>
+                    <button class="grove-badge__dismiss" aria-label="Remove tag">
+                        {% tabler_icons "x" class="grove-badge__dismiss-icon" %}
+                    </button>
+                </span>
+            </div>
+        </div>
+
+        <hr class="border-grove-border-primary">
+        
+        <!-- CASOS DE USO REALES para Projects -->
+        <div class="space-y-4">
+            <h4 class="font-medium text-foreground-default">🔧 Casos de Uso Reales - Projects Templates</h4>
+            
+            <!-- DataSource Status Real Example -->
+            <div class="space-y-2">
+                <p class="text-sm text-foreground-muted">Status de DataSource:</p>
+                <div class="flex flex-wrap gap-2">
+                    <span class="grove-badge grove-badge--warning grove-badge--sm">
+                        {% tabler_icons "loader" class="grove-badge__icon animate-spin" %}
+                        <span class="grove-badge__text">Procesando</span>
+                    </span>
+                    <span class="grove-badge grove-badge--success grove-badge--sm">
+                        {% tabler_icons "check" class="grove-badge__icon" %}
+                        <span class="grove-badge__text">Completado</span>
+                    </span>
+                    <span class="grove-badge grove-badge--error grove-badge--sm">
+                        {% tabler_icons "alert-circle" class="grove-badge__icon" %}
+                        <span class="grove-badge__text">Error</span>
+                    </span>
+                    <span class="grove-badge grove-badge--default grove-badge--sm">
+                        {% tabler_icons "clock" class="grove-badge__icon" %}
+                        <span class="grove-badge__text">Pendiente</span>
+                    </span>
+                </div>
+            </div>
+            
+            <!-- File Types Real Example -->
+            <div class="space-y-2">
+                <p class="text-sm text-foreground-muted">Tipos de Archivo:</p>
+                <div class="flex flex-wrap gap-2">
+                    <span class="grove-badge grove-badge--info grove-badge--xs grove-badge--outlined">
+                        {% tabler_icons "file-text" class="grove-badge__icon" %}
+                        <span class="grove-badge__text">CSV</span>
+                    </span>
+                    <span class="grove-badge grove-badge--teal grove-badge--xs grove-badge--outlined">
+                        {% tabler_icons "file-spreadsheet" class="grove-badge__icon" %}
+                        <span class="grove-badge__text">Excel</span>
+                    </span>
+                    <span class="grove-badge grove-badge--purple grove-badge--xs grove-badge--outlined">
+                        {% tabler_icons "braces" class="grove-badge__icon" %}
+                        <span class="grove-badge__text">JSON</span>
+                    </span>
+                    <span class="grove-badge grove-badge--orange grove-badge--xs grove-badge--outlined">
+                        {% tabler_icons "database" class="grove-badge__icon" %}
+                        <span class="grove-badge__text">Parquet</span>
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Data Quality Real Example -->
+            <div class="space-y-2">
+                <p class="text-sm text-foreground-muted">Calidad de Datos:</p>
+                <div class="flex flex-wrap gap-2">
+                    <span class="grove-badge grove-badge--success grove-badge--sm grove-badge--dot">
+                        <span class="grove-badge__dot"></span>
+                        <span class="grove-badge__text">Alta Calidad (90%+)</span>
+                    </span>
+                    <span class="grove-badge grove-badge--warning grove-badge--sm grove-badge--dot">
+                        <span class="grove-badge__dot"></span>
+                        <span class="grove-badge__text">Calidad Media (70-89%)</span>
+                    </span>
+                    <span class="grove-badge grove-badge--error grove-badge--sm grove-badge--dot">
+                        <span class="grove-badge__dot"></span>
+                        <span class="grove-badge__text">Requiere Limpieza (<70%)</span>
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Project Assignment Real Example -->
+            <div class="space-y-2">
+                <p class="text-sm text-foreground-muted">Asignación a Proyectos:</p>
+                <div class="flex flex-wrap gap-2">
+                    <span class="grove-badge grove-badge--brand grove-badge--sm">
+                        {% tabler_icons "folder-share" class="grove-badge__icon" %}
+                        <span class="grove-badge__text">3 proyectos</span>
+                    </span>
+                    <span class="grove-badge grove-badge--brand grove-badge--sm grove-badge--outlined">
+                        {% tabler_icons "folder" class="grove-badge__icon" %}
+                        <span class="grove-badge__text">Análisis Hidrológico</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript para demostrar interactividad -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar todas las badges con el atributo data-grove-badge
+    const badges = document.querySelectorAll('[data-grove-badge]');
+    badges.forEach(element => {
+        if (!element._groveBadge) {
+            const config = JSON.parse(element.dataset.groveBadge || '{}');
+            element._groveBadge = new GroveBadge(element, config);
+            
+            // Agregar eventos de ejemplo
+            element._groveBadge.on('dismiss', (event) => {
+                console.log('Badge dismissed:', event.detail);
+            });
+        }
+    });
+});
+</script>

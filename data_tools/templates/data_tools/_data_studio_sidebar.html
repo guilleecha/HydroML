@@ -1,7 +1,7 @@
 <!-- Data Studio Sidebar - Compact Design -->
 <div class="w-64 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 h-full flex flex-col flex-shrink-0 data-studio-sidebar">
     <!-- Header Section -->
-    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+    <div class="grove-card-header">
         <div class="flex items-center space-x-2">
             <div class="w-6 h-6 bg-blue-500 rounded flex items-center justify-center">
                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -17,7 +17,7 @@
     </div>
 
     <!-- Enhanced Session Management Panel -->
-    <div class="px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <div class="grove-card-content border-b grove-border-primary">
         <!-- Status Display -->
         <div class="flex items-center justify-between mb-3">
             <div class="flex items-center space-x-2">
@@ -92,7 +92,7 @@
         
         <!-- Overview Dropdown -->
         <div class="dropdown-section" data-section="overview">
-            <button class="w-full flex items-center justify-between px-3 py-2 text-left text-sm font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20">
+            <button class="w-full flex items-center justify-between grove-card grove-card--info hover:grove-bg-secondary transition-colors border-l-4 grove-border-info">
                 <div class="flex items-center space-x-2">
                     <span class="text-blue-600 dark:text-blue-400">📊</span>
                     <span class="text-blue-800 dark:text-blue-300 font-semibold">Overview</span>
@@ -102,7 +102,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
             </button>
-            <div class="dropdown-content hidden mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+            <div class="dropdown-content hidden mt-1 grove-card shadow-lg">
                 <div class="p-2 space-y-1">
                     <button class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors"
                             onclick="window.dataStudioSidebar?.showDatasetInfo()">
@@ -118,7 +118,7 @@
 
         <!-- Column Operations Dropdown -->
         <div class="dropdown-section" data-section="columns">
-            <button class="w-full flex items-center justify-between px-3 py-2 text-left text-sm font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <button class="w-full flex items-center justify-between grove-card hover:grove-bg-secondary transition-colors text-sm font-medium text-left">
                 <div class="flex items-center space-x-2">
                     <span class="text-purple-600 dark:text-purple-400">🔧</span>
                     <span class="text-gray-900 dark:text-gray-100">Column Operations</span>
@@ -127,7 +127,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
             </button>
-            <div class="dropdown-content hidden mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+            <div class="dropdown-content hidden mt-1 grove-card shadow-lg">
                 <div class="p-2 space-y-1">
                     <button class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors"
                             onclick="window.dataStudioSidebar?.deleteSelectedColumns()">
@@ -151,7 +151,7 @@
 
         <!-- Missing Data Tools Dropdown -->
         <div class="dropdown-section" data-section="missing-data">
-            <button class="w-full flex items-center justify-between px-3 py-2 text-left text-sm font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <button class="w-full flex items-center justify-between grove-card hover:grove-bg-secondary transition-colors text-sm font-medium text-left">
                 <div class="flex items-center space-x-2">
                     <span class="text-orange-600 dark:text-orange-400">🧹</span>
                     <span class="text-gray-900 dark:text-gray-100">Missing Data Tools</span>
@@ -160,7 +160,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
             </button>
-            <div class="dropdown-content hidden mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+            <div class="dropdown-content hidden mt-1 grove-card shadow-lg">
                 <div class="p-2 space-y-1">
                     <button class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors"
                             onclick="window.dataStudioSidebar?.runNaNAnalysis()">
@@ -184,7 +184,7 @@
 
         <!-- Feature Engineering Dropdown -->
         <div class="dropdown-section" data-section="feature-engineering">
-            <button class="w-full flex items-center justify-between px-3 py-2 text-left text-sm font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <button class="w-full flex items-center justify-between grove-card hover:grove-bg-secondary transition-colors text-sm font-medium text-left">
                 <div class="flex items-center space-x-2">
                     <span class="text-green-600 dark:text-green-400">⚙️</span>
                     <span class="text-gray-900 dark:text-gray-100">Feature Engineering</span>
@@ -193,7 +193,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
             </button>
-            <div class="dropdown-content hidden mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+            <div class="dropdown-content hidden mt-1 grove-card shadow-lg">
                 <div class="p-2 space-y-1">
                     <button class="w-full text-left px-3 py-2 text-sm text-gray-500 dark:text-gray-500 bg-gray-50 dark:bg-gray-700 rounded cursor-not-allowed"
                             disabled>
@@ -217,7 +217,7 @@
 
         <!-- Visualization Dropdown -->
         <div class="dropdown-section" data-section="visualization">
-            <button class="w-full flex items-center justify-between px-3 py-2 text-left text-sm font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <button class="w-full flex items-center justify-between grove-card hover:grove-bg-secondary transition-colors text-sm font-medium text-left">
                 <div class="flex items-center space-x-2">
                     <span class="text-indigo-600 dark:text-indigo-400">📊</span>
                     <span class="text-gray-900 dark:text-gray-100">Visualization</span>
@@ -226,7 +226,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
             </button>
-            <div class="dropdown-content hidden mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+            <div class="dropdown-content hidden mt-1 grove-card shadow-lg">
                 <div class="p-2 space-y-1">
                     <button class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors"
                             onclick="window.dataStudioSidebar?.openQuickChartsModal()">

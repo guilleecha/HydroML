@@ -223,9 +223,9 @@ class TanStackTableController {
         });
     }
 
-    setColumns(columnDefs) {
-        // Convert AG Grid column definitions to TanStack Table format
-        this.columns = this.convertColumnDefs(columnDefs);
+    setColumns(columnNames) {
+        // Convert simple column names to TanStack Table format
+        this.columns = this.convertColumnNames(columnNames);
         this.updateTable();
         
         this.dispatchEvent('columns-updated', {
@@ -234,39 +234,16 @@ class TanStackTableController {
         });
     }
 
-    convertColumnDefs(agGridColumns) {
-        if (!Array.isArray(agGridColumns)) return [];
+    convertColumnNames(columnNames) {
+        if (!Array.isArray(columnNames)) return [];
         
-        return agGridColumns.map(col => {
-            const column = {
-                id: col.field || col.colId,
-                accessorKey: col.field,
-                header: col.headerName || col.field,
-                enableSorting: col.sortable !== false,
-                enableColumnFilter: col.filter !== false,
-            };
-
-            // Handle different data types
-            if (col.type === 'numericColumn') {
-                column.meta = { type: 'number' };
-                column.cell = ({ getValue }) => {
-                    const value = getValue();
-                    return typeof value === 'number' ? value.toLocaleString() : value;
-                };
-            }
-
-            // Handle custom width
-            if (col.width) {
-                column.size = col.width;
-            }
-
-            // Handle pinning
-            if (col.pinned) {
-                column.meta = { ...column.meta, pinned: col.pinned };
-            }
-
-            return column;
-        });
+        return columnNames.map(columnName => ({
+            id: columnName,
+            accessorKey: columnName,
+            header: columnName,
+            enableSorting: true,
+            enableColumnFilter: true,
+        }));
     }
 
     // === RENDERING ===

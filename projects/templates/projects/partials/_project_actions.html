@@ -1,0 +1,34 @@
+{#
+  Project Action Buttons Component
+  
+  Usage:
+    {% include 'projects/partials/_project_actions.html' with project=project show_upload=True show_experiment=True %}
+  
+  Parameters:
+    - project: Project object (required)
+    - show_upload: Show upload button (default: True)
+    - show_experiment: Show new experiment button (default: True)
+    - button_size: Button size (sm, md, lg) - default: sm
+#}
+
+{% load static %}
+
+<div class="flex items-center space-x-2">
+    {% if show_upload|default:True %}
+        <button type="button" 
+                @click="openUploadPanel()"
+                class="grove-btn grove-btn--secondary grove-btn--{{ button_size|default:'sm' }}">
+            {% include 'core/components/grove_icon.html' with icon='plus' %}
+            Add Data
+        </button>
+    {% endif %}
+    
+    {% if show_experiment|default:True %}
+        <button type="button" 
+                @click="openNewExperimentPanel()"
+                class="grove-btn grove-btn--primary grove-btn--{{ button_size|default:'sm' }}">
+            {% include 'core/components/grove_icon.html' with icon='bulb' %}
+            New Experiment
+        </button>
+    {% endif %}
+</div>

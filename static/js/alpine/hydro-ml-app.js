@@ -3,14 +3,17 @@
  * Defines the main application component with core functionality
  */
 
-document.addEventListener('alpine:init', () => {
-    Alpine.data('hydroMLApp', () => ({
-        // Theme management - DISABLED temporarily to prevent flash
-        darkMode: false, // Force light mode to prevent auto dark theme flash
+// Define the component function
+const hydroMLAppComponent = () => ({
+    // Theme management - DISABLED temporarily to prevent flash
+    darkMode: false, // Force light mode to prevent auto dark theme flash
         
         // UI state management
         sidebarOpen: false,
         mobileMenuOpen: false,
+        userMenuOpen: false,
+        quickActionsOpen: false,
+        viewMode: 'grid',
         isUploadPanelOpen: false,
         isProjectPanelOpen: false,
         isNewExperimentPanelOpen: false,
@@ -52,6 +55,29 @@ document.addEventListener('alpine:init', () => {
         closeSidebar() {
             this.sidebarOpen = false;
         },
+
+        // User menu methods
+        toggleUserMenu() {
+            this.userMenuOpen = !this.userMenuOpen;
+        },
+
+        closeUserMenu() {
+            this.userMenuOpen = false;
+        },
+
+        // Quick actions methods
+        toggleQuickActions() {
+            this.quickActionsOpen = !this.quickActionsOpen;
+        },
+
+        closeQuickActions() {
+            this.quickActionsOpen = false;
+        },
+
+        // View mode methods
+        setViewMode(mode) {
+            this.viewMode = mode;
+        },
         
         // Panel methods
         openUploadPanel() {
@@ -85,6 +111,16 @@ document.addEventListener('alpine:init', () => {
             this.isProjectPanelOpen = false;
             this.isNewExperimentPanelOpen = false;
             this.sidebarOpen = false;
+            this.userMenuOpen = false;
+            this.quickActionsOpen = false;
         }
-    }));
-});
+    });
+
+// Register immediately if Alpine is already available, otherwise wait for alpine:init
+if (window.Alpine) {
+    window.Alpine.data('hydroMLApp', hydroMLAppComponent);
+} else {
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('hydroMLApp', hydroMLAppComponent);
+    });
+}

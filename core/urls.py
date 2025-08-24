@@ -30,6 +30,9 @@ urlpatterns = [
     # API endpoints for breadcrumb navigation
     path('api/projects/other/', api.get_other_projects, name='api_other_projects'),
     
+    # Theme preferences API
+    path('api/theme/preferences/', api.theme_preferences, name='api_theme_preferences'),
+    
     # API endpoints for notifications (commented out until Notification model is implemented)
     # path('api/notifications/', views.NotificationAPIView.as_view(), name='notifications_api'),
     # path('api/notifications/count/', views.get_unread_count, name='notifications_count'),

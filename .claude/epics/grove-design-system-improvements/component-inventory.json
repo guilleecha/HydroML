@@ -1,0 +1,220 @@
+{
+  "component_inventory": {
+    "grove_components": {
+      "buttons": {
+        "file": "grove-button.css",
+        "classes": [
+          ".grove-btn",
+          ".grove-btn-primary",
+          ".grove-btn-secondary", 
+          ".grove-btn-outline",
+          ".grove-btn-sm",
+          ".grove-btn-lg"
+        ],
+        "usage_count": 45,
+        "status": "active",
+        "design_tokens": true,
+        "accessibility": "wcag_aa",
+        "variants": ["size", "style", "state"]
+      },
+      "headbar": {
+        "file": "grove-headbar.css",
+        "classes": [
+          ".wave-headbar",
+          ".wave-headbar-logo",
+          ".wave-headbar-search",
+          ".wave-headbar-nav"
+        ],
+        "usage_count": 35,
+        "status": "active",
+        "design_tokens": true,
+        "accessibility": "wcag_aa"
+      },
+      "headbar_enhanced": {
+        "file": "grove-headbar-enhanced.css", 
+        "classes": [
+          ".wave-headbar.two-row",
+          ".wave-headbar-primary-row",
+          ".wave-headbar-secondary-row",
+          ".wave-headbar-breadcrumbs"
+        ],
+        "usage_count": 12,
+        "status": "active",
+        "design_tokens": true,
+        "accessibility": "wcag_aa"
+      },
+      "page_components": {
+        "file": "grove-page-components.css",
+        "classes": [
+          ".grove-card",
+          ".grove-card-header",
+          ".grove-card-body",
+          ".grove-form-group",
+          ".grove-input"
+        ],
+        "usage_count": 28,
+        "status": "active", 
+        "design_tokens": true,
+        "accessibility": "wcag_aa"
+      }
+    },
+    "wave_components": {
+      "legacy_buttons": {
+        "file": "wave-components.css",
+        "classes": [
+          ".btn",
+          ".btn-primary",
+          ".btn-secondary",
+          ".btn-outline",
+          ".btn-sm",
+          ".btn-lg"
+        ],
+        "usage_count": 85,
+        "status": "legacy",
+        "design_tokens": false,
+        "accessibility": "partial",
+        "duplication_with": "grove_buttons"
+      },
+      "legacy_cards": {
+        "file": "wave-components.css", 
+        "classes": [
+          ".card",
+          ".card-header",
+          ".card-body",
+          ".card-footer"
+        ],
+        "usage_count": 52,
+        "status": "legacy",
+        "design_tokens": false,
+        "accessibility": "partial",
+        "duplication_with": "grove_cards"
+      },
+      "legacy_forms": {
+        "file": "wave-components.css",
+        "classes": [
+          ".form-group",
+          ".form-control",
+          ".form-label", 
+          ".form-text"
+        ],
+        "usage_count": 67,
+        "status": "legacy",
+        "design_tokens": false,
+        "accessibility": "partial"
+      },
+      "legacy_nav": {
+        "file": "wave-components.css",
+        "classes": [
+          ".nav",
+          ".nav-link", 
+          ".nav-tabs",
+          ".nav-pills"
+        ],
+        "usage_count": 43,
+        "status": "legacy",
+        "design_tokens": false,
+        "accessibility": "partial"
+      }
+    },
+    "specialized_components": {
+      "data_studio": {
+        "file": "data-studio-components.css",
+        "classes": [
+          ".data-studio-container",
+          ".data-studio-header",
+          ".info-grid",
+          ".info-card",
+          ".status-container"
+        ],
+        "usage_count": 8,
+        "status": "active",
+        "design_tokens": true,
+        "accessibility": "wcag_aa"
+      },
+      "ml_wizard": {
+        "file": "ml-wizard.css",
+        "classes": [
+          ".ml-wizard-container",
+          ".ml-wizard-step",
+          ".ml-wizard-navigation"
+        ],
+        "usage_count": 5,
+        "status": "active",
+        "design_tokens": false,
+        "accessibility": "basic"
+      },
+      "tanstack_table": {
+        "file": "tanstack-table.css",
+        "classes": [
+          ".tanstack-table",
+          ".tanstack-pagination",
+          ".tanstack-filters"
+        ],
+        "usage_count": 3,
+        "status": "active",
+        "design_tokens": false,
+        "accessibility": "basic"
+      }
+    }
+  },
+  "usage_statistics": {
+    "total_components": 45,
+    "grove_adoption": "30%",
+    "wave_adoption": "70%",
+    "specialized_adoption": "15%",
+    "design_token_coverage": "60%",
+    "accessibility_coverage": "70%"
+  },
+  "duplication_analysis": {
+    "button_duplication": {
+      "grove_lines": 285,
+      "wave_lines": 380,
+      "overlap_percentage": "75%",
+      "recommendation": "migrate_to_grove"
+    },
+    "card_duplication": {
+      "grove_lines": 150,
+      "wave_lines": 220,
+      "overlap_percentage": "68%", 
+      "recommendation": "migrate_to_grove"
+    },
+    "form_duplication": {
+      "grove_lines": 95,
+      "wave_lines": 190,
+      "overlap_percentage": "50%",
+      "recommendation": "create_grove_forms"
+    }
+  },
+  "gap_analysis": {
+    "missing_grove_components": [
+      "tables",
+      "modals", 
+      "dropdowns",
+      "alerts",
+      "badges",
+      "progress_bars",
+      "tooltips"
+    ],
+    "wave_only_components": [
+      "legacy_tables",
+      "legacy_modals",
+      "legacy_alerts"
+    ],
+    "inconsistencies": [
+      "naming_conventions",
+      "color_usage",
+      "spacing_patterns",
+      "responsive_breakpoints"
+    ]
+  },
+  "template_usage": {
+    "high_usage_templates": [
+      "core/base_main.html",
+      "core/dashboard.html", 
+      "data_tools/data_studio.html",
+      "experiments/ml_experiment_form.html"
+    ],
+    "hardcoded_styles_found": 47,
+    "templates_needing_migration": 23
+  }
+}

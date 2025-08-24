@@ -22,8 +22,6 @@ window.ExportManager = {
      * Initialize the export system
      */
     init() {
-        console.log('Export Manager initialized');
-        
         // Set up global error handling for export operations
         this.setupGlobalErrorHandling();
         
@@ -328,30 +326,6 @@ window.ExportManager = {
         return `${days}d ago`;
     }
 };
-
-// Alpine.js Global Store for Export State
-document.addEventListener('alpine:init', () => {
-    Alpine.store('exportState', {
-        isWizardOpen: false,
-        currentExports: [],
-        
-        openWizard() {
-            this.isWizardOpen = true;
-        },
-        
-        closeWizard() {
-            this.isWizardOpen = false;
-        },
-        
-        addExport(exportJob) {
-            this.currentExports.unshift(exportJob);
-            // Keep only last 10 exports in memory
-            if (this.currentExports.length > 10) {
-                this.currentExports = this.currentExports.slice(0, 10);
-            }
-        }
-    });
-});
 
 // Auto-initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {

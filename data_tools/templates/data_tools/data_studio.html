@@ -3,116 +3,82 @@
 
 {% block page_title %}Data Studio - {{ datasource.name }}{% endblock %}
 
-<!-- Use base template breadcrumb with breadcrumb_path context variable -->
+{% block page_heading %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'core/css/components/grove-sidebar.css' %}">
+<link rel="stylesheet" href="{% static 'core/css/components/grove-nav-section.css' %}">
+<link rel="stylesheet" href="{% static 'core/css/components/grove-session-controls.css' %}">
+<link rel="stylesheet" href="{% static 'data_tools/css/tanstack-table.css' %}">
+<link rel="stylesheet" href="{% static 'data_tools/css/data-studio-extensions.css' %}">
+{% endblock %}
+
+{% block header_actions %}
+<!-- Data Studio no necesita header actions - sidebar fija presente -->
+{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-white p-8">
-    <div class="max-w-4xl mx-auto">
-        
-        <!-- Basic Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">
-                🔧 Data Studio - {{ datasource.name }}
-            </h1>
-            <p class="text-gray-600">
-                Análisis y preparación de datos
-            </p>
-        </div>
+<!-- Data Studio Two-Column Layout -->
+<div class="grove-sidebar-layout">
+    
+    <!-- Include Fixed Data Tools Sidebar -->
+    {% include "data_tools/partials/_data_tools_sidebar.html" %}
 
-        <!-- Data Source Info -->
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-            <h2 class="text-xl font-semibold text-blue-900 mb-4">Información del DataSource</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                    <strong class="text-blue-800">Nombre:</strong>
-                    <span class="ml-2 text-blue-700">{{ datasource.name }}</span>
-                </div>
-                <div>
-                    <strong class="text-blue-800">ID:</strong>
-                    <span class="ml-2 text-blue-700 font-mono text-xs">{{ datasource.id }}</span>
-                </div>
-                <div>
-                    <strong class="text-blue-800">Archivo:</strong>
-                    <span class="ml-2 text-blue-700">{{ datasource.file.name }}</span>
-                </div>
-                <div>
-                    <strong class="text-blue-800">Filas:</strong>
-                    <span class="ml-2 text-blue-700">{{ automated_analysis.basic_info.total_rows|floatformat:0 }}</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Data Table Section -->
-        <div class="bg-white border border-gray-200 rounded-lg shadow-sm mb-8">
-            <div class="px-6 py-4 border-b border-gray-200">
-                <h2 class="text-lg font-semibold text-gray-900">Datos del DataSource</h2>
-                <p class="text-sm text-gray-600 mt-1">
-                    Mostrando primeras 10 filas de {{ automated_analysis.basic_info.total_rows|floatformat:0 }} total
+    <!-- Main Data Studio Content Area -->
+    <main class="grove-main-content">
+        <div class="p-8">
+        <div class="max-w-4xl mx-auto">
+            
+            <!-- Basic Header -->
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    🔧 Data Studio - {{ datasource.name }}
+                </h1>
+                <p class="text-sm text-gray-500">
+                    {{ automated_analysis.basic_info.total_rows|floatformat:0 }} rows • {{ datasource.file.name }}
                 </p>
             </div>
-            
-            <!-- Simple HTML Table -->
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            {% for column in sample_data.columns %}
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                {{ column }}
-                            </th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        {% for row in sample_data.data %}
-                        <tr class="hover:bg-gray-50">
-                            {% for value in row %}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ value|default:"-"|truncatechars:50 }}
-                            </td>
-                            {% endfor %}
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="{{ sample_data.columns|length }}" class="px-6 py-4 text-center text-gray-500">
-                                No hay datos disponibles
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
 
-        <!-- Simple Success Message -->
-        <div class="bg-green-50 border border-green-200 rounded-lg p-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                    </svg>
-                </div>
-                <div class="ml-3">
-                    <h3 class="text-sm font-medium text-green-800">
-                        ✅ Data Studio funcionando correctamente
-                    </h3>
-                    <div class="mt-2 text-sm text-green-700">
-                        <p>Template base limpio con breadcrumbs unificados y sin conflictos de tema.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Enhanced Data Table Section with TanStack -->
+        {% include "data_tools/partials/_tanstack_table.html" %}
 
-    </div>
+
+        </div>
+        </div>
+    </main>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<!-- Data Studio Utilities -->
+<script src="{% static 'data_tools/js/data_studio_ui_utils.js' %}"></script>
+<script src="{% static 'data_tools/js/data_studio_api.js' %}"></script>
+
+<!-- Modular Sidebar Components (Load order is important) -->
+<script src="{% static 'data_tools/js/sidebar/UIStateManager.js' %}"></script>
+<script src="{% static 'data_tools/js/sidebar/SessionManager.js' %}"></script>
+<script src="{% static 'data_tools/js/sidebar/ColumnOperationsManager.js' %}"></script>
+<script src="{% static 'data_tools/js/sidebar/DataAnalysisManager.js' %}"></script>
+<script src="{% static 'data_tools/js/sidebar/IntegrationManager.js' %}"></script>
+<script src="{% static 'data_tools/js/sidebar/DataStudioSidebarController.js' %}"></script>
+
+<!-- TanStack Table Implementation - Orden optimizado para carga local -->
+<script src="{% static 'data_tools/js/tanstack-bootstrap.js' %}"></script>
+<script src="{% static 'data_tools/js/tanstack/tanstack-table-config.js' %}"></script>
+<script src="{% static 'data_tools/js/tanstack/tanstack-table-core.js' %}"></script>
+<script src="{% static 'data_tools/js/tanstack-table.js' %}"></script>
+
 <script>
-console.log('🔧 Data Studio cargado');
-console.log('📊 DataSource ID:', "{{ datasource.id }}");
-console.log('📁 DataSource Name:', "{{ datasource.name }}");
-console.log('📈 Total Rows:', {{ automated_analysis.basic_info.total_rows|default:0 }});
-console.log('📊 Total Columns:', {{ automated_analysis.basic_info.total_columns|default:0 }});
+// Pasar datos de Django a JavaScript (patrón estándar Django)
+window.gridRowData = {{ grid_data_json|safe }};
+window.columnDefsData = {{ column_defs_json|safe }};
+window.datasourceId = '{{ datasource.id }}';
+window.datasourceName = '{{ datasource.name }}';
+
+console.log('📊 Django Data loaded:', {
+    rows: window.gridRowData?.length || 0,
+    columns: window.columnDefsData?.length || 0,
+    datasourceId: window.datasourceId
+});
 </script>
 {% endblock %}

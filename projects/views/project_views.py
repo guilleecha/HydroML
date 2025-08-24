@@ -15,7 +15,7 @@ class ProjectListView(LoginRequiredMixin, ListView):
     Muestra una lista de todos los proyectos que pertenecen al usuario logueado.
     """
     model = Project
-    template_name = 'projects/project_list.html'
+    template_name = 'projects/views/project_list.html'
     context_object_name = 'projects'
     
     def get_queryset(self):
@@ -29,7 +29,7 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
     Muestra la página de detalle de un proyecto específico.
     """
     model = Project
-    template_name = 'projects/project_detail.html'
+    template_name = 'projects/views/project_detail.html'
     context_object_name = 'project'
     
     def get_queryset(self):
@@ -135,7 +135,7 @@ def project_create(request):
     context = {
         'form': form
     }
-    return render(request, 'projects/project_form.html', context)
+    return render(request, 'projects/forms/project_form.html', context)
 
 
 @login_required
@@ -168,7 +168,7 @@ def project_create_partial(request):
     context = {
         'form': form,
     }
-    return render(request, 'projects/project_form_partial.html', context)
+    return render(request, 'projects/forms/project_form_partial.html', context)
 
 
 @login_required
@@ -232,7 +232,7 @@ def project_create_iframe(request):
     else:
         form = ProjectForm()
     
-    return render(request, 'projects/project_form_partial.html', {
+    return render(request, 'projects/forms/project_form_partial.html', {
         'form': form,
         'is_iframe': True
     })

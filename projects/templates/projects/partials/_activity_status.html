@@ -1,0 +1,41 @@
+{#
+  Activity Status Component (for ML Experiments and Suites)
+  
+  Usage:
+    {% include 'projects/partials/_activity_status.html' with status='COMPLETED' %}
+    {% include 'projects/partials/_activity_status.html' with status='RUNNING' %}
+  
+  Parameters:
+    - status: Activity status (DRAFT, QUEUED, RUNNING, FINISHED, COMPLETED, FAILED, etc.)
+    - size: Badge size (xs, sm, md, lg) - default: sm
+#}
+
+{% load static %}
+
+{% with status_upper=status|upper %}
+  {% if status_upper == 'DRAFT' %}
+    <span class="grove-badge grove-badge--default grove-badge--{{ size|default:'sm' }}">
+      <span class="grove-badge__text">Draft</span>
+    </span>
+  {% elif status_upper == 'QUEUED' %}
+    <span class="grove-badge grove-badge--warning grove-badge--{{ size|default:'sm' }}">
+      <span class="grove-badge__text">Queued</span>
+    </span>
+  {% elif status_upper == 'RUNNING' %}
+    <span class="grove-badge grove-badge--info grove-badge--{{ size|default:'sm' }}">
+      <span class="grove-badge__text">Running</span>
+    </span>
+  {% elif status_upper == 'FINISHED' or status_upper == 'COMPLETED' %}
+    <span class="grove-badge grove-badge--success grove-badge--{{ size|default:'sm' }}">
+      <span class="grove-badge__text">{% if status_upper == 'FINISHED' %}Finished{% else %}Completed{% endif %}</span>
+    </span>
+  {% elif status_upper == 'FAILED' %}
+    <span class="grove-badge grove-badge--error grove-badge--{{ size|default:'sm' }}">
+      <span class="grove-badge__text">Failed</span>
+    </span>
+  {% else %}
+    <span class="grove-badge grove-badge--default grove-badge--{{ size|default:'sm' }}">
+      <span class="grove-badge__text">{{ status|capfirst|default:'Unknown' }}</span>
+    </span>
+  {% endif %}
+{% endwith %}

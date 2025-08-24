@@ -10,9 +10,11 @@ Task 3.4.c Enhancement:
 """
 
 import logging
+import json
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 from django.db import connection
 from django.core.cache import cache
 from projects.models import Project
@@ -98,4 +100,55 @@ def get_other_projects(request):
             'error': 'Internal server error while loading projects',
             'projects': [],
             'total_count': 0
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def theme_preferences(request):
+    """
+    Handle theme preferences from the ThemeManager.
+    Currently returns success without storing preferences.
+    Future enhancement: Store user theme preferences in database.
+    """
+    try:
+        # Parse JSON body
+        try:
+            data = json.loads(request.body)
+        except (json.JSONDecodeError, TypeError):
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid JSON data'
+            }, status=400)
+        
+        # Extract theme data
+        theme = data.get('theme', 'light')
+        customizations = data.get('customizations', {})
+        
+        # Validate theme
+        valid_themes = ['light', 'dark']
+        if theme not in valid_themes:
+            return JsonResponse({
+                'success': False,
+                'error': f'Invalid theme. Must be one of: {valid_themes}'
+            }, status=400)
+        
+        # Log the theme change for monitoring
+        logger.info(f"User {request.user.id} changed theme to: {theme}")
+        
+        # TODO: Store preferences in user profile or separate model
+        # For now, just return success
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Theme preferences updated',
+            'theme': theme,
+            'user': str(request.user.username)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error updating theme preferences for user {request.user.id}: {str(e)}", exc_info=True)
+        return JsonResponse({
+            'success': False,
+            'error': 'Internal server error'
         }, status=500)

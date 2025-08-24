@@ -1,0 +1,27 @@
+<!-- Data Studio Navigation Section Template -->
+<!-- Usage: Include with context variables: section_id, section_title, section_icon, section_icon_class, section_items -->
+
+<div class="grove-nav-section">
+    <button @click="activeSection = activeSection === '{{ section_id }}' ? null : '{{ section_id }}'" 
+            class="grove-nav-section-header">
+        <svg class="grove-nav-section-icon {{ section_icon_class }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {{ section_icon|safe }}
+        </svg>
+        <span x-show="!isCollapsed">{{ section_title }}</span>
+        <svg x-show="!isCollapsed" class="grove-nav-section-chevron" 
+             :class="{ 'grove-nav-section-chevron--expanded': activeSection === '{{ section_id }}' }" 
+             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+    </button>
+    <div x-show="activeSection === '{{ section_id }}' && !isCollapsed" class="grove-nav-section-content">
+        {% for item in section_items %}
+        <button class="grove-nav-item" data-action="{{ item.action }}">
+            <svg class="grove-nav-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {{ item.icon|safe }}
+            </svg>
+            <span>{{ item.title }}</span>
+        </button>
+        {% endfor %}
+    </div>
+</div>

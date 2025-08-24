@@ -279,7 +279,7 @@ def datasource_upload_form_partial(request):
         'ux_context': ux_context,
         'user_projects': user_projects,  # For advanced UX features
     }
-    return render(request, 'projects/datasource_form_partial.html', context)
+    return render(request, 'projects/forms/datasource_form_partial.html', context)
 
 
 @login_required
@@ -308,7 +308,7 @@ def datasource_upload(request, project_id):
         'form': form,
         'project': project,
     }
-    return render(request, 'projects/datasource_upload_form.html', context)
+    return render(request, 'projects/workflows/datasource_upload_form.html', context)
 
 
 class DataSourceUpdateView(LoginRequiredMixin, UpdateView):
@@ -317,7 +317,7 @@ class DataSourceUpdateView(LoginRequiredMixin, UpdateView):
     """
     model = DataSource
     form_class = DataSourceUpdateForm
-    template_name = 'projects/datasource_form.html'
+    template_name = 'projects/forms/datasource_form.html'
 
     def get_queryset(self):
         # Security: ensure users can only edit their own datasources
@@ -338,7 +338,7 @@ class DataSourceDeleteView(LoginRequiredMixin, DeleteView):
     Vista para confirmar y eliminar una fuente de datos.
     """
     model = DataSource
-    template_name = 'projects/datasource_confirm_delete.html'
+    template_name = 'projects/workflows/datasource_confirm_delete.html'
 
     def get_queryset(self):
         # Security: ensure users can only delete their own datasources
@@ -412,7 +412,7 @@ def datasource_upload_summary(request, datasource_id):
         'preview_charts': preview_charts,
     }
 
-    return render(request, 'projects/datasource_upload_summary.html', context)
+    return render(request, 'projects/workflows/datasource_upload_summary.html', context)
 
 
 def _get_datasource_lineage(datasource):
@@ -578,7 +578,7 @@ def datasources_list(request):
         'stats': stats,
     }
     
-    return render(request, 'projects/datasources_list.html', context)
+    return render(request, 'projects/views/datasources_list.html', context)
 
 
 @login_required
@@ -635,7 +635,7 @@ def add_datasource_to_project(request, project_pk):
         'breadcrumbs': breadcrumbs,
     }
     
-    return render(request, 'projects/add_datasource_to_project.html', context)
+    return render(request, 'projects/workflows/add_datasource_to_project.html', context)
 
 
 @login_required
@@ -671,7 +671,7 @@ def datasource_create_iframe(request):
     else:
         form = DataSourceUploadForm()
     
-    return render(request, 'projects/datasource_form_partial.html', {
+    return render(request, 'projects/forms/datasource_form_partial.html', {
         'form': form,
         'is_iframe': True
     })

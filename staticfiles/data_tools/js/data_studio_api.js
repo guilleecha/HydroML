@@ -127,9 +127,8 @@ class DataStudioAPI {
      */
     async runNaNAnalysis() {
         const response = await fetch(`/data-tools/api/studio/${this.datasourceId}/nan/analysis/`, {
-            method: 'POST',
+            method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
                 'X-CSRFToken': this.getCSRFToken(),
             }
         });
@@ -141,16 +140,16 @@ class DataStudioAPI {
      * Perform NaN cleaning
      */
     async performNaNCleaning(removeRows, removeColumns) {
+        const formData = new FormData();
+        formData.append('remove_nan_rows', removeRows ? 'true' : 'false');
+        formData.append('remove_nan_columns', removeColumns ? 'true' : 'false');
+
         const response = await fetch(`/data-tools/api/studio/${this.datasourceId}/nan/quick-clean/`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'X-CSRFToken': this.getCSRFToken(),
             },
-            body: JSON.stringify({
-                'remove_nan_rows': removeRows,
-                'remove_nan_columns': removeColumns
-            })
+            body: formData
         });
 
         return await response.json();
@@ -170,6 +169,83 @@ class DataStudioAPI {
                 'operation': 'drop',
                 'columns': columns
             })
+        });
+
+        return await response.json();
+    }
+
+    /**
+     * Get comprehensive column statistics for current session
+     */
+    async getColumnStatistics() {
+        const response = await fetch(`/data-tools/api/studio/${this.datasourceId}/session/column-statistics/`, {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': this.getCSRFToken(),
+            }
+        });
+
+        return await response.json();
+    }
+
+    /**
+     * Rename a column
+     */
+    async renameColumn(oldName, newName) {
+        const response = await fetch(`/data-tools/api/studio/${this.datasourceId}/session/rename-column/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': this.getCSRFToken(),
+            },
+            body: JSON.stringify({
+                'old_name': oldName,
+                'new_name': newName
+            })
+        });
+
+        return await response.json();
+    }
+
+    /**
+     * Change column data type
+     */
+    async changeColumnType(columnName, newType) {
+        const response = await fetch(`/data-tools/api/studio/${this.datasourceId}/session/change-column-type/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': this.getCSRFToken(),
+            },
+            body: JSON.stringify({
+                'column_name': columnName,
+                'new_type': newType
+            })
+        });
+
+        return await response.json();
+    }
+
+    /**
+     * Fill missing values using various strategies
+     */
+    async fillMissingValues(columns, strategy, fillValue = null) {
+        const payload = {
+            'columns': columns,
+            'strategy': strategy
+        };
+
+        if (fillValue !== null) {
+            payload['fill_value'] = fillValue;
+        }
+
+        const response = await fetch(`/data-tools/api/studio/${this.datasourceId}/session/fill-missing-values/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': this.getCSRFToken(),
+            },
+            body: JSON.stringify(payload)
         });
 
         return await response.json();

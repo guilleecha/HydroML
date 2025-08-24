@@ -120,6 +120,7 @@ INSTALLED_APPS += [
     'crispy_forms',
     'crispy_tailwind',
     'taggit',
+    'tabler_icons',
 ]
 
 TAILWIND_APP_NAME = 'core'

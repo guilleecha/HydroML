@@ -275,7 +275,7 @@
 /* Active indicator styling (orange from base_github_style.html) */
 .wave-headbar-nav-item.active {
   color: var(--grove-text-primary);
-  border-bottom-color: #ea580c; /* Orange-500 for active state */
+  border-bottom-color: var(--color-amber-600); /* Amber for active state */
 }
 
 /* ===== PRIMARY ROW LAYOUT ===== */

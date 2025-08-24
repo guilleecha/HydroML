@@ -59,3 +59,4 @@ cryptography
 weasyprint
 pandasql==0.7.3
 django-codemirror-widget==0.4.1
+django-tabler-icons

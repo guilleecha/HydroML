@@ -130,44 +130,16 @@ def load_dataframe_for_pagination(datasource, user):
 
 def generate_column_definitions(df):
     """
-    Generate AG Grid column definitions from dataframe.
+    Generate column definitions for TanStack Table from dataframe.
     
     Args:
         df (pd.DataFrame): Input dataframe
         
     Returns:
-        list: Column definitions for AG Grid
+        list: Column names as simple string array for TanStack Table
     """
     try:
-        column_defs = []
-        
-        for col in df.columns:
-            dtype = str(df[col].dtype)
-            
-            # Determine column type for AG Grid
-            if 'int' in dtype or 'float' in dtype:
-                col_type = 'numericColumn'
-                filter_type = 'agNumberColumnFilter'
-            elif 'datetime' in dtype:
-                col_type = 'dateColumn'
-                filter_type = 'agDateColumnFilter'
-            else:
-                col_type = 'textColumn'
-                filter_type = 'agTextColumnFilter'
-
-            column_def = {
-                'headerName': col,
-                'field': col,
-                'sortable': True,
-                'filter': filter_type,
-                'resizable': True,
-                'type': col_type,
-                'width': min(max(len(col) * 10, 100), 200)  # Dynamic width
-            }
-
-            column_defs.append(column_def)
-
-        return column_defs
+        return list(df.columns) if not df.empty else []
 
     except Exception as e:
         logger.error(f"Error generating column definitions: {e}")

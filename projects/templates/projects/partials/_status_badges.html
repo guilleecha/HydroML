@@ -1,0 +1,120 @@
+{% comment %}
+Grove Badge Components for Projects
+Status indicators using Grove Design System badges
+{% endcomment %}
+
+{% load tabler_icons %}
+
+<!-- Data Source Status Badge -->
+{% if datasource.status %}
+    {% if datasource.status == 'processing' %}
+        <span class="grove-badge grove-badge--warning grove-badge--sm" 
+              data-grove-badge='{"variant": "warning", "size": "sm", "icon": "loader"}'>
+            {% tabler_icons "loader" class="grove-badge__icon animate-spin" %}
+            <span class="grove-badge__text">Procesando</span>
+        </span>
+    {% elif datasource.status == 'completed' %}
+        <span class="grove-badge grove-badge--success grove-badge--sm" 
+              data-grove-badge='{"variant": "success", "size": "sm", "icon": "check"}'>
+            {% tabler_icons "check" class="grove-badge__icon" %}
+            <span class="grove-badge__text">Completado</span>
+        </span>
+    {% elif datasource.status == 'error' %}
+        <span class="grove-badge grove-badge--error grove-badge--sm" 
+              data-grove-badge='{"variant": "error", "size": "sm", "icon": "alert-circle"}'>
+            {% tabler_icons "alert-circle" class="grove-badge__icon" %}
+            <span class="grove-badge__text">Error</span>
+        </span>
+    {% elif datasource.status == 'pending' %}
+        <span class="grove-badge grove-badge--default grove-badge--sm" 
+              data-grove-badge='{"variant": "default", "size": "sm", "icon": "clock"}'>
+            {% tabler_icons "clock" class="grove-badge__icon" %}
+            <span class="grove-badge__text">Pendiente</span>
+        </span>
+    {% endif %}
+{% endif %}
+
+<!-- File Type Badge -->
+{% if datasource.file_type %}
+    {% if datasource.file_type == 'csv' %}
+        <span class="grove-badge grove-badge--info grove-badge--xs grove-badge--outlined">
+            {% tabler_icons "file-text" class="grove-badge__icon" %}
+            <span class="grove-badge__text">CSV</span>
+        </span>
+    {% elif datasource.file_type == 'xlsx' or datasource.file_type == 'xls' %}
+        <span class="grove-badge grove-badge--teal grove-badge--xs grove-badge--outlined">
+            {% tabler_icons "file-spreadsheet" class="grove-badge__icon" %}
+            <span class="grove-badge__text">Excel</span>
+        </span>
+    {% elif datasource.file_type == 'json' %}
+        <span class="grove-badge grove-badge--purple grove-badge--xs grove-badge--outlined">
+            {% tabler_icons "braces" class="grove-badge__icon" %}
+            <span class="grove-badge__text">JSON</span>
+        </span>
+    {% elif datasource.file_type == 'parquet' %}
+        <span class="grove-badge grove-badge--orange grove-badge--xs grove-badge--outlined">
+            {% tabler_icons "database" class="grove-badge__icon" %}
+            <span class="grove-badge__text">Parquet</span>
+        </span>
+    {% else %}
+        <span class="grove-badge grove-badge--default grove-badge--xs grove-badge--outlined">
+            {% tabler_icons "file" class="grove-badge__icon" %}
+            <span class="grove-badge__text">{{ datasource.file_type|upper }}</span>
+        </span>
+    {% endif %}
+{% endif %}
+
+<!-- Data Quality Badge -->
+{% if datasource.quality_score %}
+    {% if datasource.quality_score >= 90 %}
+        <span class="grove-badge grove-badge--success grove-badge--sm grove-badge--dot">
+            <span class="grove-badge__dot"></span>
+            <span class="grove-badge__text">Alta Calidad</span>
+        </span>
+    {% elif datasource.quality_score >= 70 %}
+        <span class="grove-badge grove-badge--warning grove-badge--sm grove-badge--dot">
+            <span class="grove-badge__dot"></span>
+            <span class="grove-badge__text">Calidad Media</span>
+        </span>
+    {% else %}
+        <span class="grove-badge grove-badge--error grove-badge--sm grove-badge--dot">
+            <span class="grove-badge__dot"></span>
+            <span class="grove-badge__text">Requiere Limpieza</span>
+        </span>
+    {% endif %}
+{% endif %}
+
+<!-- Record Count Badge -->
+{% if datasource.record_count %}
+    <span class="grove-badge grove-badge--default grove-badge--sm">
+        {% tabler_icons "hash" class="grove-badge__icon" %}
+        <span class="grove-badge__text">{{ datasource.record_count|floatformat:0 }} registros</span>
+    </span>
+{% endif %}
+
+<!-- Project Assignment Badge -->
+{% if datasource.projects.count > 1 %}
+    <span class="grove-badge grove-badge--brand grove-badge--sm" 
+          title="Asignado a {{ datasource.projects.count }} proyectos">
+        {% tabler_icons "folder-share" class="grove-badge__icon" %}
+        <span class="grove-badge__text">{{ datasource.projects.count }} proyectos</span>
+    </span>
+{% elif datasource.projects.count == 1 %}
+    <span class="grove-badge grove-badge--brand grove-badge--sm grove-badge--outlined">
+        {% tabler_icons "folder" class="grove-badge__icon" %}
+        <span class="grove-badge__text">{{ datasource.projects.first.name|truncatechars:20 }}</span>
+    </span>
+{% endif %}
+
+<!-- Interactive Dismissible Tag Example -->
+{% if show_tags %}
+    {% for tag in datasource.tags.all %}
+        <span class="grove-badge grove-badge--indigo grove-badge--xs grove-badge--dismissible" 
+              data-grove-badge='{"variant": "indigo", "size": "xs", "dismissible": true}'>
+            <span class="grove-badge__text">{{ tag.name }}</span>
+            <button class="grove-badge__dismiss" aria-label="Remove tag">
+                {% tabler_icons "x" class="grove-badge__dismiss-icon" %}
+            </button>
+        </span>
+    {% endfor %}
+{% endif %}
